@@ -142,10 +142,10 @@ class RouteSegmentEventsValidation(object):
         ).with_columns(
             msg= pl.format(
                 "Segmen {}-{} {} pada ruas {} berjarak lebih dari {}m dari geometri LRS, yaitu {}m",
-                pl.col(self._events._linkid_col),
                 pl.col(self._events._from_sta_col),
                 pl.col(self._events._to_sta_col),
                 pl.col(self._events._lane_code_col),
+                pl.col(self._events._linkid_col),
                 pl.lit(threshold),
                 pl.col('dist')
             )
