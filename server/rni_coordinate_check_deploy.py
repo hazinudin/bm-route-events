@@ -1,5 +1,5 @@
 from ray import serve
-from service.segments.validation.base import RouteSegmentEventsValidation
+from src.service.segments.validation.base import RouteSegmentEventsValidation
 from src.route_events.segments.base.repo import RouteSegmentEventsRepo
 from src.route_events import LRSRoute
 from src.service.validation_result.result import ValidationResult
@@ -22,6 +22,7 @@ class RNICoordinateValidation:
         SMD_PWD = os.getenv('SMD_PWD')
 
         self.smd_engine = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{HOST}:1521/geodbbm")
+        self.repo = RouteSegmentEventsRepo(self.smd_engine, table_name='rni_2_2024')
 
     @app.post('/rni_rerun/')
     def validate_rni_coordinate(self, route: str):
@@ -32,15 +33,16 @@ class RNICoordinateValidation:
         check = RouteSegmentEventsValidation(
             events=events,
             lrs=lrs,
-            sql_engine=self.engine,
+            sql_engine=self.smd_engine,
             results = results
         )
 
         check.lrs_distance_check()
         check.lrs_monotonic_check()
         check.lrs_direction_check()
-        check.lrs_segment_length_check()
-        check.lrs_sta_check()
+        check.max_sta_check()
+        # check.lrs_segment_length_check()
+        # check.lrs_sta_check()
 
         if check._result.status != 'verified':
             check._result.get_all_messages().write_csv(
