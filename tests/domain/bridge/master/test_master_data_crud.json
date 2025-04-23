@@ -1,0 +1,17 @@
+{
+    "mode": "insert",
+    "val_history": [],
+    "id_jbt": "TEST_ID",
+    "no_jbt": "51.001.999.0",
+    "nama_jbt": "Jembatan Test",
+    "latitude": 0.4797659998732007,
+    "longitude": 121.92845899998532,
+    "linkid": "51001",
+    "id_prov": "51",
+    "tahun_bangun": 1990,
+    "pjg_total": 20.0,
+    "tgl_update": "13/11/2024",
+    "status_jbt": "N",
+    "tipe_jbt": "S",
+    "jenis_jbt": "FO"
+}

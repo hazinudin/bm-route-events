@@ -1,0 +1,77 @@
+{
+    "column_details": {
+        "NO_BTG": {
+            "dtype": "integer",
+            "db_col": "SPAN_NUMBER",
+            "range": {
+                "lower": 1,
+                "upper": null,
+                "eq_lower": true,
+                "eq_upper": false
+            }
+        },
+        "TIPE_BTG": {
+            "dtype": "string",
+            "db_col": "SPAN_TYPE",
+            "domain": [
+                "UTAMA",
+                "KANAN",
+                "KIRI"
+            ]
+        },
+        "SEQ_BTG": {
+            "dtype": "integer",
+            "db_col": "SPAN_SEQ",
+            "range": {
+                "lower": 1,
+                "upper": null,
+                "eq_upper": true,
+                "eq_lower": true
+            }
+        },
+        "PJG_BTG": {
+            "dtype": "double",
+            "db_col": "SPAN_LENGTH"
+        },
+        "JML_GELAGAR": {
+            "dtype": "integer",
+            "db_col": "GIRDER_COUNT",
+            "range": {
+                "lower": 1,
+                "upper": null,
+                "eq_upper": true,
+                "eq_lower": false
+            }
+        },
+        "SKEW": {
+            "dtype": "double",
+            "db_col": "SKEW",
+            "range": {
+                "upper": 45,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true
+            }
+        },
+        "RADIUS": {
+            "dtype": "double",
+            "db_col": "RADIUS"
+        },
+        "LBR_LANTAI_KEND": {
+            "dtype": "double",
+            "db_col": "FLOOR_WIDTH"
+        },
+        "LBR_TROTOAR": {
+            "dtype": "double",
+            "db_col": "SIDEWALK_WIDTH"
+        },
+        "TINGGI_RUANG_BEBAS": {
+            "dtype": "double",
+            "db_col": "HEADSPACE"
+        },
+        "STRUKTUR_BA": {
+            "dtype": "string",
+            "db_col": "SUPERSTRUCTURE"
+        }
+    }
+}

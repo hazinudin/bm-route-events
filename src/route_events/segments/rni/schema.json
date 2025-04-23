@@ -1,0 +1,338 @@
+{
+    "column_details": {
+        "LINKID": {
+            "dtype": "string"
+        },
+        "FROM_STA": {
+            "dtype": "integer"
+        },
+        "TO_STA": {
+            "dtype": "integer"
+        },
+        "SEGMENT_LENGTH": {
+            "dtype": "double"
+        },
+        "LANE_CODE": {
+            "dtype": "string",
+            "domain": [
+                "L1",
+                "L2",
+                "L3",
+                "L4",
+                "L5",
+                "L6",
+                "L7",
+                "L8",
+                "L9",
+                "R1",
+                "R2",
+                "R3",
+                "R4",
+                "R5",
+                "R6",
+                "R7",
+                "R8",
+                "R9"
+            ]
+        },
+        "SURF_TYPE": {
+            "dtype": "integer",
+            "range": {
+                "upper": 21,
+                "lower": 1,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            }
+        },
+        "SURF_YEAR": {
+            "dtype": "integer",
+            "range": {
+                "upper": 2024,
+                "lower": 0,
+                "eq_lower": false,
+                "eq_upper": true,
+                "review": false
+            }
+        },
+        "LANE_WIDTH": {
+            "dtype": "double",
+            "range": {
+                "upper": 3.6,
+                "lower": 2.75,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": true
+            }
+        },
+        "SURF_WIDTH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "L_INN_SHTYPE": {
+            "dtype": "integer",
+            "domain": [
+                0,
+                1,
+                2
+            ],
+            "allow_null": true
+        },
+        "L_OUT_SHTYPE": {
+            "dtype": "integer",
+            "domain": [
+                0,
+                1,
+                2
+            ],
+            "allow_null": true
+        },
+        "L_INN_SHWIDTH": {
+            "dtype": "double",
+            "range": {
+                "upper": 0.5,
+                "lower": 0,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": true
+            },
+            "allow_null": true
+        },
+        "L_OUT_SHWIDTH": {
+            "dtype": "double",
+            "range": {
+                "upper": 3.5,
+                "lower": 0,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": true
+            },
+            "allow_null": true
+        },
+        "L_DITCH_TYPE": {
+            "dtype": "integer",
+            "domain": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "allow_null": true
+        },
+        "L_DITCH_DEPTH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "L_DITCH_WIDTH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "R_INN_SHTYPE": {
+            "dtype": "integer",
+            "domain": [
+                0,
+                1,
+                2
+            ],
+            "allow_null": true
+        },
+        "R_OUT_SHTYPE": {
+            "dtype": "integer",
+            "domain": [
+                0,
+                1,
+                2
+            ],
+            "allow_null": true
+        },
+        "R_INN_SHWIDTH": {
+            "dtype": "double",
+            "range": {
+                "upper": 0.5,
+                "lower": 0,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": true
+            },
+            "allow_null": true
+        },
+        "R_OUT_SHWIDTH": {
+            "dtype": "double",
+            "range": {
+                "upper": 3.5,
+                "lower": 0,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": "upper"
+            },
+            "allow_null": true
+        },
+        "R_DITCH_TYPE": {
+            "dtype": "integer",
+            "domain": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "allow_null": true
+        },
+        "R_DITCH_DEPTH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "R_DITCH_WIDTH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "MED_WIDTH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "ROAD_TYPE": {
+            "dtype": "integer",
+            "range": {
+                "upper": 28,
+                "lower": 1,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            }
+        },
+        "L_TERRAIN_TYPE": {
+            "dtype": "string",
+            "domain": [
+                "T1",
+                "T2",
+                "T3",
+                "L1",
+                "L2",
+                "L3"
+            ],
+            "allow_null": true
+        },
+        "R_TERRAIN_TYPE": {
+            "dtype": "string",
+            "domain": [
+                "T1",
+                "T2",
+                "T3",
+                "L1",
+                "L2",
+                "L3"
+            ],
+            "allow_null": true
+        },
+        "VER_ALIGNMENT": {
+            "dtype": "integer",
+            "domain": [
+                1,
+                2,
+                3
+            ],
+            "allow_null": true
+        },
+        "HOR_ALIGNMENT": {
+            "dtype": "integer",
+            "domain": [
+                1,
+                2,
+                3
+            ],
+            "allow_null": true
+        },
+        "L_LAND_USE": {
+            "dtype": "integer",
+            "domain": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "allow_null": true
+        },
+        "R_LAND_USE": {
+            "dtype": "integer",
+            "domain": [
+                1,
+                2,
+                3,
+                4
+            ],
+            "allow_null": true
+        },
+        "GRADE": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "SURVEY_YEAR": {
+            "dtype": "integer",
+            "range": {
+                "upper": 2050,
+                "lower": 0,
+                "eq_lower": false,
+                "eq_upper": true,
+                "review": false
+            }
+        },
+        "SURVEY_DATE": {
+            "dtype": "date"
+        },
+        "TO_STA_LONG": {
+            "dtype": "double",
+            "range": {
+                "upper": 141.1,
+                "lower": 95,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            }
+        },
+        "TO_STA_LAT": {
+            "dtype": "double",
+            "range": {
+                "upper": 6,
+                "lower": -11,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            }
+        },
+        "TO_STA_ALT": {
+            "dtype": "double",
+            "range": {
+                "upper": 5000,
+                "lower": null,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "CONSULTANT_ID": {
+            "dtype": "integer"
+        },
+        "TEAM_LEAD_ID": {
+            "dtype": "integer"
+        },
+        "SURV_TOOL_ID": {
+            "dtype": "integer"
+        },
+        "INTERVENSI": {
+            "dtype": "integer",
+            "domain": [
+                0,
+                1
+            ],
+            "optional": true,
+            "default": 0
+        },
+        "DETIL_IVR": {
+            "dtype": "string",
+            "optional": true,
+            "allow_null": true
+        }
+    }
+}

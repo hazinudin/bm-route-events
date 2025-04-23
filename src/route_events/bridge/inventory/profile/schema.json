@@ -1,0 +1,69 @@
+{
+    "column_details": {
+        "MODE": {
+            "dtype": "string",
+            "domain": [
+                "update",
+                "insert",
+                "archive",
+                "force"
+            ],
+            "skip": true
+        },
+        "VAL_HISTORY": {
+            "dtype": "list",
+            "skip": true
+        },
+        "ID_JBT": {
+            "dtype": "string",
+            "db_col": "BRIDGE_ID"
+        },
+        "TIPE_LINTASAN": {
+            "dtype": "string",
+            "db_col": "CROSS_TYPE"
+        },
+        "TANGGAL_INV": {
+            "dtype": "date",
+            "db_col": "INV_DATE"
+        },
+        "BANGUNAN_ATAS": {
+            "dtype": "list",
+            "skip": true
+        },
+        "TAHUN_INV": {
+            "dtype": "integer",
+            "db_col": "INV_YEAR"
+        },
+        "LINKID": {
+            "dtype": "string",
+            "db_col": "LINKID"
+        },
+        "LONGITUDE": {
+            "dtype": "double",
+            "db_col": "LONGITUDE"
+        },
+        "LATITUDE":{
+            "dtype": "double",
+            "db_col": "LATITUDE"
+        },
+        "PJG_TOTAL": {
+            "dtype": "double",
+            "range": {
+                "lower": 0,
+                "upper": 4000,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": true
+            },
+            "db_col": "BRIDGE_LENGTH"
+        },
+        "LBR_JEMBATAN": {
+            "dtype": "double",
+            "db_col": "BRIDGE_WIDTH"
+        },
+        "BTG_TERPANJANG": {
+            "dtype": "double",
+            "db_col": "LONGEST_SPAN"
+        }
+    }
+}

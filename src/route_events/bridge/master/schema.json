@@ -1,0 +1,108 @@
+{
+  "column_details": {
+    "MODE": {
+      "dtype": "string",
+      "domain": [
+        "UPDATE",
+        "INSERT",
+        "ARCHIVE",
+        "FORCE"
+      ],
+      "skip": true
+    },
+    "VAL_HISTORY": {
+      "dtype": "list",
+      "skip": true
+    },
+    "ID_JBT": {
+      "dtype": "string",
+      "db_col": "BRIDGE_ID"
+    },
+    "NO_JBT": {
+      "dtype": "string",
+      "db_col": "BRIDGE_NUM"
+    },
+    "NAMA_JBT": {
+      "dtype": "string",
+      "db_col": "BRIDGE_NAME"
+    },
+    "LATITUDE": {
+      "dtype": "double",
+      "range": {
+        "upper": 6,
+        "lower": -11,
+        "eq_lower": true,
+        "eq_upper": true,
+        "review": false
+      },
+      "db_col": "LATITUDE"
+    },
+    "LONGITUDE": {
+      "dtype": "double",
+      "range": {
+        "upper": 141.1,
+        "lower": 95,
+        "eq_lower": true,
+        "eq_upper": true,
+        "review": false
+      },
+      "db_col": "LONGITUDE"
+    },
+    "LINKID": {
+      "dtype": "string",
+      "db_col": "LINKID"
+    },
+    "ID_PROV": {
+      "dtype": "string",
+      "db_col": "BM_PROV_ID"
+    },
+    "TAHUN_BANGUN": {
+      "dtype": "integer",
+      "db_col": "CONS_YEAR",
+      "range": {
+        "lower": 1800,
+        "upper": 2100,
+        "eq_lower": true,
+        "eq_upper": false,
+        "review": false
+      }
+    },
+    "PJG_TOTAL": {
+      "dtype": "double",
+      "range": {
+        "lower": 0,
+        "upper": 4000,
+        "eq_upper": true,
+        "eq_lower": true,
+        "review": true
+      },
+      "db_col": "BRIDGE_LENGTH"
+    },
+    "TGL_UPDATE": {
+      "dtype": "date",
+      "db_col": "LAST_INV_DATE"
+    },
+    "STATUS_JBT": {
+      "dtype": "string",
+      "domain": [
+        "N",
+        "NS"
+      ],
+      "db_col": "BRIDGE_STATUS"
+    },
+    "TIPE_JBT": {
+      "dtype": "string",
+      "domain": [
+        "K",
+        "S",
+        "G"
+      ],
+      "db_col": "BRIDGE_TYPE"
+    },
+    "JENIS_JBT": {
+      "dtype": "string",
+      "db_col": "BRIDGE_STR_TYPE",
+      "allow_null": true
+    }
+  }
+}

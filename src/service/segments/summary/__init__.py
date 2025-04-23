@@ -1,0 +1,1 @@
+from .kemantapan import Kemantapan

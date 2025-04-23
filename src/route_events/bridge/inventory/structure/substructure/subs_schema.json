@@ -1,0 +1,24 @@
+{
+    "column_details": {
+        "STATUS": {
+            "dtype": "string",
+            "domain": [
+                "PILAR",
+                "KPL_JBT"
+            ],
+            "db_col": "STATUS"
+        },
+        "NO": {
+            "dtype": "integer",
+            "db_col": "SUBS_NUMBER"
+        },
+        "LATITUDE": {
+            "dtype": "double",
+            "db_col": "LATITUDE"
+        },
+        "LONGITUDE": {
+            "dtype": "double",
+            "db_col": "LONGITUDE"
+        }
+    }
+}

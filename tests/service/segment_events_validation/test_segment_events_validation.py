@@ -1,0 +1,161 @@
+import unittest
+from src.service import RouteSegmentEventsValidation
+from src.route_events import RouteSegmentEventsRepo, RouteSegmentEvents
+from src.route_events import LRSRoute
+from src.service.validation_result.result import ValidationResult
+from sqlalchemy import create_engine
+import json
+import cProfile
+import pstats
+from dotenv import load_dotenv
+import os
+
+
+load_dotenv('tests/dev.env')
+HOST = os.getenv('DB_HOST')
+USER = os.getenv('SMD_USER')
+PWD = os.getenv('SMD_PWD')
+
+engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
+
+
+class TestRouteSegmentEventsValidation(unittest.TestCase):
+    def test_init(self):
+        repo = RouteSegmentEventsRepo(engine, 'smd.rni_2_2024')
+        events = repo.get_by_linkid('44082')
+        results = ValidationResult('44082')
+        lrs = LRSRoute.from_feature_service('localhost:50052', '44082')
+
+        check = RouteSegmentEventsValidation(
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results
+        )
+
+        check.df_lrs_mv
+        check.df_lrs_dist
+
+        self.assertTrue(True)
+
+    def test_lrs_check(self):        
+        events = RouteSegmentEvents.from_excel(
+            'tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
+            config_path='tests/domain/route_segments/input_config/rni_config.json',
+            linkid='15010',
+            ignore_review=True
+        )
+        
+        results = ValidationResult('15010')
+        lrs = LRSRoute.from_geojson_file('tests/domain/lrs/lrs_15010.json')
+
+        check = RouteSegmentEventsValidation(
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results
+        )
+
+        check.lrs_monotonic_check()
+        check.lrs_distance_check()
+        check.lrs_direction_check()
+        check.lrs_segment_length_check()
+        check.lrs_sta_check()
+
+        self.assertTrue(True)
+
+
+from src.route_events import RouteRNI, RouteRNIRepo
+from src.service import RouteRNIValidation
+
+class TestRouteRNIEventsValidation(unittest.TestCase):
+    def test_init(self):
+        routeid = '44082'
+        repo = RouteRNIRepo(engine)
+        events = repo.get_by_linkid(routeid, 2024, raise_if_table_does_not_exists=True)
+        results = ValidationResult(routeid)
+
+        check = RouteRNIValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results
+        )
+
+        self.assertTrue(True)
+
+    def test_side_columns_check(self):
+        routeid = '15010'
+        events = RouteRNI.from_excel(
+            'tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
+            linkid='15010',
+            ignore_review=True
+        )
+        results = ValidationResult(routeid)
+
+        check = RouteRNIValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results
+        )
+
+        check.side_columns_check()
+
+        self.assertTrue(True)
+
+    def test_prev_year_comparison(self):
+        routeid = '15010'
+        events = RouteRNI.from_excel(
+            'tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
+            linkid='15010',
+            ignore_review=True
+        )
+        results = ValidationResult(routeid)
+
+        check = RouteRNIValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2025
+        )
+
+        check.decreasing_lane_width_check()
+        check.decreasing_lane_count()
+        check.decreasing_surf_width_check()
+
+        self.assertTrue(True)
+
+    def test_excel_validation(self):
+        routeid = '15010'
+        check = RouteRNIValidation.validate_excel(
+            excel_path='tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
+            route=routeid,
+            survey_year=2024,
+            sql_engine=engine,
+            lrs=None,
+            ignore_review=False
+        )
+
+        self.assertFalse(check.get_status() == 'rejected')
+        self.assertTrue(check.get_status() == 'review')
+        self.assertFalse(check._events.pl_df.is_empty())
+
+    def test_paved_to_unpaved_check(self):
+        routeid = '15010'
+        check = RouteRNIValidation.validate_excel(
+            excel_path='tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
+            route=routeid,
+            survey_year=2024,
+            sql_engine=engine,
+            lrs=None,
+            ignore_review=False
+        )
+
+        check.paved_to_unpaved_check()
+
+        self.assertTrue(True)

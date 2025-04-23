@@ -1,0 +1,42 @@
+{
+    "mode": "insert",
+    "val_history": [],
+    "id_jbt": "3500725",
+    "tipe_lintasan": "XXX",
+    "tanggal_inv": "23/06/2023",
+    "tahun_inv": "2023",
+    "linkid": "56026",
+    "longitude": 1.2208504002,
+    "latitude": -3.49289000,
+    "pjg_total": 2.4,
+    "lbr_jembatan": 1.0,
+    "btg_terpanjang": 4.0,
+    "bangunan_atas": [
+      {
+        "no_btg": 1,
+        "tipe_btg": "utama",
+        "seq_btg": 1,
+        "pjg_btg": 100.83,
+        "jml_gelagar": 4,
+        "radius": 99,
+        "skew": 45,
+        "lbr_lantai_kend": 99.1,
+        "lbr_trotoar": 99.1,
+        "tinggi_ruang_bebas": 99.1,
+        "struktur_ba": "BKP"
+      },
+      {
+        "no_btg": 2,
+        "tipe_btg": "utama",
+        "seq_btg": 1,
+        "pjg_btg": 100,
+        "jml_gelagar": 99,
+        "radius": 99,
+        "skew": 45,
+        "lbr_lantai_kend": 99.1,
+        "lbr_trotoar": 99.1,
+        "tinggi_ruang_bebas": 99.1,
+        "struktur_ba": "BKP"
+      }
+    ]
+  }

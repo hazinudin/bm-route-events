@@ -1,0 +1,122 @@
+{
+    "mode": "insert",
+    "val_history": [],
+    "id_jbt": "3500725",
+    "tipe_lintasan": "XXX",
+    "tanggal_inv": "23/06/2023",
+    "tahun_inv": "2023",
+    "linkid": "56026",
+    "longitude": 1.2208504002,
+    "latitude": -3.49289000,
+    "pjg_total": 2.4,
+    "lbr_jembatan": 1.0,
+    "btg_terpanjang": 4.0,
+    "bangunan_atas": [
+      {
+        "no_btg": 1,
+        "tipe_btg": "utama",
+        "seq_btg": 1,
+        "pjg_btg": 100.83,
+        "jml_gelagar": 4,
+        "radius": 99,
+        "skew": 45,
+        "lbr_lantai_kend": 99.1,
+        "lbr_trotoar": 99.1,
+        "tinggi_ruang_bebas": 99.1,
+        "struktur_ba": "BKP",
+        "elemen":
+        [
+          {"L3": "3.480", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "4.511", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "4.515", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "4.514", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "3.620", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": null}]},
+          {"L3": "3.610", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.600", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.630", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "4.414", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.710", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.720", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.730", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.740", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.333", "BHN": "BHN"}]},
+          {"L3": "3.750", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.333", "BHN": "BHN"}]},
+          {"L3": "3.760", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.770", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.820", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.850", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.910", "tipe": "A", "bhn": "BCD", "sifat":"X", "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]}
+        ],
+        "bangunan_bawah":
+                [
+                  {
+                    "status": "kpl_jbt",
+                    "no": 1,
+                    "latitude": 3.35626,
+                    "longitude": 117.5684,
+                    "elemen": [
+                      {"L3": "3.310", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": null},
+                      {"L3": "4.326", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": [{"kode_element": "4.321", "BHN": "BHN"}]}
+                    ]
+                  },
+                  {
+                    "status": "pilar",
+                    "no": 2,
+                    "latitude": 3.35626,
+                    "longitude": 117.5684,
+                    "elemen": [
+                      {"L3": "3.310", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": null},
+                      {"L3": "4.326", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": [{"kode_element": "4.321", "BHN": "BHN"}]}
+                    ]
+                  }
+                ]
+      },
+      {
+        "no_btg": 2,
+        "tipe_btg": "utama",
+        "seq_btg": 1,
+        "pjg_btg": 100,
+        "jml_gelagar": 99,
+        "radius": 99,
+        "skew": 45,
+        "lbr_lantai_kend": 99.1,
+        "lbr_trotoar": 99.1,
+        "tinggi_ruang_bebas": 99.1,
+        "struktur_ba": "BKP",
+        "elemen":
+        [
+          {"L3": "3.480", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "4.511", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "4.515", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "4.514", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "L4MAT"}, {"kode_element": "4.321", "BHN": "L4MAT"}]},
+          {"L3": "3.620", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.610", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.600", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.630", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "4.414", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.710", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.720", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.730", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.321", "BHN": "BHN"}]},
+          {"L3": "3.740", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.333", "BHN": "BHN"}]},
+          {"L3": "3.750", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.333", "BHN": "BHN"}]},
+          {"L3": "3.760", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.770", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.820", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.850", "tipe": "A", "bhn": "BCD", "sifat":null, "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]},
+          {"L3": "3.910", "tipe": "A", "bhn": "BCD", "sifat":"X", "L4": [{"kode_element": "4.320", "BHN": "BHN"}, {"kode_element": "4.514", "BHN": "BHN"}]}
+        ],
+        "bangunan_bawah":
+                [
+                  {
+                    "status": "pilar",
+                    "no": 3,
+                    "latitude": 3.35626,
+                    "longitude": 117.5684,
+                    "elemen": [
+                      {"L3": "3.310", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": null},
+                      {"L3": "4.326", "tipe": "A", "bhn": "ABC", "sifat":null, "L4": [{"kode_element": "4.321", "BHN": "BHN"}]}
+                    ]
+                  }
+                ]
+      }
+    ]
+  }

@@ -1,0 +1,21 @@
+{
+    "column_details": {
+        "L3": {
+            "dtype": "string",
+            "db_col": "L3"
+        },
+        "TIPE": {
+            "dtype": "string",
+            "db_col": "TYPE"
+        },
+        "BHN": {
+            "dtype": "string",
+            "db_col": "MATERIAL"
+        },
+        "SIFAT": {
+            "dtype": "string",
+            "allow_null": true,
+            "db_col": "PROPERTY"
+        }
+    }
+}

@@ -1,0 +1,1 @@
+from route_events.schema.base import RouteEventsSchema

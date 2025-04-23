@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package bridge_master;
+
+service BridgeMaster {
+    rpc GetByID (BridgeIdRequests) returns (Bridges) {}
+
+    rpc GetByName (NameRequests) returns (Bridges) {}
+
+    rpc GetByBridgeNumber (NumberRequests) returns (Bridges) {}
+
+    rpc GetBySpatialFilter (SpatialFilter) returns (Bridges) {}
+
+    rpc Insert(Bridges) returns (EditResults) {}
+
+    rpc Update(Bridges) returns (EditResults) {}
+
+    rpc Delete(ObjectIdRequests) returns (EditResults) {}
+
+    rpc Retire(Bridges) returns (EditResults) {}
+}
+
+message BridgeIdRequests {
+    repeated string bridge_ids = 1;
+}
+
+message ObjectIdRequests {
+    repeated int64 objectids = 1;
+}
+
+message NameRequests {
+    repeated string name = 1;
+}
+
+message NumberRequests {
+    repeated string number = 1;
+}
+
+message SpatialFilter {
+    string geojson = 1;
+    string crs = 2;
+}
+
+message Result {
+    int64 objectid = 1;
+    int64 global_id = 2;
+    bool success = 3;
+}
+
+message SpatialReference {
+    string wkt = 1;
+}
+
+message Point {
+    double x = 1;
+    double y = 2;
+    SpatialReference spatial_reference = 3;
+}
+
+message EditResults {
+    repeated Result add_results = 1;
+    repeated Result update_results = 2;
+    repeated Result delete_results = 3;
+}
+
+message Attributes {
+    string bridge_id = 1;
+    int32 objectid = 2;
+    string bridge_name = 3;
+    string city_regency = 4;
+    double bridge_length = 5;
+    double bridge_width = 6;
+    string start_date = 7; // should be converted from Timestamp to strftime
+    string end_date = 8; // should be converted from Timestamp to strftime
+    double longitude = 9;
+    double latitude = 10;
+    string bridge_num = 11;
+    string bridge_status = 12;
+    double shore_dist = 13;
+    double adt = 14;
+    double aadt = 15;
+    double adt_year = 16;
+    string road_func = 17;
+    double rni_surf_width = 18;
+    int32 rni_year = 19;
+    string bm_prov_id = 20;
+    string linkid = 21;
+    int32 cons_year = 22;
+    string last_inv_date = 23;
+    string bridge_type = 24;
+    string bridge_str_type = 25;
+}
+
+message Bridge {
+    Attributes attributes = 1;
+    Point geometry = 2;
+}
+
+ message Bridges {
+    repeated Bridge bridges = 1;
+ }

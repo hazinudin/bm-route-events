@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package road_network;
+
+service RoadNetwork {
+    rpc DownloadAsSHP(DownloadRequests) returns (FilePath) {}
+    rpc GetByRouteId(RouteRequests) returns (Routes) {}
+}
+
+message DownloadRequests {
+    repeated string routes = 1;
+    string output_shp = 2;
+}
+
+message RouteRequests {
+    repeated string routes = 1;
+}
+
+message FilePath {
+    string path = 1;
+}
+
+message Routes {
+    string geojson = 1;
+}
