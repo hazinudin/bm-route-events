@@ -180,14 +180,21 @@ class RouteSegmentEvents(object):
         return self._segment_dto_mapper(last_segment)[0]
     
     @property
-    def max_to_sta(self):
+    def max_to_sta(self) -> int:
         """
         Return largest TO STA number.
         """
         return self.pl_df[self._to_sta_col].max()
     
     @property
-    def min_from_sta(self):
+    def max_from_sta(self) -> int:
+        """
+        Return largets FROM STA number.
+        """
+        return self.pl_df[self._from_sta_col].max()
+    
+    @property
+    def min_from_sta(self) -> int:
         """
         Return smallest FROM STA number.
         """
