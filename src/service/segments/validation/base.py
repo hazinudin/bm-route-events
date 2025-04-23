@@ -453,18 +453,14 @@ class RouteSegmentEventsValidation(object):
 
         return self
     
-    def max_sta_check(self, tolerance=30):
+    def max_sta_check(self):
         """
-        Compare events max TO_STA with LRS max M-Value.
+        Compare events max FROM_STA with LRS max M-Value.
         """
-        if not isclose(
-            self._events.max_to_sta,
-            self._lrs.max_m_value,
-            atol=tolerance
-        ) and (
-            self._events.max_to_sta < self._lrs.max_m_value
-        ):
-            msg = f"Tidak ditemukan data survey dari STA {self._events.max_to_sta} hingga {self._lrs.max_m_value}"
+        if (
+            self._events.max_from_sta*self._events.sta_conversion
+            ) < self._lrs.max_m_value-100:
+            msg = f"Tidak ditemukan data survey dari STA {self._events.max_to_sta*self._events.sta_conversion}m hingga {self._lrs.max_m_value}m"
 
             self._result.add_message(
                 msg,
