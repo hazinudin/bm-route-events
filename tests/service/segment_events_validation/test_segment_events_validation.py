@@ -159,3 +159,148 @@ class TestRouteRNIEventsValidation(unittest.TestCase):
         check.paved_to_unpaved_check()
 
         self.assertTrue(True)
+
+
+from src.route_events import RouteRoughness, RouteRoughnessRepo
+from src.service import RouteRoughnessValidation
+
+class TestRouteRoughnessEventsValidation(unittest.TestCase):
+    def test_prev_data(self):
+        routeid = '44082'
+        repo = RouteRoughnessRepo(engine)
+        events = repo.get_by_linkid(
+            routeid,
+            2024,
+            2,
+            True
+        )
+
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024,
+            survey_semester=2
+        )
+
+        self.assertTrue(
+            c.prev_data.year == 2024 and 
+            c.prev_data.semester == 1
+        )
+        self.assertFalse(c.prev_data.no_data)
+
+    def test_rni_data(self):
+        routeid = '44082'
+        repo = RouteRoughnessRepo(engine)
+        events = repo.get_by_linkid(
+            routeid,
+            2024,
+            2,
+            True
+        )
+
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024,
+            survey_semester=2
+        )
+
+        self.assertTrue(c.rni.year == 2024)
+        self.assertFalse(c.rni.no_data)
+        self.assertTrue(type(c.rni) is RouteRNI)
+
+    def test_prev_rni(self):
+        routeid = '44082'
+        repo = RouteRoughnessRepo(engine)
+        events = repo.get_by_linkid(
+            routeid,
+            2024,
+            2,
+            True
+        )
+
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024,
+            survey_semester=2
+        )
+
+        self.assertTrue(c.prev_rni.year == 2023)
+        self.assertFalse(c.prev_rni.no_data)
+        self.asserTrue(type(c.prev_rni) is RouteRNI)
+
+        self.assertTrue(True)
+
+    def test_kemantapan_comparison(self):
+        """
+        Test kemantapan_comparison function.
+        """
+        routeid = '44082'
+        repo = RouteRoughnessRepo(engine)
+        events = repo.get_by_linkid(
+            routeid,
+            2024,
+            2,
+            True
+        )
+
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024,
+            survey_semester=2
+        )
+
+        c.kemantapan_comparison_check()
+
+        self.assertTrue(c.get_status() == 'review')
+
+    def test_rni_segments_comparison(self):
+        """
+        Test RNI segments comparison.
+        """
+        routeid = '44082'
+        repo = RouteRoughnessRepo(engine)
+        events = repo.get_by_linkid(
+            routeid,
+            2024,
+            2,
+            True
+        )
+
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024,
+            survey_semester=2
+        )
+
+        c.rni_segments_comparison()
+
+        self.assertTrue(True)
