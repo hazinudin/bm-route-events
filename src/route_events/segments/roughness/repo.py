@@ -1,4 +1,4 @@
-from sqlalchemy import Engine, inspect
+from sqlalchemy import Engine, inspect, text
 from .model import RouteRoughness
 import polars as pl
 from typing import Literal
@@ -53,3 +53,57 @@ class RouteRoughnessRepo(object):
         obj.sta_unit = 'km'
 
         return obj
+
+    def put(self, events: RouteRoughness, year: int, semester: int):
+        """
+        Put RNI data into RNI geodatabase table.
+        """
+        with self._engine.connect() as conn, conn.execution_options(isolation_level='READ COMMITTED'):
+            try:
+                self._delete(events, conn=conn, commit=False, year=year, semester=semester)
+                self._insert(events, conn=conn, commit=False, year=year, semester=semester)
+            except Exception as e:
+                conn.rollback()
+                raise e
+
+            conn.commit()
+
+        return
+
+    def _delete(self, events: RouteRoughness, year: int, semester: int, conn, commit: bool = True):
+        """
+        Delete RNI data into RNI geodatabase table.
+        """
+        # Delete statement
+        _where = f"where {events._linkid_col} = '{events.route_id}'"
+        _del_stt = f"delete from {self.table}_{semester}_{year}" + _where
+
+        try:
+            conn.execute(text(_del_stt))
+        except Exception as e:
+            conn.rollback()
+            raise e
+
+        if commit:
+            conn.commit()
+        
+        return
+    
+    def _insert(self, events: RouteRoughness, year: int, semester: int, conn, commit: bool = True):
+        """
+        Insert RNI data into RNI geodatabase table.
+        """
+        try:
+            events.pl_df.write_database(
+                f"{self._table}_{semester}_{year}",
+                connection=conn,
+                if_table_exists='append'
+            )
+        
+        except Exception as e:
+            conn.rollback()
+            raise e
+        
+        if commit:
+            conn.commit()
+
