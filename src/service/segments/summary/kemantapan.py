@@ -132,7 +132,8 @@ class Kemantapan(object):
                 'iri_rating',
                 'pci_rating'
             ],
-            exclude_null_grade: bool = True
+            exclude_null_grade: bool = True,
+            eager=True
         ):
         """
         Kemantapan grade for every segment.
@@ -141,11 +142,17 @@ class Kemantapan(object):
         ctxt.register('joined', self.joined)
         
         if exclude_null_grade:
-            return ctxt.execute(self.grading_query(summary_type)).collect().filter(
+            return ctxt.execute(
+                self.grading_query(summary_type),
+                eager=eager
+            ).filter(
                 pl.col('grade').is_not_null()
             )
         else:
-            return ctxt.execute(self.grading_query(summary_type)).collect()
+            return ctxt.execute(
+                self.grading_query(summary_type),
+                eager=eager
+            )
     
     def route(self, exclude_null_grade: bool = True):
         return
