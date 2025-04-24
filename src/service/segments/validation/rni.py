@@ -94,7 +94,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
             sql_engine: Engine,
             results: ValidationResult,
             survey_year: int = None
-        ):
+    ):
         super().__init__(
             events,
             lrs,
@@ -111,7 +111,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
     @property
     def prev_data(self) -> RouteRNI:
         """
-        Comparison from previous year data.
+        Previous year data.
         """
         if self._prev_data is None:
             self._prev_data = self._repo.get_by_linkid(
