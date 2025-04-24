@@ -69,8 +69,8 @@ class RouteRNIRepo(object):
         """
         with self._engine.connect() as conn, conn.execution_options(isolation_level='READ COMMITTED'):
             try:
-                self._delete(events, conn=conn, commit=False)
-                self._insert(events, conn=conn, commit=False)
+                self._delete(events, conn=conn, commit=False, year=year, semester=semester)
+                self._insert(events, conn=conn, commit=False, year=year, semester=semester)
             except Exception as e:
                 conn.rollback()
                 raise e
