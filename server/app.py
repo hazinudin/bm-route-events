@@ -5,7 +5,8 @@ from pydantic import BaseModel
 from route_events_service import (
     BridgeMasterValidation,
     BridgeInventoryValidation,
-    RouteRNIValidation
+    RouteRNIValidation,
+    RouteRoughnessValidation
 )
 from route_events import LRSRoute
 import json
@@ -145,5 +146,34 @@ class DataValidation:
             check.put_data()
             
         return
+    
+    @app.post('/road/roughness_validation')
+    def validate_iri(
+            self,
+            payload: RoadSurveyData,
+            write: bool = False
+    ):
+        lrs = LRSRoute.from_feature_service(
+            'localhost:50052',
+            payload.routes[0]
+        )
+
+        check = RouteRoughnessValidation(
+            excel_path=payload.file_name,
+            route=payload.routes[0],
+            survey_year=payload.year,
+            survey_semester=payload.semester,
+            sql_engine=self.smd_engine,
+            lrs=lrs
+        )
+
+        if check.get_status() == 'rejected':
+            return check.smd_output_msg(
+                show_all_msg=payload.show_all_msg,
+                as_dict=True
+            )
+        
+        if write and (check.get_status() == 'verified'):
+            check.put_data()
     
 serve.run(DataValidation.bind(), route_prefix='/bm')
