@@ -267,3 +267,9 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
             )
         
         return
+    
+    def put_data(self):
+        """
+        Delete and insert events data to geodatabase table.
+        """
+        self._repo.put(self._events)
