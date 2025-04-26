@@ -12,7 +12,8 @@ class RoutePointEvents(object):
             route: str = None,
             data_year: int = None,
             data_semester: Literal[1,2] = None,
-            sta_unit: str = 'dm'
+            sta_unit: str = 'dm',
+            lane_data: bool = False
     ):
         # Default columsn
         self._linkid_col = 'LINKID'
@@ -28,6 +29,7 @@ class RoutePointEvents(object):
 
         # Data
         self.artable = artable
+        self.lane_data = lane_data
         self._pl_df = pl.from_arrow(artable)
         self._data_year = data_year
         self._data_semester = data_semester
@@ -70,7 +72,7 @@ class RoutePointEvents(object):
         """
         Points object
         """
-        if self._lane_code_col is None:
+        if not self.lane_data:
             selection = [
                 self._linkid_col,
                 self._sta_col,
