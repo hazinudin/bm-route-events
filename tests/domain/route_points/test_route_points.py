@@ -1,5 +1,5 @@
 import unittest
-from src.route_events.points.base import RoutePointEvents
+from route_events.points.base import RoutePointEvents
 import polars as pl
 
 
@@ -19,8 +19,3 @@ class TestRoutePoints(unittest.TestCase):
         self.assertTrue(e.min_sta == 0)
         self.assertTrue(e.max_sta == 20)
         self.assertFalse(e.no_data)
-
-
-class TestRouteDefect(unittest.TestCase):
-    def test_from_excel(self):
-        self.assertTrue(True)
