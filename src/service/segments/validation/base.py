@@ -415,7 +415,7 @@ class RouteSegmentEventsValidation(object):
         ).select(
             msg = pl.format(
                 "Tidak ditemukan data survey dari STA {} hingga {} pada lane {}.",
-                pl.col('from_stas'),
+                pl.col('from_sta'),
                 pl.col('to_sta'),
                 pl.col('lane')
             )
