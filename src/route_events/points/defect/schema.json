@@ -1,0 +1,117 @@
+{
+    "column_details":{
+        "LINKID":{
+            "dtype": "string"
+        },
+        "STA":{
+            "dtype": "integer"
+        },
+        "STA_LONG":{
+            "dtype": "double"
+        },
+        "STA_LAT":{
+            "dtype": "double"
+        },
+        "SURVEY_DIREC":{
+            "dtype": "string",
+            "domain": [
+                "O",
+                "N"
+            ]
+        },
+        "LANE_CODE": {
+            "dtype": "string",
+            "domain": [
+                "L1",
+                "L2",
+                "L3",
+                "L4",
+                "L5",
+                "L6",
+                "L7",
+                "L8",
+                "L9",
+                "R1",
+                "R2",
+                "R3",
+                "R4",
+                "R5",
+                "R6",
+                "R7",
+                "R8",
+                "R9"
+            ]
+        },
+        "SURF_TYPE": {
+            "dtype": "integer"
+        },
+        "VIDEO_ID": {
+            "dtype": "string",
+            "allow_null": true
+        },
+        "URL_PHOTO": {
+            "dtype": "string"
+        },
+        "DEFECTS_TYPE": {
+            "dtype": "string",
+            "domain": [
+                "AS_ALG_CRACK",
+                "AS_EDGE_CRACK",
+                "AS_LONG_CRACK",
+                "AS_OTHER_CRACK",
+                "AS_POTHOLE",
+                "AS_PATCHING",
+                "AS_RUTTING",
+                "AS_CORRUGATION",
+                "AS_DEPRESSION",
+                "AS_RAVELLING",
+                "AS_BLEEDING",
+                "AS_SH_DROPOFF",
+                "RG_COBREAK",
+                "RG_DIV_SLAB",
+                "RG_FAULTING",
+                "RG_LINE_CRACK",
+                "RG_PUNCH_OUT",
+                "RG_SHRINKAGE",
+                "RG_PUMPING",
+                "RG_COSPALLING",
+                "RG_JSPALLING",
+                "RG_JSEAL",
+                "RG_PATCHING",
+                "RG_SH_DROPOFF"
+            ]
+        },
+        "DEFECTS_WIDTH": {
+            "dtype": "double"
+        },
+        "DEFECTS_LENGTH": {
+            "dtype": "double"
+        },
+        "DEFECTS_VOL": {
+            "dtype": "double"
+        },
+        "DEFECTS_SEVERITY": {
+            "dtype": "string",
+            "domain": [
+                "R",
+                "S", 
+                "T"
+            ]
+        },
+        "SURVEY_DATE": {
+            "dtype": "date"
+        },
+        "SURVEY_YEAR": {
+            "dtype": "integer"
+        },
+        "CONSULTANT_ID": {
+            "dtype": "integer"
+        },
+        "TEAM_LEAD_ID": {
+            "dtype": "integer"
+        },
+        "SURV_TOOL_ID": {
+            "dtype": "integer"
+        }
+    }
+}
