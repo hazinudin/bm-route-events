@@ -1,8 +1,8 @@
 import pyarrow as pa
 from typing import Literal, Union
 import polars as pl
-from ..geometry import Points, LAMBERT_WKT
-from ..segments.base.utils import to_meter
+from ...geometry import Points, LAMBERT_WKT
+from ...segments.base.utils import to_meter
 
 
 class RoutePointEvents(object):
