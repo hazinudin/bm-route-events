@@ -1,1 +1,1 @@
-from .join import segments_join
+from .join import segments_join, CompareRNISegments

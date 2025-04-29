@@ -1,4 +1,4 @@
-from route_events import RouteSegmentEvents
+from route_events import RouteSegmentEvents, RouteRNI
 from typing import Type, Dict, List
 import polars as pl
 
@@ -84,3 +84,46 @@ def segments_join(
         )
     
     return joined
+
+
+class CompareRNISegments:
+    """
+    Object for comparing Route Segment Events against RNI
+    """
+    def __init__(
+            self,
+            rni: RouteRNI,
+            other: Type[RouteSegmentEvents]
+    ):
+        if not isinstance(rni, RouteRNI):
+            raise TypeError(f"'rni' is not an RouteRNI object")
+        
+        if not isinstance(other, RouteSegmentEvents):
+            raise TypeError(f"'other' is not an RouteSegmentEvents")
+        
+        self.rni = rni
+        self.other = other
+
+    def rni_with_no_match(self) -> pl.DataFrame:
+        """
+        Segments from RNI with no match with other event.
+        """
+        rni_anti = segments_join(
+            self.rni,
+            self.other,
+            how='anti'
+        )
+
+        return rni_anti
+    
+    def other_with_no_match(self) -> pl.DataFrame:
+        """
+        Segment from other event with no match with RNI segment
+        """
+        other_anti = segments_join(
+            self.other,
+            self.rni,
+            how='anti'
+        )
+
+        return other_anti
