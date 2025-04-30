@@ -1,0 +1,177 @@
+from typing import Type, Literal
+from route_events import (
+    RoutePointEvents, 
+    LRSRoute,
+    RouteRNIRepo,
+    RouteRNI
+)
+from ...validation_result.result import ValidationResult
+from sqlalchemy import Engine
+import polars as pl
+
+
+class RoutePointEventsValidation(object):
+    """
+    Route point events validation
+    """
+    def __init__(
+            self,
+            events: Type[RoutePointEvents],
+            lrs: LRSRoute,
+            sql_engine: Engine,
+            results: ValidationResult,
+            route: str = None,
+            survey_year: int = None,
+            survey_semester: Literal[1,2] = None
+    ):
+        self._events = events
+        self._lrs = lrs
+        self._engine = sql_engine
+        self._result = results
+        self._route = route
+
+        self._survey_year = survey_year
+        self._survey_semester = survey_semester
+
+        # M Value DataFrame
+        self._df_lrs_mv = None
+
+        # Distance to LRS DataFrame
+        self._df_lrs_dist = None
+
+        # RNI repo
+        self._rni = None
+        self._rni_repo = RouteRNIRepo(self._engine)
+
+    def get_all_messages(self) -> pl.DataFrame:
+        """
+        Get validation result messages.
+        """
+        return self._result.get_all_messages()
+    
+    def get_status(self) -> str:
+        """
+        Get validation process status.
+        """
+        return self._result.status
+    
+    @property
+    def rni(self) -> RouteRNI:
+        """
+        Current year RNI
+        """
+        if self._rni is None:
+            self._rni = self._rni_repo.get_by_linkid(
+                self._route,
+                year=self._survey_year,
+                raise_if_table_does_not_exists=True
+            )
+
+            return self._rni
+        else:
+            return self._rni
+    
+    @property
+    def df_lrs_mv(self) -> pl.DataFrame:
+        """
+        Calculate M-Value for every input points.
+        """
+        if self._df_lrs_mv is None:
+
+            self._df_lrs_mv = self._lrs.get_points_m_value(
+                self._events.points_lambert
+            )
+
+            return self._df_lrs_mv
+        else:
+            return self._df_lrs_mv
+        
+    def lrs_distance_check(self, threshold=30):
+        """
+        Check every points nearest distance to LRS geometry, if the distance exceeds the threshold (in meters).
+        Then an error message will be created.
+        """
+        if self._events.lane_data:
+            format_args = [
+                "Titik {} {} pada ruas {} berjarak lebih dari {}m dari geometri LRS, yaitu {}m",
+                pl.col(self._events._sta_col),
+                pl.col(self._events._lane_code_col),
+                pl.col(self._events._linkid_col),
+                pl.lit(threshold),
+                pl.col('dist')
+            ]
+        else:
+            format_args = [
+                "Titik {} pada ruas {} berjarak lebih dari {}m dari geometri LRS, yaitu {}m",
+                pl.col(self._events._sta_col),
+                pl.col(self._events._linkid_col),
+                pl.lit(threshold),
+                pl.col('dist')
+            ]
+
+        errors = self.df_lrs_mv.filter(
+            pl.col('dist') >= threshold
+        ).with_columns(
+            msg= pl.format(*format_args)
+        )
+
+        self._result.add_messages(
+            errors.select('msg'),
+            'review',
+            'force'
+        )
+        
+        return self
+    
+    def lrs_sta_check(self, tolerance: int = 10):
+        """
+        Compare survey point M-Value with its STA
+        """
+        if self._events.lane_data:
+            format_args = [
+                "Titik {} {} memiliki nilai STA LRS yang tidak cocok, yaitu {}.",
+                pl.col(self._events._sta_col),
+                pl.col(self._events._lane_code_col),
+                pl.col('m_val')
+            ]
+        else:
+            format_args = [
+                "Titik {} memiliki nilai STA LRS yang tidak cocok, yaitu {}.",
+                pl.col(self._events._sta_col),
+                pl.col('m_val')
+            ]
+
+        errors = self.df_lrs_mv.filter(
+            pl.col(self._events._sta_col).mul(
+                self._events.sta_conversion
+            ).gt(
+                pl.col('m_val').add(tolerance)
+            ) |
+            pl.col(self._events._sta_col).mul(
+                self._events.sta_conversion
+            ).lt(
+                pl.col('m_val').sub(tolerance)
+            )
+        ).select(
+            msg = pl.format(*format_args)
+        )
+
+        self._result.add_messages(
+            errors,
+            'error',
+            'force'
+        )
+
+    def route_has_rni_check(self):
+        """
+        Check if route has RNI data in the same year.
+        """
+        if self.rni is None:
+            msg = f"Data RNI untuk ruas {self._route} belum tervalidasi"
+
+            self._result.add_message(
+                msg,
+                'error'
+            )
+        
+        return
