@@ -6,4 +6,8 @@ from .segments import (
     RouteRoughness,
     RouteRoughnessRepo
 )
+from .points import(
+    RoutePointEvents,
+    RouteDefects
+)
 from .route import LRSRoute
