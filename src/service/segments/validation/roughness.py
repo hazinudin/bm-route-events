@@ -1,5 +1,5 @@
 from .base import RouteSegmentEventsValidation
-from ..analysis import segments_join
+from ..analysis import segments_join, CompareRNISegments
 from ..summary import Kemantapan
 from route_events import (
     RouteRoughness, 
@@ -234,11 +234,12 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
         """
         Check if all RNI segments match with the input events.
         """
-        errors = segments_join(
-            self.rni,
-            self._events,
-            how='anti'
-        ).select(
+        comp = CompareRNISegments(
+            rni=self.rni,
+            other=self._events
+        )
+
+        errors = comp.rni_with_no_match().select(
             msg = pl.format(
                 "Segmen {}-{} {} ada pada data RNI, namun tidak ada pada data ini.",
                 pl.col(self.rni._from_sta_col),
