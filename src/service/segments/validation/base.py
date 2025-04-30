@@ -16,7 +16,7 @@ class RouteSegmentEventsValidation(object):
             events: Type[RouteSegmentEvents],
             lrs: LRSRoute,
             sql_engine: Engine,
-            results = ValidationResult,
+            results: ValidationResult,
             route: str = None,
             survey_year: int = None,
             survey_semester: Literal[1,2] = None
