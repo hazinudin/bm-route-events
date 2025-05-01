@@ -8,6 +8,8 @@ from .segments import (
 )
 from .points import(
     RoutePointEvents,
-    RouteDefects
+    RouteDefects,
+    RouteDefectsRepo
 )
 from .route import LRSRoute
+from .photo import SurveyPhoto
