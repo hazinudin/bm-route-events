@@ -24,6 +24,9 @@ class RouteRNIRepo(object):
         """
         Get RNI data from database and load it into RouteRNI object.
         """
+        if type(year) is not int:
+            raise TypeError("'year' is not integer.")
+        
         if type(columns) == str:
             pass
         elif type(columns) == list:
