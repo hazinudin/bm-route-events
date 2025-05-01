@@ -75,7 +75,7 @@ class RouteRoughnessRepo(object):
         Delete RNI data into RNI geodatabase table.
         """
         # Delete statement
-        _where = f"where {events._linkid_col} = '{events.route_id}'"
+        _where = f" where {events._linkid_col} = '{events.route_id}'"
         _del_stt = f"delete from {self.table}_{semester}_{year}" + _where
 
         try:
