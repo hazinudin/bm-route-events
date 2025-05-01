@@ -67,3 +67,5 @@ class RouteDefects(RoutePointEvents):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
+        # Columns
+        self._photo_url_cols = 'URL_PHOTO'
