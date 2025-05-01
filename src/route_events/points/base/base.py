@@ -119,10 +119,12 @@ class RoutePointEvents(object):
         Transformed Points object using LAMBERT WKT
         """
         if self._points_lambert is None:
-            self._points_lambert = self._points_4326.transform(
+            self._points_lambert = self.points_4326.transform(
                 LAMBERT_WKT,
                 invert=True
             )
+
+            return self._points_lambert
         else:
             return self._points_lambert
         
