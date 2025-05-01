@@ -6,6 +6,7 @@ from route_events import (
     RouteRNI
 )
 from ...validation_result.result import ValidationResult
+from ..analysis import segments_points_join
 from sqlalchemy import Engine
 import polars as pl
 
@@ -174,4 +175,27 @@ class RoutePointEventsValidation(object):
                 'error'
             )
         
+        return
+    
+    def sta_not_in_rni_check(self):
+        """
+        Check for STA value which does not have match with RNI segments.
+        """
+        errors = segments_points_join(
+            segments=self.rni,
+            points=self._events,
+            how='anti'
+        ).select(
+            msg=pl.format(
+                "Titik {} {} tidak memiliki padanan segmen RNI.",
+                pl.col(self._events._sta_col),
+                pl.col(self._events._lane_code_col)
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error'
+        )
+
         return
