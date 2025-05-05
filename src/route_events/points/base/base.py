@@ -15,13 +15,13 @@ class RoutePointEvents(object):
             sta_unit: str = 'dm',
             lane_data: bool = False
     ):
-        # Default columsn
+        # Default columns
         self._linkid_col = 'LINKID'
         self._sta_col = 'STA'
         self._lane_code_col = 'LANE_CODE'
         self._lat_col = 'STA_LAT'
         self._long_col = 'STA_LONG'
-        self._year_col = 'YEAR'
+        self._year_col = 'SURVEY_YEAR'
         self._semester_col = 'SEMESTER'
 
         # Units
