@@ -5,6 +5,8 @@ from sqlalchemy import create_engine
 from route_events import RouteDefects, LRSRoute
 from src.service.points.validation.defects import RouteDefectsValidation
 from src.service.validation_result.result import ValidationResult
+from src.service.photo import gs
+from google.cloud import storage
 
 
 load_dotenv('tests/dev.env')
@@ -28,12 +30,16 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
         results = ValidationResult('010362')
 
+        client = storage.Client()
+        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+
         check = RouteDefectsValidation(
             route='010362',
             events=events,
             lrs=lrs,
             sql_engine=engine,
-            results = results
+            results = results,
+            photo_storage=sp
         )
 
         self.assertFalse(check.df_lrs_mv.is_empty())
@@ -51,19 +57,25 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
         results = ValidationResult('010362')
 
+        client = storage.Client()
+        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+
         check = RouteDefectsValidation(
             route='010362',
             events=events,
             lrs=lrs,
             sql_engine=engine,
             results = results,
-            survey_year=2024
+            survey_year=2024,
+            photo_storage=sp
         )
 
         check.lrs_sta_check()
         check.lrs_distance_check()
         check.route_has_rni_check()
         check.sta_not_in_rni_check()
+        check.survey_photo_url_check()
+        check.surface_type_check()
 
         self.assertTrue(check.get_status() == 'error')
 
@@ -82,13 +94,17 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
         results = ValidationResult('010362')
 
+        client = storage.Client()
+        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+
         check = RouteDefectsValidation(
             route='010362',
             events=events,
             lrs=lrs,
             sql_engine=engine,
             results = results,
-            survey_year=2024
+            survey_year=2024,
+            photo_storage=sp
         )
 
         check.survey_photos
