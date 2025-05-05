@@ -133,3 +133,48 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         )
 
         return
+    
+    def damage_surface_type_check(self):
+        """
+        This method will compare the damage type with the surface type in RNI.
+        Rigid surface type is surface_type = 21.
+        Damage that start with 'AS', should only exists on asphalt surface.
+        Damage that start ith 'RG', should only exists on rigid surface.
+        """
+        from route_events.segments.rni.surf_type import _surface_types as surface_types
+
+        df_surf_types = pl.DataFrame(surface_types)
+
+        errors = self._events.pl_df.join(
+            df_surf_types,
+            left_on=[self._events._surf_type_col],
+            right_on=['surf_type'],
+            how='inner'
+        ).filter(
+            pl.col(self._events._defects_type_col).str.starts_with('AS').and_(
+                pl.col('category').eq('paved')
+            ).and_(
+                pl.col(self._events._surf_type_col).eq(21)
+            ) |
+            pl.col(self._events._defects_type_col).str.starts_with('RG').and_(
+                pl.col('category').eq('paved')
+            ).and_(
+                pl.col(self._events._surf_type_col).ne(21)
+            ) |
+            pl.col('category').eq('unpaved')
+        ).select(
+            msg=pl.format(
+                "Tipe kerusakan {} pada STA {} {} tidak sesuai dengan tipe perkerasan",
+                pl.col(self._events._defects_type_col),
+                pl.col(self._events._sta_col),
+                pl.col(self._events._lane_code_col)
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'review',
+            'review'
+        )
+
+        return
