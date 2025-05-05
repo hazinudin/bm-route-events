@@ -69,3 +69,4 @@ class RouteDefects(RoutePointEvents):
         
         # Columns
         self._photo_url_cols = 'URL_PHOTO'
+        self._surf_type_col = 'SURF_TYPE'
