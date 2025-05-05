@@ -210,38 +210,3 @@ class RoutePointEventsValidation(object):
 
         return
     
-    def surface_type_check(self):
-        """
-        Compare defects surface type with surface type in RNI.
-        """
-        if self._events._surf_type_col == self.rni._surf_type_col:
-            suffix = '_r'
-        else:
-            suffix = ''
-
-        errors = segments_points_join(
-            segments=self.rni,
-            points=self._events,
-            how='inner',
-            point_select=[self._events._surf_type_col],
-            segment_select=[self.rni._surf_type_col],
-            suffix='_r'
-        ).filter(
-            pl.col(self._events._surf_type_col).ne(
-                pl.col(self.rni._surf_type_col+suffix)
-            )
-        ).select(
-            msg=pl.format(
-                "Tipe perkerasan pada STA {} {} tidak sama dengan data RNI",
-                pl.col(self._events._sta_col),
-                pl.col(self._events._lane_code_col)
-            )
-        )
-
-        self._result.add_messages(
-            errors,
-            'review',
-            'review'
-        )
-
-        return
