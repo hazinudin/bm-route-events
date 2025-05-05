@@ -43,6 +43,7 @@ class RoutePointEventsValidation(object):
         # RNI repo
         self._rni = None
         self._rni_repo = RouteRNIRepo(self._engine)
+        self._get_rni_cols = '*'
 
     def get_all_messages(self) -> pl.DataFrame:
         """
@@ -57,6 +58,14 @@ class RoutePointEventsValidation(object):
         return self._result.status
     
     @property
+    def fetched_rni_columns(self):
+        return self._get_rni_cols
+    
+    @fetched_rni_columns.setter
+    def fetched_rni_columns(self, columns: list):
+        self._get_rni_cols = columns
+    
+    @property
     def rni(self) -> RouteRNI:
         """
         Current year RNI
@@ -65,7 +74,8 @@ class RoutePointEventsValidation(object):
             self._rni = self._rni_repo.get_by_linkid(
                 self._route,
                 year=self._survey_year,
-                raise_if_table_does_not_exists=True
+                raise_if_table_does_not_exists=True,
+                columns=self._get_rni_cols
             )
 
             return self._rni
@@ -196,6 +206,42 @@ class RoutePointEventsValidation(object):
         self._result.add_messages(
             errors,
             'error'
+        )
+
+        return
+    
+    def surface_type_check(self):
+        """
+        Compare defects surface type with surface type in RNI.
+        """
+        if self._events._surf_type_col == self.rni._surf_type_col:
+            suffix = '_r'
+        else:
+            suffix = ''
+
+        errors = segments_points_join(
+            segments=self.rni,
+            points=self._events,
+            how='inner',
+            point_select=[self._events._surf_type_col],
+            segment_select=[self.rni._surf_type_col],
+            suffix='_r'
+        ).filter(
+            pl.col(self._events._surf_type_col).ne(
+                pl.col(self.rni._surf_type_col+suffix)
+            )
+        ).select(
+            msg=pl.format(
+                "Tipe perkerasan pada STA {} {} tidak sama dengan data RNI",
+                pl.col(self._events._sta_col),
+                pl.col(self._events._lane_code_col)
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'review',
+            'review'
         )
 
         return
