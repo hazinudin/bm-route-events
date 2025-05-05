@@ -76,6 +76,7 @@ class TestRouteDefectsValidation(unittest.TestCase):
         check.sta_not_in_rni_check()
         check.survey_photo_url_check()
         check.surface_type_check()
+        check.damage_surface_type_check()
 
         self.assertTrue(check.get_status() == 'error')
 
