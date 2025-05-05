@@ -1,4 +1,5 @@
 from .base import RoutePointEventsValidation
+from src.service.photo import gs
 from src.route_events import (
     RouteDefects,
     RouteDefectsRepo,
@@ -22,6 +23,7 @@ class RouteDefectsValidation(RoutePointEventsValidation):
             lrs: LRSRoute,
             sql_engine: Engine,
             results: ValidationResult,
+            photo_storage: gs.SurveyPhotoStorage,
             survey_year: int = None
     ):
         super().__init__(
@@ -37,6 +39,9 @@ class RouteDefectsValidation(RoutePointEventsValidation):
 
         # Survey photos
         self._photos = None
+
+        # Photo storage
+        self._storage = photo_storage
     
     @property
     def survey_photos(self) -> List[SurveyPhoto]:
@@ -53,7 +58,20 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                         self._events._lane_code_col
                     ]
                 ).select(
-                    pl.col(self._events._photo_url_cols).alias('url'),
+                    pl.when(
+                        pl.col(self._events._photo_url_cols).str.to_lowercase().str.starts_with(self._storage.root_url)
+                    ).then(
+                        # Lowercased full URL
+                        pl.col(self._events._photo_url_cols).str.to_lowercase()
+                    ).otherwise(
+                        pl.format(
+                            # Filename must include /<province folder>/<route>/<file name>
+                            "{}/{}/{}",
+                            pl.lit(self._storage.root_url),
+                            pl.col(self._events._year_col),
+                            pl.col(self._events._photo_url_cols).str.to_lowercase()
+                        )
+                    ).alias('url'),
                     pl.col('m_val').alias('sta_meters'),
                     pl.lit(self._survey_year).alias('survey_year'),
                     pl.col(self._events._linkid_col).alias('linkid'),
@@ -65,8 +83,16 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         else:
             return self._photos
         
-    def validate_photo_url(self):
+    def survey_photo_url_check(self):
         """
         Validate photo URL or filename which is stored in the repository.
         """
+        for invalid in self._storage.validate_photos_url(self.survey_photos, return_invalid=True):
+            msg = f"{invalid.url} bukan merupakan URL valid atau gambar tidak ditemukan."
+
+            self._result.add_message(
+                msg,
+                'error'
+            )
+
         return
