@@ -83,10 +83,27 @@ def segments_points_join(
     # Start data join
     ctx = pl.SQLContext(register_globals=True)
 
+    # SQL additional selection columns
+    r_cols = []
+    for col in segment_select:
+        if col in point_select:
+            r_cols.append('s.'+col+' as '+col+suffix)
+
+    l_cols = ['p.'+col for col in point_select]
+
     if (points.lane_data and (points_agg is not None)) and (segments_agg is not None):
         # Join only using STA and FROM/TO_STA
-        query = f"""
+        select = f"""
         select {points._linkid_col}, {points._sta_col}, {segments._from_sta_col}, {segments._to_sta_col}
+        """
+        
+        if len(l_cols) > 0:
+            select = select + f"{', '.join(l_cols)}"
+
+        if len(r_cols) > 0:
+            select = select + f", {', '.join(r_cols)}"
+
+        query = select + f""""
         from
         pdf p
         left join sdf s 
@@ -96,8 +113,17 @@ def segments_points_join(
 
     else:
         # Joint using STA + LANE_CODE and FROM/TO_STA + LANE_CODE
-        query = f"""
-        select {points._linkid_col}, {points._sta_col}, {points._lane_code_col}, {segments._from_sta_col}, {segments._to_sta_col}
+        select = f"""
+        select {points._linkid_col}, {points._sta_col}, {points._lane_code_col}, {segments._from_sta_col}, {segments._to_sta_col},
+        """
+
+        if len(l_cols) > 0:
+            select = select + f"{', '.join(l_cols)}"
+
+        if len(r_cols) > 0:
+            select = select + f", {', '.join(r_cols)}"
+
+        query = select + f"""
         from
         pdf p
         left join sdf s 
