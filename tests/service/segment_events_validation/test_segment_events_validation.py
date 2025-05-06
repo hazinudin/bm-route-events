@@ -243,7 +243,7 @@ class TestRouteRoughnessEventsValidation(unittest.TestCase):
 
         self.assertTrue(c.prev_rni.year == 2023)
         self.assertFalse(c.prev_rni.no_data)
-        self.asserTrue(type(c.prev_rni) is RouteRNI)
+        self.assertTrue(type(c.prev_rni) is RouteRNI)
 
         self.assertTrue(True)
 
@@ -302,5 +302,32 @@ class TestRouteRoughnessEventsValidation(unittest.TestCase):
         )
 
         c.rni_segments_comparison()
+
+        self.assertTrue(True)
+
+    def test_pok_iri_check(self):
+        routeid = '01001'
+
+        repo = RouteRoughnessRepo(engine)
+        events = repo.get_by_linkid(
+            routeid,
+            2024,
+            2,
+            True
+        )
+
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation(
+            routeid,
+            events,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024,
+            survey_semester=2
+        )
+
+        c.pok_iri_check()
 
         self.assertTrue(True)
