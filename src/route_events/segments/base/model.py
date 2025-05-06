@@ -91,6 +91,7 @@ class RouteSegmentEvents(object):
         self.artable = artable
         self._pl_df = pl.from_arrow(self.artable)
         self._route_id = route  # Route of the events
+        self._lane_data = True  # Indicator if the events data is lane based
         self._data_year = data_year
         self._data_semester = data_semester
         self._segment_length = segment_length
@@ -131,6 +132,13 @@ class RouteSegmentEvents(object):
         Return True if data is empty.
         """
         return self._pl_df.is_empty()
+    
+    @property
+    def lane_data(self) -> bool:
+        """
+        Return True if events is lane based data.
+        """
+        return self._lane_data
 
     @property
     def route_id(self) -> str:
