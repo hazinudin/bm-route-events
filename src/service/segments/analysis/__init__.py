@@ -1,1 +1,1 @@
-from .join import segments_join, CompareRNISegments
+from .join import segments_join, CompareRNISegments, segments_coverage_join
