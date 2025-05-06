@@ -1,12 +1,14 @@
 from .base import RouteSegmentEventsValidation
-from ..analysis import segments_join, CompareRNISegments
+from ..analysis import segments_join, CompareRNISegments, segments_coverage_join
 from ..summary import Kemantapan
 from route_events import (
     RouteRoughness, 
     LRSRoute, 
     RouteRoughnessRepo,
     RouteRNI,
-    RouteRNIRepo
+    RouteRNIRepo,
+    RoutePOKRepo,
+    RoutePOK
 )
 from ...validation_result.result import ValidationResult
 from typing import Type, Literal
@@ -122,9 +124,11 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
         self._prev_data = None
         self._prev_rni = None
         self._rni = None
+        self._pok = None
 
         self._repo = RouteRoughnessRepo(self._engine)
         self._rni_repo = RouteRNIRepo(self._engine)
+        self._pok_repo = RoutePOKRepo(self._engine)
 
     @property
     def prev_data(self) -> RouteRoughness:
@@ -185,6 +189,25 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
 
         else:
             return self._rni
+        
+    @property
+    def pok(self) -> RoutePOK:
+        """
+        Previous year POK
+        """
+        if self._pok is None:
+            self._pok = self._pok_repo.get_by_comp_name(
+                self._route,
+                self._survey_year-1,
+                comp_name_keywords=[
+                    'rehabilitasi'
+                ]
+            )
+
+            return self._pok
+        
+        else:
+            return self._pok
 
     def kemantapan_comparison_check(self, grade_changes=2):
         """
@@ -267,6 +290,37 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
                 'error'
             )
         
+        return
+    
+    def pok_iri_check(self, iri_threshold:int = 3):
+        """
+        Check for segments which covered by POK, the IRI value should not exceeds 3.
+        """
+        errors = segments_coverage_join(
+            covering=self.pok,
+            target=self._events,
+            covering_select=[self.pok._comp_col],
+            target_select=[self._events._iri_col]
+        ).filter(
+            pl.col(self._events._iri_col).gt(iri_threshold)
+        ).select(
+            msg=pl.format(
+                "Segmen {}-{} {} mengalami {}, namun nilai IRI lebih besar dari {}, yaitu {}",
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion).round(3),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion).round(3),
+                pl.col(self._events._lane_code_col),
+                pl.col(self.pok._comp_col),
+                pl.lit(iri_threshold),
+                pl.col(self._events._iri_col)
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'review',
+            'review'
+        )
+
         return
     
     def put_data(self):
