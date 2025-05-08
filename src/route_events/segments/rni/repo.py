@@ -88,7 +88,7 @@ class RouteRNIRepo(object):
         """
         # Delete statement
         _where = f"where {events._linkid_col} = '{events.route_id}'"
-        _del_stt = f"delete from {self.table}_{semester}_{year}" + _where
+        _del_stt = f"delete from {self.table}_{semester}_{year} " + _where
 
         try:
             conn.execute(text(_del_stt))
