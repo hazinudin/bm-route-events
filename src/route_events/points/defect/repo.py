@@ -1,4 +1,5 @@
 from sqlalchemy import Engine, inspect, text
+from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, TIMESTAMP
 from .model import RouteDefects
 import polars as pl
 from pyarrow import Table
