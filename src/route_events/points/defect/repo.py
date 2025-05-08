@@ -57,6 +57,8 @@ class RouteDefectsRepo(object):
                 conn.rollback()
                 raise e
             
+            conn.commit()
+            
         return
     
     def _delete(self, events: RouteDefects, year: int, conn, commit: bool = True):
@@ -67,14 +69,15 @@ class RouteDefectsRepo(object):
         _where = f" where {events._linkid_col} = '{events.route_id}'"
         _del_stt = f"delete from {self.table}_{year}" + _where
 
-        try:
-            conn.execute(text(_del_stt))
-        except Exception as e:
-            conn.rollback()
-            raise e
-        
-        if commit:
-            conn.commit()
+        if self._inspect.has_table(f"{self.table}_{year}"):
+            try:
+                conn.execute(text(_del_stt))
+            except Exception as e:
+                conn.rollback()
+                raise e
+            
+            if commit:
+                conn.commit()
    
     def _insert(self, events: RouteDefects, year: int, conn, commit: bool = True):
         """
