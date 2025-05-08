@@ -31,13 +31,14 @@ class RouteDefectsRepo(object):
         if not self._inspect.has_table(f"{self.table}_{year}") and raise_if_table_does_not_exists:
             raise Exception(f"Table {self.table}_{year} does not exists")
         
-        # Use oracledb raw connection, and fetch data as DataFrame
-        with self._engine.raw_connection() as conn:
-            odf = conn.fetch_df_all(query)
-            pat = Table.from_arrays(odf.column_arrays(), names=odf.column_names())
+        df = pl.read_database(
+            query,
+            connection=self._engine,
+            infer_schema_length=None
+        )
             
         obj = RouteDefects(
-            pat,
+            df.to_arrow(),
             route=linkid,
             data_year=year
         )
