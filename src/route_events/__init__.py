@@ -6,7 +6,9 @@ from .segments import (
     RouteRoughness,
     RouteRoughnessRepo,
     RoutePOKRepo,
-    RoutePOK
+    RoutePOK,
+    RoutePCI,
+    RoutePCIRepo
 )
 from .points import(
     RoutePointEvents,
