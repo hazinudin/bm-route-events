@@ -87,7 +87,10 @@ class RouteDefectsRepo(object):
             if not self._inspect.has_table(f"{self.table}_{year}"):
                 events.pl_df.write_database(
                     f"{self.table}_{year}",
-                    connection=conn
+                    connection=conn,
+                    engine_options={
+                        'dtype': self._ora_dtype(events.pl_df)
+                    }
                 )
             else:
                 events.pl_df.write_database(
