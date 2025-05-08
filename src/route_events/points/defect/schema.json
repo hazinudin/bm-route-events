@@ -64,7 +64,7 @@
                 "AS_RUTTING",
                 "AS_CORRUGATION",
                 "AS_DEPRESSION",
-                "AS_RAVELLING",
+                "AS_RAVELING",
                 "AS_BLEEDING",
                 "AS_SH_DROPOFF",
                 "RG_COBREAK",
@@ -81,13 +81,7 @@
                 "RG_SH_DROPOFF"
             ]
         },
-        "DEFECTS_WIDTH": {
-            "dtype": "double"
-        },
-        "DEFECTS_LENGTH": {
-            "dtype": "double"
-        },
-        "DEFECTS_VOL": {
+        "DEFECTS_DIMENSION": {
             "dtype": "double"
         },
         "DEFECTS_SEVERITY": {
