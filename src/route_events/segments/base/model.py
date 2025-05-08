@@ -176,6 +176,25 @@ class RouteSegmentEvents(object):
         return to_meter[self._sta_unit]
     
     @property
+    def segment_length(self) -> float:
+        """
+        Default segment length.
+        """
+        return self._segment_length
+    
+    @segment_length.setter
+    def segment_length(self, seg_len: float):
+        """
+        Set segment length.
+        """
+        try:
+            float(seg_len)
+        except ValueError as e:
+            raise e
+        
+        self._segment_length = seg_len
+    
+    @property
     def last_segment(self) -> Segment:
         """
         Return segment with the largest FROM_STA number.
