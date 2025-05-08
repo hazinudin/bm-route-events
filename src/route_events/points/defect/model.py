@@ -71,3 +71,6 @@ class RouteDefects(RoutePointEvents):
         self._photo_url_cols = 'URL_PHOTO'
         self._surf_type_col = 'SURF_TYPE'
         self._defects_type_col = 'DEFECTS_TYPE'
+        self._defects_dimension_col = 'DEFECTS_DIMENSION'
+
+        self.lane_data = True
