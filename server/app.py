@@ -146,6 +146,11 @@ class DataValidation:
 
         if write and (check.get_status() == 'verified'):
             check.put_data()
+
+        return check.smd_output_msg(
+            show_all_msg=payload.show_all_msg,
+            as_dict=True
+        )
             
         return
     
@@ -183,6 +188,11 @@ class DataValidation:
         
         if write and (check.get_status() == 'verified'):
             check.put_data()
+        
+        return check.smd_output_msg(
+            show_all_msg=payload.show_all_msg,
+            as_dict=True
+        )
 
     @app.post('/road/defects/validation')
     def validate_defects(
@@ -216,6 +226,11 @@ class DataValidation:
 
         if write and (check.get_status() == 'verified'):
             check.put_data()
+        
+        return check.smd_output_msg(
+            show_all_msg=payload.show_all_msg,
+            as_dict=True
+        )
 
     @app.post('/road/pci/validation')
     def validate_pci(
@@ -243,5 +258,14 @@ class DataValidation:
             )
 
         check.base_validation()
+
+        if write and (check.get_status() == 'verified'):
+            check.put_data()
+        
+        return check.smd_output_msg(
+            show_all_msg=payload.show_all_msg,
+            as_dict=True
+        )
+
 
 serve.run(DataValidation.bind(), route_prefix='/bm')
