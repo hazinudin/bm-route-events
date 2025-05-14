@@ -2,7 +2,7 @@ from ray import serve, init
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 from pydantic import BaseModel
-from src.service import (
+from route_events_service import (
     BridgeMasterValidation,
     BridgeInventoryValidation,
     RouteRNIValidation,
