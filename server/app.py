@@ -122,7 +122,7 @@ class DataValidation:
     @app.post('/road/rni/validation')
     def validate_rni(
         self,
-        payload: RoadSurveyData,
+        payload: RoadSurveyValidationInput,
         write: bool = False
     ):  
         lrs = LRSRoute.from_feature_service(
@@ -159,7 +159,7 @@ class DataValidation:
     @app.post('/road/roughness/validation')
     def validate_iri(
             self,
-            payload: RoadSurveyData,
+            payload: RoadSurveyValidationInput,
             write: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
@@ -199,7 +199,7 @@ class DataValidation:
     @app.post('/road/defects/validation')
     def validate_defects(
         self,
-        payload: RoadSurveyData,
+        payload: RoadSurveyValidationInput,
         write: bool= False
     ):
         lrs = LRSRoute.from_feature_service(
@@ -237,7 +237,7 @@ class DataValidation:
     @app.post('/road/pci/validation')
     def validate_pci(
         self,
-        payload: RoadSurveyData,
+        payload: RoadSurveyValidationInput,
         write: bool= False
     ):
         lrs = LRSRoute.from_feature_service(
