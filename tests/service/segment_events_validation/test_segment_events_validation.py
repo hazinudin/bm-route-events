@@ -331,3 +331,34 @@ class TestRouteRoughnessEventsValidation(unittest.TestCase):
         c.pok_iri_check()
 
         self.assertTrue(True)
+
+
+from src.route_events import RoutePCI, RoutePCIRepo
+from src.service import RoutePCIValidation
+
+
+class TestRoutePCIEventsValidation(unittest.TestCase):
+    def test_defects_point_check(self):
+        """
+        Check the consistency between damages in PCI and Defects data.
+        """
+        routeid = '010362'
+        repo = RoutePCIRepo(engine)
+        results = ValidationResult(routeid)
+        pci = repo.get_by_linkid(
+            linkid=routeid,
+            year=2024
+        )
+
+        check = RoutePCIValidation(
+            routeid,
+            pci,
+            lrs=None,
+            sql_engine=engine,
+            results=results,
+            survey_year=2024
+        )
+
+        check.defects_point_check()
+
+        self.assertTrue(check.get_status() == 'error')

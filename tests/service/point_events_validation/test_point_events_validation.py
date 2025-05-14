@@ -111,3 +111,29 @@ class TestRouteDefectsValidation(unittest.TestCase):
         check.survey_photos
 
         self.assertTrue(True)
+
+    def test_put_data(self):
+        """
+        Test put data in geodatabase.
+        """
+        excel_path = "tests/domain/route_points/defect_010362.xlsx"
+
+        events = RouteDefects.from_excel(
+            excel_path,
+            '010362',
+            data_year=2024
+        )
+
+        check = RouteDefectsValidation(
+            route='010362',
+            events=events,
+            lrs=None,
+            sql_engine=engine,
+            results=None,
+            survey_year=2024,
+            photo_storage=None
+        )
+
+        check.put()
+
+        self.assertTrue(True)
