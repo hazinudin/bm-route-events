@@ -1,6 +1,7 @@
 from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, TIMESTAMP
 from .model import RouteDefects
+from ...utils import ora_pl_dtype
 import polars as pl
 from pyarrow import Table
 
@@ -90,7 +91,10 @@ class RouteDefectsRepo(object):
                     f"{self.table}_{year}",
                     connection=conn,
                     engine_options={
-                        'dtype': self._ora_dtype(events.pl_df)
+                        'dtype': ora_pl_dtype(
+                            events.pl_df,
+                            date_cols_keywords='DATE'
+                        )
                     }
                 )
             else:
@@ -107,25 +111,3 @@ class RouteDefectsRepo(object):
         if commit:
             conn.commit()
 
-    def _ora_dtype(self, df: pl.DataFrame)->dict:
-        """
-        Return Oracle dtype for table creation.
-        """
-        out_dict = dict()
-        for col in df.schema.items():
-            col_name = col[0]
-            dtype = col[1]
-
-            if 'DATE' in col_name:
-                dtype = pl.Datetime
-
-            if dtype == pl.String:
-                out_dict[col_name] = VARCHAR2(255)
-            elif dtype in (pl.Float64, pl.Float32):
-                out_dict[col_name] = NUMBER(38, 8)
-            elif dtype in (pl.Int64, pl.Int16, pl.Int32, pl.Int128, pl.Int8):
-                out_dict[col_name] = NUMBER(38)
-            elif dtype == pl.Datetime:
-                out_dict[col_name] = TIMESTAMP(timezone=True)
-
-        return out_dict
