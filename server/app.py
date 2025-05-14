@@ -24,16 +24,16 @@ app = FastAPI()
 class BridgeValidationPayload(BaseModel):
     input_json: dict
 
-class RoadSurveyData(BaseModel):
+class _Payload(BaseModel):
     file_name: str
     balai: str
     year: int
     semester: Optional[Literal[1,2]]
     routes: List[str]
-    show_all_msg: bool
+    show_all_msg: Optional[bool] = False
 
 class RoadSurveyValidationInput(BaseModel):
-    input_json: RoadSurveyData
+    input_json: _Payload
 
 
 @serve.deployment
@@ -127,20 +127,20 @@ class DataValidation:
     ):  
         lrs = LRSRoute.from_feature_service(
             'localhost:50052', 
-            payload.routes[0]
+            payload.input_json.routes[0]
         )
 
         check = RouteRNIValidation.validate_excel(
-            excel_path=payload.file_name,
-            route=payload.routes[0],
-            survey_year=payload.year,
+            excel_path=payload.input_json.file_name,
+            route=payload.input_json.routes[0],
+            survey_year=payload.input_json.year,
             sql_engine=self.smd_engine,
             lrs=lrs
         )
 
         if check.get_status() == 'rejected':
             return check.smd_output_msg(
-                show_all_msg=payload.show_all_msg,
+                show_all_msg=payload.input_json.show_all_msg,
                 as_dict=True
             )
 
@@ -150,7 +150,7 @@ class DataValidation:
             check.put_data()
 
         return check.smd_output_msg(
-            show_all_msg=payload.show_all_msg,
+            show_all_msg=payload.input_json.show_all_msg,
             as_dict=True
         )
             
@@ -164,21 +164,21 @@ class DataValidation:
     ):
         lrs = LRSRoute.from_feature_service(
             'localhost:50052',
-            payload.routes[0]
+            payload.input_json.routes[0]
         )
 
         check = RouteRoughnessValidation.validate_excel(
-            excel_path=payload.file_name,
-            route=payload.routes[0],
-            survey_year=payload.year,
-            survey_semester=payload.semester,
+            excel_path=payload.input_json.file_name,
+            route=payload.input_json.routes[0],
+            survey_year=payload.input_json.year,
+            survey_semester=payload.input_json.semester,
             sql_engine=self.smd_engine,
             lrs=lrs
         )
 
         if check.get_status() == 'rejected':
             return check.smd_output_msg(
-                show_all_msg=payload.show_all_msg,
+                show_all_msg=payload.input_json.show_all_msg,
                 as_dict=True
             )
         
@@ -192,7 +192,7 @@ class DataValidation:
             check.put_data()
         
         return check.smd_output_msg(
-            show_all_msg=payload.show_all_msg,
+            show_all_msg=payload.input_json.show_all_msg,
             as_dict=True
         )
 
@@ -204,20 +204,20 @@ class DataValidation:
     ):
         lrs = LRSRoute.from_feature_service(
             'localhost:50052',
-            payload.routes[0]
+            payload.input_json.routes[0]
         )
 
         check = RouteDefectsValidation.validate_excel(
-            excel_path=payload.file_name,
-            route=payload.routes[0],
-            survey_year=payload.year,
+            excel_path=payload.input_json.file_name,
+            route=payload.input_json.routes[0],
+            survey_year=payload.input_json.year,
             sql_engine=self.smd_engine,
             lrs=lrs
         )
 
         if check.get_status() == 'rejected':
             return check.smd_output_msg(
-                show_all_msg=payload.show_all_msg,
+                show_all_msg=payload.input_json.show_all_msg,
                 as_dict=True
             )
         
@@ -230,7 +230,7 @@ class DataValidation:
             check.put_data()
         
         return check.smd_output_msg(
-            show_all_msg=payload.show_all_msg,
+            show_all_msg=payload.input_json.show_all_msg,
             as_dict=True
         )
 
@@ -242,20 +242,20 @@ class DataValidation:
     ):
         lrs = LRSRoute.from_feature_service(
             'localhost:50052',
-            payload.routes[0]
+            payload.input_json.routes[0]
         )
 
         check = RoutePCIValidation.validate_excel(
-            excel_path=payload.file_name,
-            route=payload.routes[0],
-            survey_year=payload.year,
+            excel_path=payload.input_json.file_name,
+            route=payload.input_json.routes[0],
+            survey_year=payload.input_json.year,
             sql_engine=self.smd_engine,
             lrs=lrs
         )
 
         if check.get_status() == 'rejected':
             return check.smd_output_msg(
-                show_all_msg=payload.show_all_msg,
+                show_all_msg=payload.input_json.show_all_msg,
                 as_dict=True
             )
 
@@ -265,7 +265,7 @@ class DataValidation:
             check.put_data()
         
         return check.smd_output_msg(
-            show_all_msg=payload.show_all_msg,
+            show_all_msg=payload.input_json.show_all_msg,
             as_dict=True
         )
 
