@@ -1,12 +1,12 @@
 from .base import RoutePointEventsValidation
-from src.service.photo import gs
-from src.route_events import (
+from ...photo import gs
+from route_events import (
     RouteDefects,
     RouteDefectsRepo,
     LRSRoute,
     SurveyPhoto
 )
-from src.service.points.analysis import segments_points_join
+from ..analysis import segments_points_join
 from sqlalchemy import Engine
 from typing import List
 from ...validation_result.result import ValidationResult
