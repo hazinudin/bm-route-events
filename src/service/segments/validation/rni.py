@@ -59,8 +59,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                 obj = cls(
                     route=route,
                     events=pl.DataFrame(),
-                    lrs=None,
-                    sql_engine=None,
+                    lrs=lrs,
+                    sql_engine=sql_engine,
                     results=result,
                     survey_year=survey_year
                 )
