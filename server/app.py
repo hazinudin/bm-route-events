@@ -24,7 +24,6 @@ app = FastAPI()
 class BridgeValidationPayload(BaseModel):
     input_json: dict
 
-
 class RoadSurveyData(BaseModel):
     file_name: str
     balai: str
@@ -32,6 +31,9 @@ class RoadSurveyData(BaseModel):
     semester: Optional[Literal[1,2]]
     routes: List[str]
     show_all_msg: bool
+
+class RoadSurveyValidationInput(BaseModel):
+    input_json: RoadSurveyData
 
 
 @serve.deployment
