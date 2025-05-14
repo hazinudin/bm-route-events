@@ -8,7 +8,7 @@ def segments_points_join(
         points: Type[RoutePointEvents],
         segment_select: list = [],
         point_select: list = [],
-        how: str = ['innner', 'anti'],
+        how: Literal['inner', 'anti'] = 'inner',
         segments_agg: List[pl.Expr] = None,
         points_agg: List[pl.Expr] = None,
         suffix: str = '_r'
@@ -17,11 +17,11 @@ def segments_points_join(
     Perform DataFrame join between RouteSegmentEvents and RoutePointEvents.
     Left is the Points and right is the Segments.
     """
-    if not isinstance(segments, RouteSegmentEvents):
-        raise TypeError("Only accepts RouteSegmentEvents for 'segments'")
+    # if not isinstance(segments, RouteSegmentEvents):
+    #     raise TypeError("Only accepts RouteSegmentEvents for 'segments'")
     
-    if not isinstance(points, RoutePointEvents):
-        raise TypeError("Only accepts RoutePointEvents for 'points'")
+    # if not isinstance(points, RoutePointEvents):
+    #     raise TypeError("Only accepts RoutePointEvents for 'points'")
     
     if how not in ['inner', 'anti']:
         raise ValueError("Only supports 'inner' or 'anti' join.")
@@ -85,9 +85,12 @@ def segments_points_join(
 
     # SQL additional selection columns
     r_cols = []
+    
     for col in segment_select:
         if col in point_select:
             r_cols.append('s.'+col+' as '+col+suffix)
+        else:
+            r_cols.append(col)
 
     l_cols = ['p.'+col for col in point_select]
 
