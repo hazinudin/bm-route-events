@@ -2,11 +2,13 @@ from ray import serve, init
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 from pydantic import BaseModel
-from route_events_service import (
+from src.service import (
     BridgeMasterValidation,
     BridgeInventoryValidation,
     RouteRNIValidation,
-    RouteRoughnessValidation
+    RouteRoughnessValidation,
+    RouteDefectsValidation,
+    RoutePCIValidation
 )
 from route_events import LRSRoute
 import json
@@ -115,7 +117,7 @@ class DataValidation:
 
         return check.invij_json_result(as_dict=True)
 
-    @app.post('/road/rni_validation')
+    @app.post('/road/rni/validation')
     def validate_rni(
         self,
         payload: RoadSurveyData,
@@ -147,7 +149,7 @@ class DataValidation:
             
         return
     
-    @app.post('/road/roughness_validation')
+    @app.post('/road/roughness/validation')
     def validate_iri(
             self,
             payload: RoadSurveyData,
@@ -158,7 +160,7 @@ class DataValidation:
             payload.routes[0]
         )
 
-        check = RouteRoughnessValidation(
+        check = RouteRoughnessValidation.validate_excel(
             excel_path=payload.file_name,
             route=payload.routes[0],
             survey_year=payload.year,
@@ -173,7 +175,73 @@ class DataValidation:
                 as_dict=True
             )
         
+        check.base_validation()
+        check.kemantapan_comparison_check()
+        check.rni_segments_comparison()
+        check.route_has_rni_check()
+        check.pok_iri_check()
+        
         if write and (check.get_status() == 'verified'):
             check.put_data()
-    
+
+    @app.post('/road/defects/validation')
+    def validate_defects(
+        self,
+        payload: RoadSurveyData,
+        write: bool= False
+    ):
+        lrs = LRSRoute.from_feature_service(
+            'localhost:50052',
+            payload.routes[0]
+        )
+
+        check = RouteDefectsValidation.validate_excel(
+            excel_path=payload.file_name,
+            route=payload.routes[0],
+            survey_year=payload.year,
+            sql_engine=self.smd_engine,
+            lrs=lrs
+        )
+
+        if check.get_status() == 'rejected':
+            return check.smd_output_msg(
+                show_all_msg=payload.show_all_msg,
+                as_dict=True
+            )
+        
+        check.lrs_distance_check()
+        check.lrs_sta_check()
+        check.route_has_rni_check()
+        check.sta_not_in_rni_check()
+
+        if write and (check.get_status() == 'verified'):
+            check.put_data()
+
+    @app.post('/road/pci/validation')
+    def validate_pci(
+        self,
+        payload: RoadSurveyData,
+        write: bool= False
+    ):
+        lrs = LRSRoute.from_feature_service(
+            'localhost:50052',
+            payload.routes[0]
+        )
+
+        check = RoutePCIValidation.validate_excel(
+            excel_path=payload.file_name,
+            route=payload.routes[0],
+            survey_year=payload.year,
+            sql_engine=self.smd_engine,
+            lrs=lrs
+        )
+
+        if check.get_status() == 'rejected':
+            return check.smd_output_msg(
+                show_all_msg=payload.show_all_msg,
+                as_dict=True
+            )
+
+        check.base_validation()
+
 serve.run(DataValidation.bind(), route_prefix='/bm')
