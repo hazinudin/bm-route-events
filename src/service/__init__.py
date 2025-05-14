@@ -3,6 +3,10 @@ from .bridge.inventory_validation import BridgeInventoryValidation
 from .segments import (
     RouteSegmentEventsValidation, 
     RouteRNIValidation,
-    RouteRoughnessValidation
+    RouteRoughnessValidation,
+    RoutePCIValidation
+)
+from .points import (
+    RouteDefectsValidation
 )
 from .segments import Kemantapan
