@@ -11,12 +11,89 @@ from sqlalchemy import Engine
 from typing import List
 from ...validation_result.result import ValidationResult
 import polars as pl
+from pydantic import ValidationError
 
 
 class RouteDefectsValidation(RoutePointEventsValidation):
     """
     Route Defects Events validation class.
     """
+    @classmethod
+    def validate_excel(
+        cls,
+        excel_path: str,
+        route: str,
+        survey_year: int,
+        sql_engine: Engine,
+        lrs: LRSRoute,
+        linkid_col: str = 'LINKID',
+        ignore_review: bool = False
+    ):
+        """
+        Validate Defects data in Excel file.
+        """
+        result = ValidationResult(route)
+        obj = None
+
+        try:
+            events = RouteDefects.from_excel(
+                excel_path=excel_path,
+                linkid=route,
+                linkid_col=linkid_col,
+                ignore_review=ignore_review,
+                data_year=survey_year
+            )
+
+            obj = cls(
+                route=route,
+                events=events,
+                lrs=lrs,
+                sql_engine=sql_engine,
+                result=result,
+                survey_year=survey_year
+            )
+
+            return obj
+        
+        except ValidationError as e:
+            for error in e.errors():
+                if 'review' in error['type']:
+                    result.add_message(error['msg'], 'review', 'review')
+                else:
+                    result.add_message(error['msg'], 'rejected')
+        
+            if result.status == 'rejected':
+                obj = cls(
+                    route=route,
+                    events=pl.DataFrame(),
+                    lrs=None,
+                    sql_engine=None,
+                    result=result,
+                    survey_year=survey_year
+                )
+
+                return obj
+            
+            else:
+                events = RouteDefects.from_excel(
+                    excel_path=excel_path,
+                    linkid=route,
+                    linkid_col=linkid_col,
+                    ignore_review=True,
+                    data_year=survey_year
+                )
+
+                obj = cls(
+                    route=route,
+                    events=events,
+                    lrs=lrs,
+                    sql_engine=sql_engine,
+                    result=result,
+                    survey_year=survey_year
+                )
+
+                return obj
+
     def __init__(
             self,
             route: str,
@@ -178,3 +255,9 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         )
 
         return
+    
+    def put_data(self):
+        """
+        Delete and insert events data to geodatabase table.
+        """
+        self._repo.put(self._events, year=self._survey_year)
