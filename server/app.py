@@ -123,7 +123,9 @@ class DataValidation:
     def validate_rni(
         self,
         payload: RoadSurveyValidationInput,
-        write: bool = False
+        write: bool = False,
+        ignore_force: bool = False,
+        ignore_review: bool = False
     ):  
         lrs = LRSRoute.from_feature_service(
             'localhost:50052', 
@@ -135,7 +137,9 @@ class DataValidation:
             route=payload.input_json.routes[0],
             survey_year=payload.input_json.year,
             sql_engine=self.smd_engine,
-            lrs=lrs
+            lrs=lrs,
+            ignore_review=ignore_review,
+            force_write=ignore_force
         )
 
         if check.get_status() == 'rejected':
@@ -160,7 +164,9 @@ class DataValidation:
     def validate_iri(
             self,
             payload: RoadSurveyValidationInput,
-            write: bool = False
+            write: bool = False,
+            ignore_force: bool = False,
+            ignore_review: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
             'localhost:50052',
@@ -173,7 +179,9 @@ class DataValidation:
             survey_year=payload.input_json.year,
             survey_semester=payload.input_json.semester,
             sql_engine=self.smd_engine,
-            lrs=lrs
+            lrs=lrs,
+            ignore_review=ignore_review,
+            force_write=ignore_force
         )
 
         if check.get_status() == 'rejected':
@@ -200,7 +208,9 @@ class DataValidation:
     def validate_defects(
         self,
         payload: RoadSurveyValidationInput,
-        write: bool= False
+        write: bool= False,
+        ignore_force: bool = False,
+        ignore_review: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
             'localhost:50052',
@@ -212,7 +222,9 @@ class DataValidation:
             route=payload.input_json.routes[0],
             survey_year=payload.input_json.year,
             sql_engine=self.smd_engine,
-            lrs=lrs
+            lrs=lrs,
+            ignore_review=ignore_review,
+            force_write=ignore_force
         )
 
         if check.get_status() == 'rejected':
@@ -239,7 +251,9 @@ class DataValidation:
     def validate_pci(
         self,
         payload: RoadSurveyValidationInput,
-        write: bool= False
+        write: bool= False,
+        ignore_force: bool = False,
+        ignore_review: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
             'localhost:50052',
@@ -251,7 +265,9 @@ class DataValidation:
             route=payload.input_json.routes[0],
             survey_year=payload.input_json.year,
             sql_engine=self.smd_engine,
-            lrs=lrs
+            lrs=lrs,
+            ignore_review=ignore_review,
+            force_write=ignore_force
         )
 
         if check.get_status() == 'rejected':
