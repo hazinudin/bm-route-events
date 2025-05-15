@@ -31,12 +31,19 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
         sql_engine: Engine,
         lrs: LRSRoute, 
         linkid_col: str = 'LINKID',
-        ignore_review: bool = False
+        ignore_review: bool = False,
+        force_write: bool = False
     ):
         """
         Validate RNI data in excel file.
         """
-        result = ValidationResult(route)
+        if force_write:
+            result = ValidationResult(route, ignore_in=['force'])
+        elif force_write and ignore_review:
+            result = ValidationResult(route, ignore_in=['force', 'review'])
+        else:
+            result = ValidationResult(route)
+
         obj = None
         try:
             events = RouteRoughness.from_excel(
