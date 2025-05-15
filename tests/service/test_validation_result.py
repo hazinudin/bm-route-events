@@ -111,6 +111,15 @@ class TestValidationResult(unittest.TestCase):
             len(result.to_smd_format(show_all_msg=False)['messages']) == 1
         )
 
+        result = ValidationResult('01001', ignore_in=['force', 'review'])
+        result.add_message('error force', 'error', 'force')
+        result.add_message('error review', 'review', 'review')
+
+        self.assertTrue(
+            len(result.to_smd_format(show_all_msg=False)['messages']) == 0
+        )
+
+
     def test_validation_status(self):
         """
         Test validation status state.
