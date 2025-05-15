@@ -85,6 +85,20 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                 )
 
                 return obj
+            
+        except IndexError:
+            result.add_message(f"File '{excel_path}' tidak dapat ditemukan.", 'rejected')
+
+            obj = cls(
+                route=route,
+                events=pl.DataFrame(),
+                lrs=lrs,
+                sql_engine=sql_engine,
+                results=result,
+                survey_year=survey_year
+            )
+
+            return obj
 
     def __init__(
             self,
