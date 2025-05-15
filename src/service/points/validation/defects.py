@@ -261,3 +261,12 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         Delete and insert events data to geodatabase table.
         """
         self._repo.put(self._events, year=self._survey_year)
+
+    def put_photos(self):
+        """
+        Put photo to photo database
+        """
+        self._storage.register_photos(
+            photos=self.survey_photos,
+            validate=False
+        )
