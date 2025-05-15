@@ -69,6 +69,47 @@ class TestValidationResult(unittest.TestCase):
             }
         )
 
+    def test_to_smd_format_multiple_rejected_msg(self):
+        """
+        Test to_smd_format with multiple duplicated rejected messages.
+        """
+        result = ValidationResult('01001')
+        result.add_message('error msg', 'rejected')
+        result.add_message('error msg', 'rejected')
+
+        self.assertTrue(
+            result.to_smd_format() == 
+            {'status': 'Rejected', 'messages': ['error msg']}
+        )
+
+    def test_to_smd_force_write(self):
+        """
+        Test to_smd_format with ignoring the 'force' message.
+        """
+        result = ValidationResult('01001', ignore_in='force')
+        result.add_message('error force', 'error', 'force')
+        result.add_message('error review', 'review', 'review')
+
+        self.assertTrue(
+            result.to_smd_format(show_all_msg=False)['messages'][0]['msg'] == 'error review'
+        )
+
+        self.assertTrue(
+            len(result.to_smd_format(show_all_msg=False)['messages']) == 1
+        )
+
+        result = ValidationResult('01001', ignore_in='force')
+        result.add_message('error msg', 'error')
+        result.add_message('error force', 'error', 'force')
+        result.add_message('error review', 'review', 'review')
+
+        self.assertTrue(
+            result.to_smd_format(show_all_msg=False)['messages'][0]['msg'] == 'error msg' 
+        )
+
+        self.assertTrue(
+            len(result.to_smd_format(show_all_msg=False)['messages']) == 1
+        )
 
     def test_validation_status(self):
         """
