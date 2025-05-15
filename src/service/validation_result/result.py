@@ -11,10 +11,11 @@ class ValidationResult(object):
         """
         self._state = ['rejected', 'error', 'review', 'verified']
 
-        self._msg = ValidationMessages(id=id, 
-                                       allowed_status = self._state[:-1],
-                                       allowed_ignored_status = ['review', 'force']
-                                       )
+        self._msg = ValidationMessages(
+            id=id, 
+            allowed_status = self._state[:-1],
+            allowed_ignored_status = ['review', 'force']
+        )
         
         self._ignore_in = ignore_in
 
@@ -77,7 +78,7 @@ class ValidationResult(object):
             return self._state[
                 self.get_filtered_msg().
                 sort('status_idx')['status_idx'].min()
-                ]
+            ]
         
     def to_smd_format(
             self, 
