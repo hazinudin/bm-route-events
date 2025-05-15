@@ -1,4 +1,4 @@
-from typing import Type, Literal
+from typing import Type, Literal, Union
 from route_events import (
     RoutePointEvents, 
     LRSRoute,
@@ -209,4 +209,13 @@ class RoutePointEventsValidation(object):
         )
 
         return
+    
+    def smd_output_msg(self, show_all_msg: bool = False, as_dict: bool = True) -> Union[str | dict]:
+        """
+        Return SMD output message format in either Python dictionary or JSON formatted string.
+        """
+        return self._result.to_smd_format(
+            show_all_msg=show_all_msg,
+            as_dict=as_dict
+        )
     
