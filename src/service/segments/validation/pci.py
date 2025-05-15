@@ -56,7 +56,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 events=events,
                 lrs=lrs,
                 sql_engine=sql_engine,
-                result=result,
+                results=result,
                 survey_year=survey_year
             )
 
@@ -75,7 +75,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                     events=pl.DataFrame(),
                     lrs=None,
                     sql_engine=sql_engine,
-                    result=result,
+                    results=result,
                     survey_year=survey_year
                 )
 
@@ -95,7 +95,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                     events=events,
                     lrs=lrs,
                     sql_engine=sql_engine,
-                    result=result,
+                    results=result,
                     survey_year=survey_year
                 )
 
