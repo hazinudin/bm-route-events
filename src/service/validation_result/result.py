@@ -83,7 +83,9 @@ class ValidationResult(object):
     def to_smd_format(
             self, 
             show_all_msg: bool = False,
-            as_dict: bool = True) -> Union[dict | str]:
+            as_dict: bool = True,
+            ignore_force: bool = False
+        ) -> Union[dict | str]:
         """
         Serialize error messages to SMD dictionary format. Output status is either "Rejected" or "Succeeded".
         
@@ -106,7 +108,7 @@ class ValidationResult(object):
         if show_all_msg:
             df = self.get_all_messages()
         else:
-            df = self.get_all_messages().filter(
+            df = self.get_filtered_msg().filter(
                 pl.col('status') == self.status
             )
 
