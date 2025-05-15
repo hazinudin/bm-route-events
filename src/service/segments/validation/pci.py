@@ -74,7 +74,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                     route=route,
                     events=pl.DataFrame(),
                     lrs=None,
-                    sql_engine=None,
+                    sql_engine=sql_engine,
                     result=result,
                     survey_year=survey_year
                 )

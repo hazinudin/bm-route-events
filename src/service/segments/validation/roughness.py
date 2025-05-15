@@ -79,7 +79,7 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
                     route=route,
                     events=pl.DataFrame(),
                     lrs=None,
-                    sql_engine=None,
+                    sql_engine=sql_engine,
                     results=result,
                     survey_year=survey_year,
                     survey_semester=survey_semester
