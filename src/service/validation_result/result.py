@@ -145,7 +145,8 @@ class ValidationResult(object):
         )
 
         if self.status == 'rejected':
-            out_obj.messages.extend(df['msg'].to_list())
+            # The .unique prevents duplicated message to be returned
+            out_obj.messages.extend(df.unique(subset=['linkid', 'msg'])['msg'].to_list())
         else:
             out_obj.messages.extend(df.to_dicts())
 
