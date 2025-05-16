@@ -75,11 +75,21 @@ class ValidationMessages(object):
         Get message with 'ignore_in' filter applied.
         """
         if type(ignored) == list:
-            return self._df.filter(pl.col('ignore_in').is_in(ignored).not_())
+            return self._df.filter(
+                (
+                    pl.col('ignore_in').is_in(ignored).not_()
+                ) | (
+                    pl.col('status').eq('rejected')    
+                )
+            )
         elif type(ignored) == str:
             return self._df.filter(
-                (pl.col('ignore_in') != ignored) |
-                (pl.col('ignore_in').is_null())
+                (
+                    (pl.col('ignore_in') != ignored) |
+                    (pl.col('ignore_in').is_null())
+                ) | (
+                    pl.col('status').eq('rejected')
+                )
             )
         else:
             raise TypeError(f'"ignored" argument with type of {type(ignored)} is invalid.')
