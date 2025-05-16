@@ -119,6 +119,11 @@ class TestValidationResult(unittest.TestCase):
             len(result.to_smd_format(show_all_msg=False)['messages']) == 0
         )
 
+        result = ValidationResult('01001', ignore_in=['force', 'review'])
+        result.add_message('error rejected', 'rejected')
+
+        self.assertTrue(result.status == 'rejected')
+
 
     def test_validation_status(self):
         """
