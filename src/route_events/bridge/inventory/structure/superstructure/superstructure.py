@@ -156,9 +156,11 @@ class Superstructure(object):
             raise TypeError(f"Could only set substructure with Substructure object, not with {type(obj)}.")
 
         # Check if Substructure span parents exists in this class
-        if self.pl_df.join(pl.from_arrow(obj.artable), 
-                           on=[self._span_num_col, self._span_type_col, self._span_seq_col], 
-                           how='inner').shape[0] != obj.artable.shape[0]:
+        if self.pl_df.join(
+            pl.from_arrow(obj.artable), 
+            on=[self._span_num_col, self._span_type_col, self._span_seq_col], 
+            how='inner'
+        ).shape[0] != obj.artable.shape[0]:
             raise ValueError(f"Substructure with parent does not exists in this object.")
 
         if (self._subs is None) or replace:
