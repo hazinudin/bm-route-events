@@ -134,7 +134,10 @@ class BridgeInventoryValidation(object):
         self.span_seq_check()
         self.compare_length_to_master_data_check()
         self.compare_total_span_length_to_inv_length_check()
-        self.span_subs_count_check()
+
+        # Only execute if input data has substructure
+        if self._inv.subs is not None:
+            self.span_subs_count_check()
         
         self.lrs_distance_check()
         self.master_data_distance_check()
@@ -147,11 +150,22 @@ class BridgeInventoryValidation(object):
         """
         self.previous_data_exists_check(should_exists=True)
 
-        self.base_check()
-        self.superstructure_no_changes()
-        self.floor_width_no_changes()
-        self.sidewalk_width_no_changes()
-        self.compare_main_span_length()
+        # Try to insert substructure to the BridgeInventory object, if the object does not have it
+        # Try to insert if the current data is not empty and current data has it.
+        # self.get_status is error probably means the current data does not exists, while trying to update.
+        if (self._inv.subs is None) and (self._current_inv.subs is not None) and (self.get_status != 'error'):
+            try:
+                self._inv.sups.add_substructure(self._current_inv.subs)
+            except ValueError:
+                self._result.add_message('Bangunan atas tidak cocok dengan bangunan bawah inventori jembatan yang sudah ada.', 'error')
+
+        if self.get_status != 'error':
+            self.base_check()
+
+            self.superstructure_no_changes()
+            self.floor_width_no_changes()
+            self.sidewalk_width_no_changes()
+            self.compare_main_span_length()
 
         return
     
@@ -161,7 +175,9 @@ class BridgeInventoryValidation(object):
         """
         self.previous_data_exists_check(should_exists=False)
 
-        self.base_check()
+        if self.get_status != 'error':
+            self.base_check()
+    
         return
     
     def previous_data_exists_check(self, should_exists: bool = True):
