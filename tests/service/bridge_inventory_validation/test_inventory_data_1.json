@@ -1,0 +1,172 @@
+{
+    "mode": "insert",
+    "val_history": [],
+    "id_jbt": "2201152",
+    "tanggal_inv": "06/05/2025",
+    "tahun_inv": "2025",
+    "linkid": "22041",
+    "longitude": 107.9518873,
+    "latitude": -7.1624494,
+    "pjg_total": 15.75,
+    "lbr_jembatan": 11.199999809265137,
+    "btg_terpanjang": 15.0,
+    "tipe_lintasan": "S",
+    "bangunan_atas": [
+        {
+            "no_btg": 1,
+            "tipe_btg": "utama",
+            "seq_btg": 1,
+            "pjg_btg": 15.75,
+            "jml_gelagar": 7,
+            "radius": 189.0,
+            "skew": 0.0,
+            "lbr_lantai_kend": 8.0,
+            "lbr_trotoar": 2.1,
+            "tinggi_ruang_bebas": 3.0,
+            "struktur_ba": "GTP",
+            "elemen": [
+                {
+                    "L3": "",
+                    "tipe": null,
+                    "bhn": "T",
+                    "sifat": "",
+                    "L4": null
+                },
+                {
+                    "L3": "",
+                    "tipe": null,
+                    "bhn": "A",
+                    "sifat": "",
+                    "L4": null
+                },
+                {
+                    "L3": "",
+                    "tipe": null,
+                    "bhn": "A",
+                    "sifat": "",
+                    "L4": null
+                },
+                {
+                    "L3": "3.610",
+                    "tipe": null,
+                    "bhn": "B",
+                    "sifat": "",
+                    "L4": [
+                        {
+                            "kode_element": "4.611 b",
+                            "bhn": "FRP"
+                        },
+                        {
+                            "kode_element": "4.611 a",
+                            "bhn": "FRP"
+                        },
+                        {
+                            "kode_element": "4.611 b",
+                            "bhn": ""
+                        },
+                        {
+                            "kode_element": "4.611 a",
+                            "bhn": "FRP"
+                        }
+                    ]
+                },
+                {
+                    "L3": "3.610",
+                    "tipe": null,
+                    "bhn": "L",
+                    "sifat": "",
+                    "L4": [
+                        {
+                            "kode_element": "4.611 b",
+                            "bhn": "FRP"
+                        },
+                        {
+                            "kode_element": "4.611 a",
+                            "bhn": "FRP"
+                        },
+                        {
+                            "kode_element": "4.611 b",
+                            "bhn": ""
+                        },
+                        {
+                            "kode_element": "4.611 a",
+                            "bhn": "FRP"
+                        }
+                    ]
+                },
+                {
+                    "L3": "3.600",
+                    "tipe": null,
+                    "bhn": "A",
+                    "sifat": "",
+                    "L4": [
+                        {
+                            "kode_element": "4.604",
+                            "bhn": ""
+                        },
+                        {
+                            "kode_element": "4.604",
+                            "bhn": ""
+                        },
+                        {
+                            "kode_element": "4.604",
+                            "bhn": ""
+                        }
+                    ]
+                },
+                {
+                    "L3": "3.710",
+                    "tipe": null,
+                    "bhn": "L",
+                    "sifat": "",
+                    "L4": [
+                        {
+                            "kode_element": "4.712 a",
+                            "bhn": ""
+                        },
+                        {
+                            "kode_element": "4.712 a",
+                            "bhn": ""
+                        },
+                        {
+                            "kode_element": "4.712 a",
+                            "bhn": ""
+                        }
+                    ]
+                }
+            ],
+            "bangunan_bawah": [
+                {
+                    "status": "kpl_jbt",
+                    "no": 1,
+                    "latitude": 0.0,
+                    "longitude": 0.0,
+                    "elemen": [
+                        {
+                            "L3": "",
+                            "tipe": "P",
+                            "bhn": "D",
+                            "sifat": "",
+                            "L4": null
+                        }
+                    ]
+                },
+                {
+                    "status": "pilar",
+                    "no": 2,
+                    "latitude": 0.0,
+                    "longitude": 0.0,
+                    "elemen": [
+                        {
+                            "L3": "",
+                            "tipe": "P",
+                            "bhn": "D",
+                            "sifat": "",
+                            "L4": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
