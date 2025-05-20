@@ -35,8 +35,9 @@ class _Payload(BaseModel):
 class RoadSurveyValidationInput(BaseModel):
     input_json: _Payload
 
+load_dotenv(os.path.dirname(__file__) + '/.env')
 
-@serve.deployment
+@serve.deployment(num_replicas=int(os.getenv('RAY_SERVE_NUM_REPLICAS')))
 @serve.ingress(app)
 class DataValidation:
     def __init__(self):
