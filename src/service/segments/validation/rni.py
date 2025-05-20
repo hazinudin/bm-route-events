@@ -469,8 +469,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         return self
 
-    def put_data(self):
+    def put_data(self, semester: int=2):
         """
         Delete and insert events data to geodatabase table.
         """
-        self._repo.put(self._events)
+        self._repo.put(self._events, self._survey_year, semester)

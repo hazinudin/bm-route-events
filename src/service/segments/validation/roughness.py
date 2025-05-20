@@ -350,4 +350,4 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
         """
         Delete and insert events data to geodatabase table.
         """
-        self._repo.put(self._events)
+        self._repo.put(self._events, year=self._survey_year, semester=self._survey_sem)

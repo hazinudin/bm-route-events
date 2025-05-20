@@ -151,7 +151,7 @@ class DataValidation:
         check.base_validation()
 
         if write and (check.get_status() == 'verified'):
-            check.put_data()
+            check.put_data(semester=payload.input_json.semester)
 
         return check.smd_output_msg(
             show_all_msg=payload.input_json.show_all_msg,
@@ -279,7 +279,7 @@ class DataValidation:
         check.base_validation()
 
         if write and (check.get_status() == 'verified'):
-            check.put_data()
+            check.put_data(semester=payload.input_json.semester)
         
         return check.smd_output_msg(
             show_all_msg=payload.input_json.show_all_msg,
