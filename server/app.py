@@ -2,6 +2,7 @@ from ray import serve, init
 from fastapi import FastAPI
 from sqlalchemy import create_engine
 from google.cloud import storage
+from google.oauth2 import service_account
 from pydantic import BaseModel
 from route_events_service import (
     BridgeMasterValidation,
@@ -58,7 +59,8 @@ class DataValidation:
         
         # Google Storage client
         # Use service account JSON
-        self.gs_client = storage.Client().from_service_account_json(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
+        cred = service_account.Credentials.from_service_account_file(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
+        self.gs_client = storage.Client(credentials=cred)
     
     @app.post('/bridge/master_validation')
     def validate_bridgemaster_data(
