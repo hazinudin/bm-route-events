@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 from typing import Literal, Optional, List
 
 
-init()
+init(address='auto')
 
 app = FastAPI()
 
