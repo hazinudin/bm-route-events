@@ -1,6 +1,7 @@
 from ray import serve, init
 from fastapi import FastAPI
 from sqlalchemy import create_engine
+from google.cloud import storage
 from pydantic import BaseModel
 from route_events_service import (
     BridgeMasterValidation,
@@ -50,8 +51,14 @@ class DataValidation:
         MISC_USER = os.getenv('MISC_USER')
         MISC_PWD = os.getenv('MISC_PWD')
 
+        SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
+
         self.smd_engine = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{HOST}:1521/geodbbm")
         self.misc_engine = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{HOST}:1521/geodbbm")
+        
+        # Google Storage client
+        # Use service account JSON
+        self.gs_client = storage.Client().from_service_account_json(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
     
     @app.post('/bridge/master_validation')
     def validate_bridgemaster_data(
