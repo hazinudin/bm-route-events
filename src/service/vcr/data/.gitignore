@@ -1,0 +1,5 @@
+*.parquet
+*.tmp
+*.block
+*.db
+!.gitignore
