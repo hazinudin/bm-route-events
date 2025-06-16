@@ -1,6 +1,7 @@
 import polars as pl
 from .pipeline import PipelineStep, MultiDataContext, PipelineContext
 import os
+from typing import Literal
 
 
 class CalculateVCR(PipelineStep):
@@ -36,27 +37,76 @@ class CalculateVCR(PipelineStep):
     
 
 class CalculateVCRSummary(PipelineStep):
-    def __init__(self):
+    def __init__(self, agg_method: Literal['mean', 'max']='max'):
         super().__init__('VCR_summary')
 
-    def execute(self, ctx: PipelineContext) -> PipelineContext:
+        self.agg_method = agg_method
+
+    def execute(self, ctx: MultiDataContext) -> PipelineContext:
         """
         Calculate VCR summary.
         """
+        if (
+            'RNI' not in ctx.datasets
+        ) or (
+            'VCR' not in ctx.datasets
+        ):
+            raise KeyError('Context does not contain RNI or VCR dataset.')
+
         sk_lf = pl.scan_parquet(
             f'{os.path.dirname(__file__)}/data/route_sk_length.parquet'
         )
 
-        lf = ctx.lf.group_by(
-            ['LINKID', 'FROM_STA', 'TO_STA']
+        lf = ctx.datas['VCR'].group_by(
+            [
+                ctx.linkid_col, 
+                ctx.from_sta_col, 
+                ctx.to_sta_col,
+                ctx.survey_date_col,
+                ctx.survey_hours_col
+            ]
         ).agg(
             pl.col('VCR').max(),
-            pl.col('YEAR').max()
+            pl.col('YEAR').max(),
+            pl.col('CAPACITY').mean(),
+            pl.col('TOTAL_PCE').max()
         ).group_by(
-            'LINKID'
+            [
+                ctx.linkid_col,
+                ctx.from_sta_col,
+                ctx.to_sta_col,
+                ctx.survey_date_col
+            ]
         ).agg(
             pl.col('YEAR').max(),
-            pl.col('VCR').mean().alias('AVG_VCR'), 
+            getattr(pl.col('CAPACITY'), self.agg_method)(),
+            getattr(pl.col('TOTAL_PCE'), self.agg_method)(),
+            getattr(pl.col('VCR'), self.agg_method)()
+        ).group_by(
+            ctx.linkid_col,
+            ctx.from_sta_col,
+            ctx.to_sta_col
+        ).agg(
+            pl.col('YEAR').max(),
+            pl.col('CAPACITY').mean(),
+            pl.col('TOTAL_PCE').mean(),
+            pl.col('VCR').mean()
+        ).group_by(
+            ctx.linkid_col
+        ).agg(
+            pl.col('YEAR').max(),
+            pl.col('TOTAL_PCE').mean().alias('AVG_TOTAL_PCE'),
+            pl.col('CAPACITY').mean().alias('AVG_CAPACITY'),
+            pl.col('VCR').mean().alias('AVG_VCR'),
+            pl.col('VCR').mul(
+                pl.col(ctx.to_sta_col).sub(
+                    pl.col(ctx.from_sta_col)
+                )
+            ).sum().truediv(
+                pl.col(ctx.to_sta_col).sub(
+                    pl.col(ctx.from_sta_col)
+                ).sum()
+            ).alias('VCR_WEIGHTED_AVG'), 
             pl.when(
                 pl.col('VCR').lt(0.25)
             ).then(
@@ -103,6 +153,17 @@ class CalculateVCRSummary(PipelineStep):
             pl.col('VCR_0.85_1').mul(pl.col('SK_LENGTH').truediv(pl.col('TOTAL_LEN'))),
             pl.col('VCR_>=_1').mul(pl.col('SK_LENGTH').truediv(pl.col('TOTAL_LEN'))),
             pl.col('SK_LENGTH').alias('TOTAL_LEN')
+        ).join(
+            ctx.datas['RNI'].select(
+                ctx.linkid_col, 
+                pl.col(ctx.rni_year_col).cast(pl.Int16)
+            ).group_by(
+                ctx.linkid_col
+            ).agg(
+                pl.col(ctx.rni_year_col).max()
+            ),
+            on=ctx.linkid_col,
+            how='left'
         )
 
         out_ctx = PipelineContext()
