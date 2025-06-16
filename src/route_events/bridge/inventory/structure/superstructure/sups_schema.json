@@ -61,9 +61,70 @@
             "dtype": "double",
             "db_col": "FLOOR_WIDTH"
         },
-        "LBR_TROTOAR": {
+        "LBR_TROTOAR_KANAN": {
             "dtype": "double",
-            "db_col": "SIDEWALK_WIDTH"
+            "db_col": "R_SIDEWALK_WIDTH",
+            "range": {
+                "upper": 10,
+                "lower": 0.5,
+                "eq_lower": true,
+                "eq_upper": false
+            },
+            "allow_null": true
+        },
+        "LBR_TROTOAR_KIRI": {
+            "dtype": "double",
+            "db_col": "L_SIDEWALK_WIDTH",
+            "range": {
+                "upper": 10,
+                "lower": 0.5,
+                "eq_lower": true,
+                "eq_upper": false
+            },
+            "allow_null": true
+        },
+        "LBR_DRAINASE_KIRI": {
+            "dtype": "double",
+            "db_col": "L_DITCH_WIDTH",
+            "allow_null": true
+        },
+        "LBR_DRAINASE_KANAN": {
+            "dtype": "double",
+            "db_col": "R_DITCH_WIDTH",
+            "allow_null": true
+        },
+        "LBR_BAHU_KANAN": {
+            "dtype": "double",
+            "db_col": "R_OUT_SHWIDTH",
+            "range": {
+                "upper": 10,
+                "lower": 0.5,
+                "eq_lower": true,
+                "eq_upper": false
+            },
+            "allow_null": true
+        },
+        "LBR_BAHU_KIRI": {
+            "dtype": "double",
+            "db_col": "L_OUT_SHWIDTH",
+            "range": {
+                "upper": 10,
+                "lower": 0.5,
+                "eq_lower": true,
+                "eq_upper": false
+            },
+            "allow_null": true
+        },
+        "LBR_MEDIAN": {
+            "dtype": "double",
+            "db_col": "MED_WIDTH",
+            "range": {
+                "upper": 10,
+                "lower": 0.08,
+                "eq_lower": true,
+                "eq_upper": false
+            },
+            "allow_null": true
         },
         "TINGGI_RUANG_BEBAS": {
             "dtype": "double",
