@@ -324,9 +324,9 @@ class RouteSegmentEventsValidation(object):
         ).select(
             msg = pl.format(
                 "Segmen {}-{} {} merupakan segmen dengan duplikat.",
-                pl.col('from_sta'),
-                pl.col('to_sta'),
-                pl.col('lane')
+                pl.col(self._events._from_sta_col),
+                pl.col(self._events._to_sta_col),
+                pl.col(self._events._lane_code_col)
             )
         )
 
