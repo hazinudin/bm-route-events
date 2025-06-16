@@ -92,6 +92,15 @@ class MultiDataContext(PipelineContext):
         self.datas[name.upper()] = lazyframe
         self.join_key[name.upper()] = join_key
 
+        return self
+
+    @property
+    def datasets(self) -> list:
+        """
+        Return all available datasets name.
+        """
+        return self.datas.keys()
+
 
 class PipelineStep(ABC):
     """
