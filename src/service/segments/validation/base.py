@@ -501,7 +501,7 @@ class RouteSegmentEventsValidation(object):
         Compare events max M-Value with LRS max M-Value, to confirm survey is done until the end of a route.
         """
         if not isclose(
-            self._df_lrs_mv['m_val'].max(),
+            self.df_lrs_mv['m_val'].max(),
             self._lrs.max_m_value,
             atol=tolerance
         ) and (
