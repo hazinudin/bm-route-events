@@ -62,7 +62,7 @@ class RouteRNI(RouteSegmentEvents):
         df = pl.DataFrame(
             ta.validate_python(df_str.to_dicts()),
             infer_schema_length=None
-            )
+        )
 
         if linkid == 'ALL':
             pass
