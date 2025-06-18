@@ -305,7 +305,7 @@ class RouteSegmentEvents(object):
             ]
         )
 
-        return self._segment_dto_mapper(df)
+        return self._segment_dto_mapper(df, dump=True)
     
     def incorrect_lane_sequence(self) -> List[CenterlineSegment]:
         """
@@ -331,7 +331,7 @@ class RouteSegmentEvents(object):
             pl.col('lane_seq')
         )
 
-        return self._csegment_dto_mapper(df, lanes_col=self._lane_code_col)
+        return self._csegment_dto_mapper(df, lanes_col=self._lane_code_col, dump=True)
 
     def incorrect_segment_length(self, tolerance=0) -> List[Segment]:
         """
@@ -346,7 +346,7 @@ class RouteSegmentEvents(object):
             )
         )
 
-        return self._segment_dto_mapper(df, additional_cols=[self._seg_len_col])
+        return self._segment_dto_mapper(df, additional_cols=[self._seg_len_col], dump=True)
     
     def incorrect_sta_diff(self, tolerance=0) -> List[Segment]:
         """
@@ -362,7 +362,7 @@ class RouteSegmentEvents(object):
             (pl.col('sta_diff').lt(pl.col(self._seg_len_col).mul(self.seg_len_conversion).sub(tolerance)))
         )
 
-        return self._segment_dto_mapper(df, additional_cols=[self._seg_len_col])
+        return self._segment_dto_mapper(df, additional_cols=[self._seg_len_col], dump=True)
     
     def sta_gap(self) -> List[Segment]:
         """
@@ -389,7 +389,7 @@ class RouteSegmentEvents(object):
             pl.col('shifted_from').alias(self._to_sta_col)
         )
 
-        return self._segment_dto_mapper(df)
+        return self._segment_dto_mapper(df, dump=True)
     
     def overlapping_segments(self) -> List[OverlappingSegment]:
         """
@@ -495,8 +495,9 @@ class RouteSegmentEvents(object):
             from_sta_col = None,
             to_sta_col = None,
             lane_code_col = None,
-            out_dto: Type[Segment] = Segment
-        ) -> List[Type[Segment]]:
+            out_dto: Type[Segment] = Segment,
+            dump: bool = False
+        ) -> List[Type[Segment]] | dict:
         """
         Map DataFrame rows into Segment DTO.
         """
@@ -532,17 +533,27 @@ class RouteSegmentEvents(object):
                 }
             )
         )
+        
+        ta = TypeAdapter(List[out_dto])
 
-        return TypeAdapter(List[out_dto]).validate_python(
-            df.rows(named=True)
-        )
+        if not dump:
+            return ta.validate_python(
+                df.rows(named=True)
+            )
+        else:
+            return ta.dump_python(
+                ta.validate_python(
+                    df.rows(named=True)
+                )
+            )
     
     def _csegment_dto_mapper(
             self, 
             df: pl.DataFrame, 
             lanes_col: str = "LANE_CODE",
             additional_cols: List[str] = [],
-            out_dto: Type[CenterlineSegment] = CenterlineSegment
+            out_dto: Type[CenterlineSegment] = CenterlineSegment,
+            dump: bool = False
         ) -> List[Type[CenterlineSegment]]:
         """
         Map DataFrame rows into CenterlineSegment DTO.
@@ -568,6 +579,15 @@ class RouteSegmentEvents(object):
             )
         )
 
-        return TypeAdapter(List[out_dto]).validate_python(
-            df.rows(named=True)
-        )
+        ta = TypeAdapter(List[out_dto])
+
+        if not dump:
+            return ta.validate_python(
+                df.rows(named=True)
+            )
+        else:
+            return ta.dump_python(
+                ta.validate_python(
+                    df.rows(named=True)
+                )
+            )
