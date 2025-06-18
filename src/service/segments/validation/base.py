@@ -324,6 +324,11 @@ class RouteSegmentEventsValidation(object):
         if len(errors_) == 0:
             return self
         
+        errors = pl.DataFrame(
+            self._events.is_duplicate_segment()
+        ).select(
+            msg = pl.format(
+                "Segmen {}-{} {} merupakan segmen dengan duplikat.",
                 pl.col('from_sta'),
                 pl.col('to_sta'),
                 pl.col('lane')
