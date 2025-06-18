@@ -319,14 +319,14 @@ class RouteSegmentEventsValidation(object):
         """
         Check for duplicate segment.
         """
-        errors = pl.DataFrame(
-            self._events.is_duplicate_segment()
-        ).select(
-            msg = pl.format(
-                "Segmen {}-{} {} merupakan segmen dengan duplikat.",
-                pl.col(self._events._from_sta_col),
-                pl.col(self._events._to_sta_col),
-                pl.col(self._events._lane_code_col)
+        errors_ = self._events.is_duplicate_segment()
+
+        if len(errors_) == 0:
+            return self
+        
+                pl.col('from_sta'),
+                pl.col('to_sta'),
+                pl.col('lane')
             )
         )
 
@@ -342,8 +342,13 @@ class RouteSegmentEventsValidation(object):
         Check for incorrect lane sequence. All segment should have lanes that start from L1 or R1,
         and has 1 increment.
         """
+        errors_ = self._events.incorrect_lane_sequence()
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_lane_sequence()
+            errors_
         ).select(
             msg = pl.format(
                 "Segmen {}-{} memiliki kode lajur yang tidak sesuai dengan aturan, yaitu {}",
@@ -365,8 +370,13 @@ class RouteSegmentEventsValidation(object):
         Check segment with incorrect segment length. Exclude the last segment, 
         because last segment could have short segment length.
         """
+        errors_ = self._events.incorrect_segment_length(tolerance=tolerance)
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_segment_length(tolerance=tolerance)
+            errors_
         ).select(
             msg = pl.format(
                 "Segmen {}-{} {} memiliki panjang segmen yang tidak sesuai dengan kriteria, yaitu {}",
@@ -388,13 +398,19 @@ class RouteSegmentEventsValidation(object):
         """
         Check segment with incorrect STA difference, compared to its segment length.
         """
+        errors_ = self._events.incorrect_sta_diff(tolerance=tolerance)
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_sta_diff(tolerance=tolerance)
+            errors_
         ).select(
             msg = pl.format(
                 "Segmen {}-{} {} memiliki nilai FROM_STA yang lebih besar dari TO_STA, atau selisih FROM-TO yang tidak cocok dengan panjang segmen, yaitu {}",
                 pl.col('from_sta'),
                 pl.col('to_sta'),
+                pl.col('lane'),
                 pl.col(self._events._seg_len_col.lower())
             )
         )
@@ -410,8 +426,13 @@ class RouteSegmentEventsValidation(object):
         """
         Check if there is measurement gap in each lane.
         """
+        errors_ = self._events.sta_gap()
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.sta_gap()
+            errors_
         ).select(
             msg = pl.format(
                 "Tidak ditemukan data survey dari STA {} hingga {} pada lane {}.",
@@ -432,8 +453,13 @@ class RouteSegmentEventsValidation(object):
         """
         Check if there is overlapping segment.
         """
+        errors_ = self._events.overlapping_segments()
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.overlapping_segments()
+            errors_
         ).select(
             msg = pl.format(
                 "Segmen {}-{} {} tumpang tindih dengan segmen {}-{} {}",
