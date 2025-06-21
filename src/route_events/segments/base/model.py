@@ -152,7 +152,7 @@ class RouteSegmentEvents(object):
     def semester(self) -> int:
         return self._data_semester
 
-    @cached_property
+    @property
     def pl_df(self) -> pl.DataFrame:
         return self._pl_df
     
