@@ -1,7 +1,60 @@
 import unittest
-from src.route_events.segments.rni import RouteRNI
+from src.route_events.segments.rni import RouteRNI, RouteRNIRepo
 from pyarrow import Table
+import polars as pl
+from dotenv import load_dotenv
+import os
+from sqlalchemy import create_engine, text
 
+
+load_dotenv('tests/dev.env')
+HOST = os.getenv('DB_HOST')
+USER = os.getenv('SMD_USER')
+PWD = os.getenv('SMD_PWD')
+
+engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
+
+
+class TestRNIRepo(unittest.TestCase):
+    def test_put_data(self):
+        """
+        Load data from Excel file and write it to database
+        """
+        excel_path = "tests/domain/route_segments/input_excels/balai_5_15010.xlsx"
+
+        rni = RouteRNI.from_excel(
+            excel_path=excel_path,
+            linkid = '15010',
+            ignore_review=True
+        )
+
+        repo = RouteRNIRepo(
+            sql_engine=engine
+        )
+
+        rni._pl_df = rni.pl_df.with_columns(pl.lit('TEST_LINKID').alias('LINKID'))
+        
+        # Put the test data into RNI_1_2024
+        repo.put(
+            events=rni,
+            year=2024,
+            semester=1
+        )
+
+        # Test the inserted data
+        df = pl.read_database(
+            "select linkid, objectid, copied, update_date from rni_1_2024 where linkid = 'TEST_LINKID'",
+            connection=engine
+        )
+
+        self.assertFalse(df.is_empty())
+        self.assertTrue(df['COPIED'].eq(0).all())
+        self.assertTrue(df['UPDATE_DATE'].is_not_null().all())
+
+        # Delete the test data
+        with engine.connect() as conn:
+            conn.execute(text("DELETE FROM RNI_1_2024 WHERE LINKID = 'TEST_LINKID'"))
+            conn.commit()
 
 class TestRNI(unittest.TestCase):
     def test_from_excel(self):
