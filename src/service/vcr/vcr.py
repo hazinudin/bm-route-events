@@ -2,7 +2,9 @@ import polars as pl
 from .pipeline import PipelineStep, MultiDataContext, PipelineContext
 import os
 from typing import Literal
-from sqlalchemy import Engine
+from sqlalchemy import Engine, text, inspect
+from ...route_events.utils import ora_pl_dtype
+from datetime import datetime
 
 
 class CalculateVCR(PipelineStep):
@@ -220,7 +222,98 @@ class SegmentVCRLoader(PipelineStep):
         super().__init__(step_name='vcr_segment_loader')
         self._engine = sql_engine
         self.table_name = table_name
+        self._inspect = inspect(sql_engine)
 
     def execute(self, ctx: PipelineContext):
+        with self._engine.connect() as conn, conn.execution_options(
+            isolation_level='READ COMMITTED'
+        ):
+            try:
+                self._delete(conn, ctx.linkid_col, 'YEAR', ctx.lf)
+                self._insert(conn, ctx.lf)
+            except Exception as e:
+                conn.rollback()
+                raise e
+            
+            conn.commit()
+
+        return
+    
+    def _delete(
+            self,
+            conn,
+            linkid_col: str,
+            year_col: str,
+            lf: pl.LazyFrame
+    ) -> None:
+        """
+        Delete the rows based on route ID and year column.
+        """
+        if not self._inspect.has_table(self.table_name):
+            return
         
+        # Delete chunks
+        del_chunks = 600
+
+        year_groups = lf.group_by(
+            year_col
+        ).agg(
+            pl.col(linkid_col).unique()
+        ).collect().rows()
+
+        for group in year_groups:
+            year_ = group[0]
+            routes = [f"'{_}'" for _ in group[1]]
+
+            if len(routes) <= del_chunks:
+                conn.execute(
+                    text(f"delete from {self.table_name} where {year_col} = {year_} and {linkid_col} in ({', '.join(routes)})")
+                )
+            else:
+
+                # Iterate all through the chunks
+                for chunk in range(len(routes)//del_chunks):
+                    routes_chunk = routes[chunk*del_chunks:(chunk+1)*del_chunks]
+                    conn.execute(
+                        text(f"delete from {self.table_name} where {year_col} = {year_} and {linkid_col} in ({', '.join(routes_chunk)})")
+                    )
+                
+                # Last part
+                conn.execute(
+                    text(f"delete from {self.table_name} where {year_col} = {year_} and {linkid_col} in ({', '.join(routes[chunk*del_chunks:len(routes)-1])})")
+                )
+
+        return
+    
+    def _insert(
+            self,
+            conn,
+            lf: pl.LazyFrame
+    ) -> None:
+        """
+        Insert all rows from the LazyFrame.
+        """
+        # Add update date column.
+        df = lf.collect().with_columns(
+            UPDATE_DATE=pl.lit(datetime.now()).dt.datetime()
+        )
+
+        if not self._inspect.has_table(self.table_name):
+            df.write_database(
+                self.table_name,
+                connection=conn,
+                engine_options={
+                    'dtype': ora_pl_dtype(
+                        df,
+                        date_cols_keywords='DATE'
+                    )
+                }
+            )
+        else:
+            df.write_database(
+                self.table_name,
+                connection=conn,
+                if_table_exists='append'
+            )
+
         return

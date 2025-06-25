@@ -7,7 +7,7 @@ from .fchs import CapacityFCHSLookup, CapacityFCHSInterpolation
 from .fcpa import CapacityFCPALookup
 from .pce import VolumePCELookup, VolumePCECalculation
 from .capacity import FinalCapacityCalculation
-from .vcr import CalculateVCR, CalculateVCRSummary
+from .vcr import CalculateVCR, CalculateVCRSummary, SegmentVCRLoader
 from .rni_spatial_query import RNISpatialQuery
 from .fcuk import CapacityFCUK
 from .sk_mapping import RouteidSKMapping
