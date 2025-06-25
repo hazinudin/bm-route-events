@@ -20,6 +20,7 @@ from datetime import datetime as dt
 from polars import String, Int64, Float64
 from enum import IntEnum
 
+
 CUSTOM_ERROR_MSG = {
     "less_than": "Nilai {0}={1} berada di luar rentang valid.",
     "less_than_equal": "Nilai {0}={1} berada di luar rentang valid.",
@@ -44,6 +45,20 @@ def serialize_date_str(v:any):
             f'Tanggal {v} tidak sesuai dengan format dd/mm/yyyy.', 
             dict(input=v)
             )
+    
+def serialize_float_to_int(v:any):
+    """
+    Serialize string float into integer. Example 5.002 to 5, this will raise an error if int(5.002)
+    """
+    try:
+        val_ = round(float(v))
+        return val_
+    except ValueError:
+        raise PydanticCustomError(
+            'int_parsing',
+            'Input is neither a float or integer, unable serialize.',
+            dict(input_value=v)
+        )
 
 def generate_custom_review_msg(v: any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo):
     """
@@ -218,6 +233,9 @@ class RouteEventsSchema(object):
                 pa_type = pa.int64()
                 pyd_type = int
                 self.pl_schema[col] = Int64
+
+                # Add string serializer
+                self.validators[serialize_float_to_int.__name__+'_'+col] = field_validator(col, mode='before')(serialize_float_to_int)
             elif dtype == 'date':  # Date is inputted as string
                 pa_type = pa.string()
                 pyd_type = dt  # Type is datetime
