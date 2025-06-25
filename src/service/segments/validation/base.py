@@ -153,8 +153,8 @@ class RouteSegmentEventsValidation(object):
 
         self._result.add_messages(
             errors.select('msg'),
-            'review',
-            'review'
+            'error',
+            'force'
         )
         
         return self
@@ -182,8 +182,8 @@ class RouteSegmentEventsValidation(object):
         # Append error messages
         self._result.add_messages(
             m_errors, 
-            'review', 
-            'review'
+            'error',
+            'force'
         )
 
         return self
@@ -215,8 +215,8 @@ class RouteSegmentEventsValidation(object):
         # Append error messages
         self._result.add_messages(
             dir_error, 
-            'review', 
-            'review'
+            'error',
+            'force'
         )
 
         return self
@@ -263,8 +263,8 @@ class RouteSegmentEventsValidation(object):
         # Append error messages
         self._result.add_messages(
             errors,
-            'review',
-            'review'
+            'error',
+            'force'
         )
 
         return self
@@ -309,8 +309,8 @@ class RouteSegmentEventsValidation(object):
 
         self._result.add_messages(
             errors,
-            'review',
-            'review'
+            'error',
+            'force'
         )
 
         return self
