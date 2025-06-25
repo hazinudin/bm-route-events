@@ -4,10 +4,10 @@
             "dtype": "string"
         },
         "FROM_STA": {
-            "dtype": "double"
+            "dtype": "integer"
         },
         "TO_STA": {
-            "dtype": "double"
+            "dtype": "integer"
         },
         "SEGMENT_LENGTH": {
             "dtype": "double"
