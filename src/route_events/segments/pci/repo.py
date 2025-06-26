@@ -2,6 +2,9 @@ from sqlalchemy import Engine, inspect, text
 from .model import RoutePCI
 import polars as pl
 from typing import Literal
+from datetime import datetime
+from ...utils.oid import has_objectid, generate_objectid
+from ...utils import ora_pl_dtype
 
 
 class RoutePCIRepo(object):
@@ -103,16 +106,46 @@ class RoutePCIRepo(object):
         Insert PCI data into PCI geodatabase table.
         """
         try:
-            if self._inspect.has_table(f"{self.table}_{semester}_{year}"):
-                if_table_exists='append'
-            else:
-                if_table_exists='replace'
+            if self._inspect.has_table(f"{self._table}_{semester}_{year}"):
+                if has_objectid(f"{self._table}_{semester}_{year}", self._engine):
+                    oids = generate_objectid(
+                        schema='smd',
+                        table=f"{self.table}_{semester}_{year}",
+                        sql_engine=self._engine,
+                        oid_count=events.pl_df.select(pl.len()).rows()[0][0]
+                    )
 
-            events.pl_df.write_database(
-                f"{self.table}_{semester}_{year}",
-                connection=conn,
-                if_table_exists=if_table_exists
-            )
+                    args = [pl.Series('OBJECTID', oids)]
+
+                else:
+                    args = []
+
+                events.pl_df.with_columns(
+                    pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
+                    pl.lit(0).alias('COPIED'),
+                    *args
+                ).write_database(
+                    f"{self._table}_{semester}_{year}",
+                    connection=conn,
+                    if_table_exists='append'
+                )
+            
+            else:
+                events.pl_df.with_columns(
+                    pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
+                    pl.lit(0).alias('COPIED'),
+                    *args
+                ).write_database(
+                    f"{self._table}_{semester}_{year}",
+                    connection=conn,
+                    if_table_exists='append',
+                    engine_options={
+                        'dtype': ora_pl_dtype(
+                            events.pl_df,
+                            date_cols_keyword='DATE'
+                        )
+                    }
+                )
             
         except Exception as e:
             conn.rollback()
