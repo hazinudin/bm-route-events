@@ -10,8 +10,9 @@ from route_events_service import (
     RouteRNIValidation,
     RouteRoughnessValidation,
     RouteDefectsValidation,
-    RoutePCIValidation
+    RoutePCIValidation,
 )
+from route_events_service.photo import gs
 from route_events import LRSRoute
 import json
 import os
@@ -227,6 +228,12 @@ class DataValidation:
             payload.input_json.routes[0]
         )
 
+        sp = gs.SurveyPhotoStorage(
+            gs_client=self.gs_client,
+            bucket_name='sidako-bucket',
+            sql_engine=self.smd_engine
+        )
+
         check = RouteDefectsValidation.validate_excel(
             excel_path=payload.input_json.file_name,
             route=payload.input_json.routes[0],
@@ -234,7 +241,8 @@ class DataValidation:
             sql_engine=self.smd_engine,
             lrs=lrs,
             ignore_review=ignore_review,
-            force_write=ignore_force
+            force_write=ignore_force,
+            photo_storage=sp
         )
 
         if check.get_status() == 'rejected':
