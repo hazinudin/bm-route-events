@@ -51,8 +51,12 @@ def serialize_float_to_int(v:any):
     Serialize string float into integer. Example 5.002 to 5, this will raise an error if int(5.002)
     """
     try:
-        val_ = round(float(v))
-        return val_
+        if v is None:
+            return v
+        else:
+            val_ = round(float(v))
+            return val_
+        
     except ValueError:
         raise PydanticCustomError(
             'int_parsing',
