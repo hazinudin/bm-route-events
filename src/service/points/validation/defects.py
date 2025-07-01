@@ -26,9 +26,10 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         survey_year: int,
         sql_engine: Engine,
         lrs: LRSRoute,
+        photo_storage: gs.SurveyPhotoStorage,
         linkid_col: str = 'LINKID',
         ignore_review: bool = False,
-        force_write: bool = False
+        force_write: bool = False,
     ):
         """
         Validate Defects data in Excel file.
@@ -57,7 +58,8 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                 lrs=lrs,
                 sql_engine=sql_engine,
                 results=result,
-                survey_year=survey_year
+                survey_year=survey_year,
+                photo_storage=photo_storage
             )
 
             return obj
@@ -76,7 +78,8 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                     lrs=None,
                     sql_engine=sql_engine,
                     results=result,
-                    survey_year=survey_year
+                    survey_year=survey_year,
+                    photo_storage=photo_storage
                 )
 
                 return obj
@@ -96,7 +99,8 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                     lrs=lrs,
                     sql_engine=sql_engine,
                     results=result,
-                    survey_year=survey_year
+                    survey_year=survey_year,
+                    photo_storage=photo_storage
                 )
 
                 return obj
