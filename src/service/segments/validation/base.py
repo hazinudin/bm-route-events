@@ -126,11 +126,24 @@ class RouteSegmentEventsValidation(object):
         self.sta_overlap_check()
         self.survey_max_m_value_check()
         self.from_sta_start_from_zero()
+        self.survey_date_year_check()
         # self.data_semester_check()
         # self.data_year_check()
 
         # Run all LRS Validation
         self.lrs_validation()
+
+    def survey_date_year_check(self):
+        """
+        Check if the year in survey date is consistent with the data year.
+        """
+        if not self._events.correct_survey_date_year():
+            self._result.add_message(
+                f"Data input memiliki tanggal survey ({self._events._survey_date_col}) dengan tahun yang bukan {self._events._data_year}",
+                'error'
+            )
+        
+        return self
 
     def lrs_distance_check(self, threshold=30):
         """
