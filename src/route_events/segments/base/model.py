@@ -82,6 +82,7 @@ class RouteSegmentEvents(object):
         self._lat_col = 'TO_STA_LAT'
         self._long_col = 'TO_STA_LONG'
         self._year_col = 'SURVEY_YEAR'
+        self._survey_date_col = 'SURVEY_DATE'
         self._semester_col = 'SEMESTER'
 
         # Units
@@ -244,6 +245,14 @@ class RouteSegmentEvents(object):
         """
         return self.pl_df.filter(
             pl.col(self._year_col) != self._data_year
+        ).is_empty()
+    
+    def correct_survey_date_year(self) -> bool:
+        """
+        Check if all row has consistent data year and survey date year.
+        """
+        return self.pl_df.filter(
+            pl.col(self._survey_date_col).dt.year() != self._data_year
         ).is_empty()
     
     def correct_data_semester(self) -> bool:
