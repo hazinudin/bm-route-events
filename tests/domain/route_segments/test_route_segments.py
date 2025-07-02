@@ -2,6 +2,7 @@ from src.route_events.segments.base.model import RouteSegmentEvents
 import unittest
 import pyarrow as pa
 import polars as pl
+from datetime import datetime
 from pydantic import ValidationError
 
 
@@ -232,3 +233,21 @@ class TestRouteSegments(unittest.TestCase):
         )
 
         self.assertTrue(len(dtos) == 2)
+    
+    def test_correct_survey_date_year(self):
+        df = pl.DataFrame(
+            {
+                "LINKID": ["a" for _ in range(2)],
+                "FROM_STA": [0, 10],
+                "TO_STA": [10, 20],
+                "SURVEY_DATE": [datetime(day=1, month=1, year=2020), datetime(day=1, month=1, year=2021)]
+            }
+        )
+
+        se = RouteSegmentEvents(
+            df.to_arrow(),
+            route='a',
+            data_year=2020
+        )
+
+        self.assertFalse(se.correct_survey_date_year())
