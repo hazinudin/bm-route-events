@@ -235,6 +235,9 @@ class TestRouteSegments(unittest.TestCase):
         self.assertTrue(len(dtos) == 2)
     
     def test_correct_survey_date_year(self):
+        """
+        Test correct survey date year method.
+        """
         df = pl.DataFrame(
             {
                 "LINKID": ["a" for _ in range(2)],
@@ -251,3 +254,20 @@ class TestRouteSegments(unittest.TestCase):
         )
 
         self.assertFalse(se.correct_survey_date_year())
+
+        df = pl.DataFrame(
+            {
+                "LINKID": ["a" for _ in range(2)],
+                "FROM_STA": [0, 10],
+                "TO_STA": [10, 20],
+                "SURVEY_DATE": [datetime(day=1, month=1, year=2020), datetime(day=1, month=1, year=2020)]
+            }
+        )
+
+        se = RouteSegmentEvents(
+            df.to_arrow(),
+            route='a',
+            data_year=2020
+        )
+
+        self.assertTrue(se.correct_survey_date_year())
