@@ -19,17 +19,19 @@ from typing import Optional, Literal
 from datetime import datetime as dt
 from polars import String, Int64, Float64
 from enum import IntEnum
+import re
 
 
 CUSTOM_ERROR_MSG = {
     "less_than": "Nilai {0}={1} berada di luar rentang valid.",
     "less_than_equal": "Nilai {0}={1} berada di luar rentang valid.",
     "greater_than_equal": "Nilai {0}={1} berada di luar rentang valid.",
-    "greater_than_equal": "Nilai {0}={1} berada di luar rentang valid.",
     "literal_error": "Nilai {0}={1} tidak termasuk di dalam domain valid.",
     "int_parsing": "Nilai {0}={1} bukan merupakan nilai numerik.",
-    "int_type": "Nilai {0}={1} bukan merupakan nilai numerik.",
-    "float_parsing": "Nilai {0}={1} bukan merupakan nilai numerik."
+    "int_type": "Nilai {0} harus diisi.",
+    "float_parsing": "Nilai {0}={1} bukan merupakan nilai numerik.",
+    "float_type": "Nilai {0} harus diisi.",
+    "string_type": "Nilai {0} harus diisi."
 }
 
 def serialize_date_str(v:any):
@@ -99,21 +101,24 @@ def bypass_review_error(v: any, handler:ValidatorFunctionWrapHandler):
 def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
     """
     Generate custom error message for model validator.
+    Error loc could be like this (BANGUNAN_ATAS, 0, BANGUNAN_BAWAH, 0, LONGITUDE), only use the last position for error message.
     """
     errors = []
+    input_val_re = "{'input(?:_value)?': (\w+|.\w+.|\d*\.*\d*)}"
 
     try:
         return handler(v)
     except ValidationError as e:
         for error in e.errors():
             err_type = error['type']
+            error_val = re.findall(input_val_re, str(error))[0]
 
             if err_type in CUSTOM_ERROR_MSG:
                 errors.append(
                     InitErrorDetails(
                         type = PydanticCustomError(
                                 err_type,
-                                CUSTOM_ERROR_MSG[err_type].format(error['loc'][0], error['input']),
+                                CUSTOM_ERROR_MSG[err_type].format(error['loc'][-1], error_val),
                             ),
                         loc=error['loc'],
                         input=dict(input=error['input'])
@@ -125,7 +130,7 @@ def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
                     InitErrorDetails(
                         type = PydanticCustomError(
                                 err_type,
-                                f"Data input tidak memiliki {error['loc'][0]}"
+                                f"Data input tidak memiliki {error['loc'][-1]}"
                             ),
                         loc=error['loc'],
                         input=dict(input=error['input'])
