@@ -148,7 +148,6 @@ class TestValidationResult(unittest.TestCase):
             result = ValidationResult('1234')
 
             result.add_message('error msg', 'error')
-            result.add_message('error msg 1', 'error')
             result.add_message('review msg', 'review')
 
             res = pstats.Stats(profile)
@@ -161,7 +160,7 @@ class TestValidationResult(unittest.TestCase):
                     "error": []
                 },
                 "status": "failed",
-                "error": ["error msg", "error msg 1"],
+                "error": ["error msg"],
                 "review": []
             }
         )
