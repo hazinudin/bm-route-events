@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import polars as pl
 from sqlalchemy import create_engine
 import os
-from src.service.vcr import RouteidSKMapping, PipelineContext
+from src.dag.vcr import RouteidSKMapping, PipelineContext
 
 
 load_dotenv('tests/dev.env')

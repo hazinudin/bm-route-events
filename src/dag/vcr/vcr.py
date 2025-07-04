@@ -115,6 +115,17 @@ class CalculateVCRSummary(PipelineStep):
             ).alias(
                 'MEAN_TOTAL_PCE'
             )
+        ).join(
+            ctx.datas['RNI'].select(
+                ctx.linkid_col, 
+                pl.col(ctx.rni_year_col).cast(pl.Int16)
+            ).group_by(
+                ctx.linkid_col
+            ).agg(
+                pl.col(ctx.rni_year_col).max()
+            ),
+            on=ctx.linkid_col,
+            how='left'
         )
         
         if self.level == 'route':
@@ -130,6 +141,7 @@ class CalculateVCRSummary(PipelineStep):
                 ctx.linkid_col
             ).agg(
                 pl.col('YEAR').max(),
+                pl.col(ctx.rni_year_col).max(),
                 pl.col(f'{self.agg_method.upper()}_TOTAL_PCE').mean().alias('AVG_TOTAL_PCE'),
                 pl.col(f'{self.agg_method.upper()}_CAPACITY').mean().alias('AVG_CAPACITY'),
                 pl.col('VCR').mean().alias('AVG_VCR'),
@@ -194,17 +206,6 @@ class CalculateVCRSummary(PipelineStep):
                 pl.col('VCR_0.85_1').mul(pl.col('SK_LENGTH').truediv(pl.col('TOTAL_LEN'))),
                 pl.col('VCR_>=_1').mul(pl.col('SK_LENGTH').truediv(pl.col('TOTAL_LEN'))),
                 pl.col('SK_LENGTH').alias('TOTAL_LEN')
-            ).join(
-                ctx.datas['RNI'].select(
-                    ctx.linkid_col, 
-                    pl.col(ctx.rni_year_col).cast(pl.Int16)
-                ).group_by(
-                    ctx.linkid_col
-                ).agg(
-                    pl.col(ctx.rni_year_col).max()
-                ),
-                on=ctx.linkid_col,
-                how='left'
             )
 
         out_ctx = PipelineContext()
@@ -280,7 +281,7 @@ class SegmentVCRLoader(PipelineStep):
                 
                 # Last part
                 conn.execute(
-                    text(f"delete from {self.table_name} where {year_col} = {year_} and {linkid_col} in ({', '.join(routes[chunk*del_chunks:len(routes)-1])})")
+                    text(f"delete from {self.table_name} where {year_col} = {year_} and {linkid_col} in ({', '.join(routes[(chunk+1)*del_chunks:len(routes)-1])})")
                 )
 
         return
