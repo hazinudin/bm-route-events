@@ -164,6 +164,8 @@ class ValidationResult(object):
         """
         msgs = self.get_filtered_msg().select(
             ['status', 'msg']
+            ).unique(
+                subset=['status', 'msg']  # Prevents duplicated message to be returned
             ).group_by(
                 'status'
             ).all().rows_by_key(
