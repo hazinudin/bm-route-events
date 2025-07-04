@@ -6,7 +6,7 @@ from ...inventory import (
     SubstructureSchema,
     ElementSchema
 )
-from src.route_events.geometry import Point, LAMBERT_WKT
+from ....geometry import Point, LAMBERT_WKT
 from .schema import InventoryProfileSchema
 import polars as pl
 from typing import List, Literal, Optional
