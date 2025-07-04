@@ -1,5 +1,5 @@
 import pyarrow as pa
-from src.route_events.bridge.inventory import (
+from ...inventory import (
     Superstructure,
     Substructure,
     SuperstructureSchema,
