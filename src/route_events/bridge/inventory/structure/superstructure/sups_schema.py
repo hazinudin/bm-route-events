@@ -1,4 +1,4 @@
-from route_events.schema import RouteEventsSchema
+from .....schema import RouteEventsSchema
 import os
 
 

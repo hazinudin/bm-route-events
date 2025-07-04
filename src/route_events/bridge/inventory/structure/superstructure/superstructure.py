@@ -1,6 +1,6 @@
 import pyarrow as pa
-from route_events.bridge.inventory.structure.substructure import Substructure, SubstructureSchema
-from route_events.bridge.inventory.structure.element import StructureElement, ElementSchema
+from ..substructure import Substructure, SubstructureSchema
+from ..element import StructureElement, ElementSchema
 from .sups_schema import SuperstructureSchema
 import polars as pl
 from typing import List, Optional, Literal

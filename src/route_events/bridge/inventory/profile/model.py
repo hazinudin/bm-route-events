@@ -1,12 +1,12 @@
 import pyarrow as pa
-from route_events.bridge.inventory import (
+from src.route_events.bridge.inventory import (
     Superstructure,
     Substructure,
     SuperstructureSchema,
     SubstructureSchema,
     ElementSchema
 )
-from route_events.geometry import Point, LAMBERT_WKT
+from src.route_events.geometry import Point, LAMBERT_WKT
 from .schema import InventoryProfileSchema
 import polars as pl
 from typing import List, Literal, Optional

@@ -2,7 +2,7 @@ import pyarrow as pa
 import polars as pl
 from typing import List, Optional
 from .subs_schema import SubstructureSchema
-from route_events.bridge.inventory.structure.element import StructureElement, ElementSchema
+from ..element import StructureElement, ElementSchema
 
 
 class Substructure(object):

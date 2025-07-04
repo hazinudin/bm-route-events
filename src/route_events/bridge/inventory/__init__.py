@@ -1,11 +1,11 @@
-from route_events.bridge.inventory.structure import (
+from .structure import (
     Superstructure,
     Substructure,
     SubstructureSchema,
     SuperstructureSchema
 )
 
-from route_events.bridge.inventory.structure.element import(
+from .structure.element import(
     ElementSchema,
     StructureElement
 )
