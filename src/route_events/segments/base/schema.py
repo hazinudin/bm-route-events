@@ -1,5 +1,5 @@
 import pyarrow as pa
-from route_events.schema import RouteEventsSchema
+from ...schema import RouteEventsSchema
 
 
 class RouteSegmentEventSchema(RouteEventsSchema):
