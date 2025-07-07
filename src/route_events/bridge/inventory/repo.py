@@ -2,9 +2,12 @@ import polars as pl
 import oracledb
 from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.oracle import NUMBER, NVARCHAR2, TIMESTAMP
+from datetime import datetime
 from .profile.model import BridgeInventory
 from .structure import Superstructure, Substructure
 from .structure.element import StructureElement
+from ...utils.oid import has_objectid, generate_objectid
+from ...utils import ora_pl_dtype
 
 
 class BridgeInventoryRepo(object):
@@ -13,6 +16,8 @@ class BridgeInventoryRepo(object):
         # Use the oracledb engine instead of 'oracle' which means cxoracle
         # self._engine = create_engine(self._ora_cstr.replace('oracle', 'oracle+oracledb'))
         self._engine = sql_engine
+        self._inspect = inspect(sql_engine)
+        self._db_schema = 'MISC'
 
         self.sups_table_name = 'NAT_BRIDGE_SPAN'
         self.subs_table_name = 'NAT_BRIDGE_ABT'
@@ -112,21 +117,42 @@ class BridgeInventoryRepo(object):
         }
 
         for table, df in zip(table_mapping, table_mapping.values()):
+            args = []
+            
+            if self._table_exists(table):
+                if has_objectid(table, self._engine):
+                    oids = generate_objectid(
+                        schema=self._db_schema,
+                        table=table,
+                        sql_engine=self._engine,
+                        oid_count=df.select(pl.len()).rows()[0][0]
+                    )
+
+                    args = [pl.Series('OBJECTID', oids)]
+
+            # Add update date and ESRI ObjectID (if exists)
+            df_ = df.with_columns(
+                pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
+                *args
+            )
+
             try:
                 if self._table_exists(table):
-                    df.write_database(
+                    df_.write_database(
                         table,
                         connection=conn,
                         if_table_exists='append'  # Append to existing
                     )
                 else:
-                    sql_dtype = self._ora_dtype(df)
-                    df.write_database(
+                    df_.write_database(
                         table,
                         connection=conn,
                         if_table_exists='replace',  # Create new table
                         engine_options = {
-                            'dtype': sql_dtype
+                            'dtype': ora_pl_dtype(
+                                df,
+                                date_cols_keywords='DATE'
+                            )
                         }
                     )
 
@@ -186,7 +212,7 @@ class BridgeInventoryRepo(object):
         """
         Check if table exist.
         """
-        return inspect(self._engine).has_table(table)
+        return self._inspect.has_table(table)
     
     def _ora_dtype(self, df: pl.DataFrame)->dict:
         """
