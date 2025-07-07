@@ -1,4 +1,4 @@
-from route_events.bridge.inventory import BridgeInventory, BridgeInventoryRepo
+from src.route_events.bridge.inventory import BridgeInventory, BridgeInventoryRepo
 import unittest
 import pyarrow as pa
 import json
