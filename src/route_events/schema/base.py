@@ -104,7 +104,7 @@ def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
     Error loc could be like this (BANGUNAN_ATAS, 0, BANGUNAN_BAWAH, 0, LONGITUDE), only use the last position for error message.
     """
     errors = []
-    input_val_re = "{?'input(?:_value)?': (\w+|.\w+.|\d*\.*\d*)(?:,|})"
+    input_val_re = "{?'input(?:_value)?': (\w+|.\w+.|\d*\.*\d*|.\d*\.*\d*.)(?:,|})"
 
     try:
         return handler(v)
