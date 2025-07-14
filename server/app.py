@@ -255,6 +255,7 @@ class DataValidation:
         check.lrs_sta_check()
         check.route_has_rni_check()
         check.sta_not_in_rni_check()
+        check.survey_photo_url_check()
 
         if write and (check.get_status() == 'verified'):
             check.put_data()
