@@ -111,9 +111,9 @@ def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
     except ValidationError as e:
         for error in e.errors():
             err_type = error['type']
-            error_val = re.findall(input_val_re, str(error))[0]
 
             if err_type in CUSTOM_ERROR_MSG:
+                error_val = re.findall(input_val_re, str(error))[0]
                 errors.append(
                     InitErrorDetails(
                         type = PydanticCustomError(
