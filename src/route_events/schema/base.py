@@ -236,7 +236,7 @@ class RouteEventsSchema(object):
             
             if dtype == 'string':
                 pa_type = pa.string()  # Pyarrow string
-                pyd_type = str  # Pydantic type
+                pyd_type = Annotated[str, StringConstraints(to_upper=True)]  # Pydantic type
                 field_kwargs['coerce_number_to_str'] = True
                 self.pl_schema[col] = String
             elif dtype == 'double':
@@ -268,6 +268,9 @@ class RouteEventsSchema(object):
             if domain is not None:
                 if dtype == 'integer':
                     _enum = IntEnum('_enum', {f'_{x}': x for x in domain})
+                elif dtype == 'string':
+                    pyd_type = Literal[tuple([str(_).lower() for _ in domain] + [str(_).upper() for _ in domain])]
+                    pyd_type = Annotated[pyd_type, StringConstraints(to_upper=True)]
                 else:
                     pyd_type = Literal[tuple(domain)]
 
