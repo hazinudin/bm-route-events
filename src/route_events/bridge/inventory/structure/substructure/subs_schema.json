@@ -8,17 +8,23 @@
             ],
             "db_col": "STATUS"
         },
+        "BRIDGE_ID": {
+            "dtype": "string"
+        },
+        "INV_YEAR": {
+            "dtype": "integer"
+        },
+        "SEQ": {
+            "dtype": "integer",
+            "db_col": "SPAN_SEQ"
+        },
+        "TIPE": {
+            "dtype": "string",
+            "db_col": "SPAN_TYPE"
+        },
         "NO": {
             "dtype": "integer",
             "db_col": "SUBS_NUMBER"
-        },
-        "LATITUDE": {
-            "dtype": "double",
-            "db_col": "LATITUDE"
-        },
-        "LONGITUDE": {
-            "dtype": "double",
-            "db_col": "LONGITUDE"
         }
     }
 }
