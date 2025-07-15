@@ -1,14 +1,20 @@
 import pyarrow as pa
 import polars as pl
-from typing import List, Optional
+from typing import List, Optional, Annotated
+from pydantic import TypeAdapter, Field, AliasChoices, ConfigDict, StringConstraints
 from .subs_schema import SubstructureSchema
 from ..element import StructureElement, ElementSchema
 
 
 class Substructure(object):
     @classmethod
-    def from_invij(cls, bridge_id: str, inv_year: int, span_num: int, span_type: str, 
-                   span_seq: int, data: list, validate: bool=True):
+    def from_invij(
+        cls, 
+        bridge_id: str, 
+        inv_year: int, 
+        data: list, 
+        validate: bool=True
+    ):
         """
         Create Substructure object from INVIJ JSON format.
         """
@@ -17,22 +23,21 @@ class Substructure(object):
             element_schema = ElementSchema()
 
             class ElementModel(element_schema.model):
-                L4: Optional[List]
+                L4: Optional[List] = Field(
+                    validation_alias=AliasChoices('l4', 'L4')
+                )
 
             class SubsModel(subs_schema.model):
-                ELEMEN: List[ElementModel]
+                BRIDGE_ID: str = str(bridge_id).upper()
+                INV_YEAR: int = inv_year
+                ELEMEN: List[ElementModel] = Field(
+                    validation_alias=AliasChoices('elemen', 'ELEMEN')
+                )
 
-            [SubsModel.model_validate(_data) for _data in data]
-
-        df = pl.DataFrame(data).drop(['ELEMEN'])
-
-        df = df.with_columns(**{
-            "BRIDGE_ID": pl.lit(bridge_id),
-            "INV_YEAR": pl.lit(inv_year),
-            "SPAN_NUMBER": pl.lit(span_num),
-            "SPAN_TYPE": pl.lit(span_type),
-            "SPAN_SEQ": pl.lit(span_seq)
-        })
+            data = [SubsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
+            df = pl.DataFrame(data).drop(['ELEMEN'])
+        else:
+            df = pl.DataFrame(data).rename(str.upper).drop(['ELEMEN'])
 
         # Initialize Substructure
         subs = cls(df.to_arrow(), validate=False)
@@ -43,9 +48,8 @@ class Substructure(object):
             {   
                 subs._bridge_id_col: bridge_id,
                 subs._inv_year_col: inv_year,
-                subs._span_num_col: span_num,
-                subs._span_type_col: span_type,
-                subs._span_seq_col: span_seq,
+                subs._span_type_col: sub['SPAN_TYPE'],
+                subs._span_seq_col: sub['SPAN_SEQ'],
                 subs._abt_status_col: sub[subs._abt_status_col],
                 subs._abt_num_col: sub[subs._abt_num_col]
             }
@@ -61,7 +65,6 @@ class Substructure(object):
         # Default columns name
         self._bridge_id_col = 'BRIDGE_ID'
         self._inv_year_col = 'INV_YEAR'
-        self._span_num_col = 'SPAN_NUMBER'
         self._span_type_col = 'SPAN_TYPE'
         self._span_seq_col = 'SPAN_SEQ'
 
@@ -73,16 +76,16 @@ class Substructure(object):
             subs_schema = SubstructureSchema()
 
             class SubsModel(subs_schema.model):
-                BRIDGE_ID: str
+                BRIDGE_ID: Annotated[str, StringConstraints(to_upper=True)]
                 INV_YEAR: int
-                SPAN_NUMBER: int
-                SPAN_TYPE: str
-                SPAN_SEQ: int
 
-            SubsModel.model_validate(pl.from_arrow(data).row(0, named=True))
+            data = [SubsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
+            df = pl.DataFrame(data).drop(['ELEMEN'])
 
-        # Arrow Table
-        self.artable = data
+            self.artable = df.to_arrow()
+        else:
+            # Arrow Table
+            self.artable = data
 
         # Elements
         self._elements = None
@@ -103,7 +106,6 @@ class Substructure(object):
             self.pl_df,
             on=[
                 self._bridge_id_col,
-                self._span_num_col,
                 self._span_type_col,
                 self._span_seq_col,
                 self._abt_status_col,
@@ -192,7 +194,6 @@ class Substructure(object):
         results = self.pl_df.group_by(
             [self._span_type_col, self._span_seq_col]
         ).agg(
-            pl.col(self._span_num_col).n_unique(),
             pl.col(self._abt_num_col).n_unique()
         ).to_dicts()
 
@@ -203,7 +204,6 @@ class Substructure(object):
                 row[self._span_type_col],
                 row[self._span_seq_col]
             )] = {
-                self._span_num_col: row[self._span_num_col],
                 self._abt_num_col: row[self._abt_num_col]
             }
             
