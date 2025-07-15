@@ -8,14 +8,15 @@ from pydantic import (
     AliasChoices, 
     ValidationInfo, 
     model_validator, 
-    ModelWrapValidatorHandler
+    ModelWrapValidatorHandler,
+    StringConstraints
     )
 from pydantic_core import (
     PydanticCustomError, 
     ValidationError, 
     InitErrorDetails
     )
-from typing import Optional, Literal
+from typing import Optional, Literal, Annotated
 from datetime import datetime as dt
 from polars import String, Int64, Float64
 from enum import IntEnum
@@ -201,7 +202,11 @@ class RouteEventsSchema(object):
                               "strptime": None}
             
             # Pydantic and Patito Field object kwargs
-            field_kwargs = {"validation_alias": AliasChoices(col, db_col), 'alias': db_col}
+            # Accepts uppercase and lowercase alias
+            field_kwargs = {
+                "validation_alias": AliasChoices(col, db_col, col.lower(), col.upper()), 
+                "alias": db_col
+            }
             
             # Pydantic valid range
             if range is not None:
