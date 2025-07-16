@@ -53,10 +53,13 @@ class DataValidation:
         MISC_USER = os.getenv('MISC_USER')
         MISC_PWD = os.getenv('MISC_PWD')
 
+        LRS_HOST = os.getenv('LRS_HOST')
+
         SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
 
         self.smd_engine = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{HOST}:1521/geodbbm")
         self.misc_engine = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{HOST}:1521/geodbbm")
+        self.lrs_host = LRS_HOST
         
         # Google Storage client
         # Use service account JSON
@@ -77,7 +80,7 @@ class DataValidation:
         check = BridgeMasterValidation(
             data=payload.input_json,
             validation_mode=val_mode.upper(),
-            lrs_grpc_host='localhost:50052',
+            lrs_grpc_host=self.lrs_host,
             sql_engine=self.misc_engine
         )
 
@@ -109,7 +112,7 @@ class DataValidation:
         
         check = BridgeInventoryValidation(
             data=payload.input_json,
-            lrs_grpc_host='localhost:50052',
+            lrs_grpc_host=self.lrs_host,
             validation_mode=val_mode.upper(),
             sql_engine=self.misc_engine,
             dev=True,
@@ -139,7 +142,7 @@ class DataValidation:
         ignore_review: bool = False
     ):  
         lrs = LRSRoute.from_feature_service(
-            'localhost:50052', 
+            self.lrs_host, 
             payload.input_json.routes[0]
         )
 
@@ -180,7 +183,7 @@ class DataValidation:
             ignore_review: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
-            'localhost:50052',
+            self.lrs_host,
             payload.input_json.routes[0]
         )
 
@@ -224,7 +227,7 @@ class DataValidation:
         ignore_review: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
-            'localhost:50052',
+            self.lrs_host,
             payload.input_json.routes[0]
         )
 
@@ -275,7 +278,7 @@ class DataValidation:
         ignore_review: bool = False
     ):
         lrs = LRSRoute.from_feature_service(
-            'localhost:50052',
+            self.lrs_host,
             payload.input_json.routes[0]
         )
 
