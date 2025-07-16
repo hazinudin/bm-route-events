@@ -10,6 +10,7 @@ from ....geometry import Point, LAMBERT_WKT
 from .schema import InventoryProfileSchema
 import polars as pl
 from typing import List, Literal, Optional
+from pydantic import Field, AliasChoices
 import json
 import duckdb
 
@@ -54,7 +55,11 @@ class BridgeInventory(object):
         return inv
 
     @classmethod
-    def from_invij(cls, data: dict, sups_key='BANGUNAN_ATAS', ignore_review_err=False):
+    def from_invij(
+        cls, 
+        data: dict, 
+        ignore_review_err=False
+    ):
         """
         Load data from INVIJ input to BridgeInventory object.
         """
@@ -62,30 +67,47 @@ class BridgeInventory(object):
         sups_schema = SuperstructureSchema(ignore_review_err)
         subs_schema = SubstructureSchema(ignore_review_err)
         element_schema = ElementSchema(ignore_review_err)
+
+        profile_data = profile_schema.model.model_validate(data).model_dump(by_alias=True)
         
         # Pydantic validation models
         class ElementModel(element_schema.model):
-            L4: Optional[List]
+            L4: Optional[List] = Field(
+                validation_alias=AliasChoices('l4','L4')
+            )
 
         class SubsModel(subs_schema.model):
-            ELEMEN: List[ElementModel]
+            BRIDGE_ID: str = str(profile_data['BRIDGE_ID']).upper()
+            INV_YEAR: int = profile_data['INV_YEAR']
+            ELEMEN: List[ElementModel] = Field(
+                validation_alias=AliasChoices('elemen', 'ELEMEN')
+            )
 
         class SupsModel(sups_schema.model):
-            BANGUNAN_BAWAH: List[SubsModel]
-            ELEMEN: List[ElementModel]
+            BRIDGE_ID: str = str(profile_data['BRIDGE_ID']).upper()
+            INV_YEAR: int = profile_data['INV_YEAR']
+            ELEMEN: List[ElementModel] = Field(
+                validation_alias=AliasChoices('elemen', 'ELEMEN')
+            )
 
         class InvModel(profile_schema.model):
-            BANGUNAN_ATAS: List[SupsModel]
-            MODE: Literal["INSERT", "UPDATE", "RETIRE"]
+            BANGUNAN_ATAS: List[SupsModel] = Field(
+                validation_alias=AliasChoices('BANGUNAN_ATAS', 'bangunan_atas')
+            )
+            BANGUNAN_BAWAH: List[SubsModel] = Field(
+                validation_alias=AliasChoices('BANGUNAN_BAWAH', 'bangunan_bawah')
+            )
+            MODE: Literal["INSERT", "UPDATE", "RETIRE", 'insert', 'update', 'retire']
             VAL_HISTORY: List
 
         data = json.loads(json.dumps(data).upper().replace("NULL", "null"))  # Upper case model
 
         # Pydantic validation start
         invij_model = InvModel.model_validate(data)  # Load as a model
-        profile_data = invij_model.model_dump(exclude=[sups_key, 'MODE', 'VAL_HISTORY'], by_alias=True)  # Inventory profile
-        sups_data = invij_model.model_dump(include=sups_key, by_alias=True)[sups_key]  # Superstructure data
-
+        profile_data = invij_model.model_dump(exclude=['BANGUNAN_ATAS', 'BANGUNAN_BAWAH', 'MODE', 'VAL_HISTORY'], by_alias=True)  # Inventory profile
+        sups_data = invij_model.model_dump(include='BANGUNAN_ATAS', by_alias=True)['BANGUNAN_ATAS']  # Superstructure data
+        subs_data = invij_model.model_dump(include='BANGUNAN_BAWAH', by_alias=True)['BANGUNAN_BAWAH']
+        
         df = pl.from_dicts([profile_data])
 
         # Initiate BridgeInventory object
@@ -94,6 +116,10 @@ class BridgeInventory(object):
         # Initiate Superstructure object
         sups = Superstructure.from_invij(inv.id, inv.inv_year, sups_data, validate=False)
         inv.add_superstructure(sups)
+
+        # Initiate Substructure object
+        subs = Substructure.from_invij(inv.id, inv.inv_year, subs_data, validate=False)
+        inv.add_substructure(subs)
 
         return inv
     
@@ -108,6 +134,7 @@ class BridgeInventory(object):
 
         self.artable = inv_data
         self._sups = None
+        self._subs = None
 
         # DuckDB Session
         self.ddb = duckdb.connect()
@@ -146,6 +173,20 @@ class BridgeInventory(object):
 
         return self
     
+    def add_substructure(self, obj: Substructure, replace=False):
+        """
+        Add Substructure object to BridgeInventory object.
+        """
+        if type(obj) != Substructure:
+            raise TypeError(f"Could only set substructure with Substructure object, not with {type(obj)}.")
+    
+        if (self._subs is None) or replace:
+            self._subs = obj
+        else:
+            raise AttributeError("Could not update substructure. Try replace=True")
+        
+        return self
+    
     @property
     def sups(self)->Superstructure:
         """
@@ -158,7 +199,7 @@ class BridgeInventory(object):
         """
         Return Substructure
         """
-        return self._sups.subs
+        return self._subs
     
     @property
     def id(self)->str:
@@ -226,13 +267,13 @@ class BridgeInventory(object):
         """
         Check if the substructure number is monotonic for every span type and sequence.
         """
-        return self._sups.subs.has_monotonic_subs_number()
+        return self.subs.has_monotonic_subs_number()
     
     def has_unique_subs_number(self):
         """
         Check if the subs number is unique from all span/seq.
         """
-        return self._sups.subs.has_unique_subs_number()
+        return self.subs.has_unique_subs_number()
     
     def total_span_length(self, span_type: Literal['utama', 'kanan', 'kiri']) -> float:
         """
@@ -250,4 +291,4 @@ class BridgeInventory(object):
         """
         Count number of substructure for evvery span/seq.
         """
-        return self._sups.subs.span_subs_count()
+        return self.subs.span_subs_count()
