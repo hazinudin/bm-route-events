@@ -3,28 +3,31 @@ from ..substructure import Substructure, SubstructureSchema
 from ..element import StructureElement, ElementSchema
 from .sups_schema import SuperstructureSchema
 import polars as pl
+from pydantic import AliasChoices, Field
 from typing import List, Optional, Literal
 import json
 
 
 class Superstructure(object):
     @classmethod
-    def from_invij_popup(cls, bridge_id: str, inv_year: int, data: dict, validate=True, span_num_col: str='SPAN_NUMBER',
-                         span_type_col: str='SPAN_TYPE', span_seq_col: str='SPAN_SEQ_COL'):
+    def from_invij_popup(
+        cls, 
+        bridge_id: str, 
+        inv_year: int, 
+        data: dict, 
+        validate=True
+    ):
         """
         Create Superstructure object from INVIJ JSON format, with only initializing the superstructure.
         """
         if validate:
-            def _upper_case_input(d: dict):
-                data_u_str = json.dumps(d).upper().replace("NULL", "null").replace("FALSE", "false").replace("TRUE", "true")
-                return json.loads(data_u_str)
-
             sups_schema = SuperstructureSchema()
 
             class SupsModel(sups_schema.model):
-                pass
+                BRIDGE_ID: str = str(bridge_id).upper()
+                INV_YEAR: int = inv_year
 
-            spans_data = [SupsModel.model_validate(_upper_case_input(_data)).model_dump(by_alias=True) for _data in data]
+            spans_data = [SupsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
         else:
             spans_data = data
         
@@ -32,85 +35,63 @@ class Superstructure(object):
         # Drop the BANGUNAN_BAWAH and ELEMEN from DataFrame
         spans_df = pl.DataFrame(spans_data)
 
-        # Add bridge_id and inv_year
-        spans_df = spans_df.with_columns(**{
-            "BRIDGE_ID": pl.lit(bridge_id),
-            "INV_YEAR": pl.lit(inv_year)
-        })
-
         # Superstructure object
         spans = cls(spans_df.to_arrow(), validate=False)
 
         return spans
         
     @classmethod
-    def from_invij(cls, bridge_id: str, inv_year: int, data: dict, validate=True, subs_key='BANGUNAN_BAWAH',
-                   span_num_col: str='SPAN_NUMBER', span_type_col: str='SPAN_TYPE', span_seq_col: str = 'SPAN_SEQ'):
+    def from_invij(
+        cls, 
+        bridge_id: str, 
+        inv_year: int, 
+        data: dict, 
+        validate=True, 
+        span_num_col: str='SPAN_NUMBER', 
+        span_type_col: str='SPAN_TYPE', 
+        span_seq_col: str = 'SPAN_SEQ'
+    ):
         """
         Create Superstructure object from INVIJ JSON format.
         """
         if validate:
-            def _upper_case_input(d: dict):
-                data_u_str = json.dumps(d).upper().replace("NULL", "null").replace("FALSE", "false").replace("TRUE", "true")
-                return json.loads(data_u_str)
-
             sups_schema = SuperstructureSchema()
-            subs_schema = SubstructureSchema()
             element_schema = ElementSchema()
 
             class ElementModel(element_schema.model):
-                L4: Optional[List]
-
-            class SubsModel(subs_schema.model):
-                ELEMEN: List[ElementModel]
+                L4: Optional[List] = Field(
+                    validation_alias=AliasChoices('l4','L4')
+                )
 
             class SupsModel(sups_schema.model):
-                BANGUNAN_BAWAH: List[SubsModel]
-                ELEMEN: List[ElementModel]
+                BRIDGE_ID: str = str(bridge_id).upper()
+                INV_YEAR: int = inv_year
+                ELEMEN: List[ElementModel] = Field(
+                    validation_alias=AliasChoices('elemen', 'ELEMEN')
+                )
 
-            spans_data = [SupsModel.model_validate(_upper_case_input(_data)).model_dump(by_alias=True) for _data in data]
+            spans_data = [SupsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
         else:
             spans_data = data
 
         # Spans DataFrame
         # Drop the BANGUNAN_BAWAH and ELEMEN from DataFrame
-        spans_df = pl.DataFrame(spans_data).drop([subs_key, 'ELEMEN'])
-
-        # Add bridge_id and inv_year
-        spans_df = spans_df.with_columns(**{
-            "BRIDGE_ID": pl.lit(bridge_id),
-            "INV_YEAR": pl.lit(inv_year)
-        })
+        spans_df = pl.DataFrame(spans_data).drop('ELEMEN')
 
         # Superstructure object
         spans = cls(spans_df.to_arrow(), validate=False)
-
-        # Substructure data and object initiation
-        subs = [Substructure.from_invij(
-            bridge_id,
-            inv_year,
-            span[span_num_col], 
-            span[span_type_col],
-            span[span_seq_col],
-            span[subs_key],
-            validate=False
-        ) for span in spans_data]
         
         # Element data and object initiation
         elements = [StructureElement.from_invij(
             span['ELEMEN'],
             {   
-                spans._bridge_id_col: bridge_id,
+                spans._bridge_id_col: str(bridge_id).upper(),
                 spans._inv_year_col: inv_year,
                 span_num_col: span[span_num_col],
                 span_type_col: span[span_type_col],
                 span_seq_col: span[span_seq_col]
             }
         ) for span in spans_data]
-
-        # Add Substructure to Superstructure
-        for substruct in subs:
-            spans.add_substructure(substruct)
 
         # Add Element to Superstructure
         for element in elements:
@@ -126,7 +107,7 @@ class Superstructure(object):
                 BRIDGE_ID: str
                 INV_YEAR: int
             
-            SupsModel.model_validate(pl.from_arrow(data).row(0, named=True))
+            SupsModel.model_validate(pl.from_arrow(data).row(named=True))
 
         # Default columns name
         self._bridge_id_col = 'BRIDGE_ID'
