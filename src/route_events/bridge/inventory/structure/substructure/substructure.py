@@ -46,7 +46,7 @@ class Substructure(object):
         elements = [StructureElement.from_invij(
             sub['ELEMEN'],
             {   
-                subs._bridge_id_col: bridge_id,
+                subs._bridge_id_col: str(bridge_id).upper(),
                 subs._inv_year_col: inv_year,
                 subs._span_type_col: sub['SPAN_TYPE'],
                 subs._span_seq_col: sub['SPAN_SEQ'],
