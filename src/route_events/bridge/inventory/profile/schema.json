@@ -26,10 +26,6 @@
             "dtype": "date",
             "db_col": "INV_DATE"
         },
-        "BANGUNAN_ATAS": {
-            "dtype": "list",
-            "skip": true
-        },
         "TAHUN_INV": {
             "dtype": "integer",
             "db_col": "INV_YEAR"
@@ -64,6 +60,30 @@
         "BTG_TERPANJANG": {
             "dtype": "double",
             "db_col": "LONGEST_SPAN"
+        },
+        "TIPE_STRUKTUR": {
+            "dtype": "string",
+            "db_col": "STRUCTURE_TYPE"
+        },
+        "TIPE_BA_UTAMA": {
+            "dtype": "string",
+            "db_col": "MAIN_SPAN_TYPE"
+        },
+        "LOKASI_DARI": {
+            "dtype": "string",
+            "db_col": "LOC_FROM"
+        },
+        "LOKASI_KM": {
+            "dtype": "float",
+            "db_col": "DISTANCE_FROM"
+        },
+        "TAHUN_BANGUN": {
+            "dtype": "integer",
+            "db_col": "CONS_YEAR"
+        },
+        "JML_BENTANG": {
+            "dtype": "integer",
+            "db_col": "MAIN_SPAN_COUNT"
         }
     }
 }
