@@ -74,11 +74,11 @@ class BridgeInventoryRepo(object):
             
             # Populate the BridgeInventory object
             inv.add_superstructure(sups)
-            inv._sups.add_substructure(subs)
+            inv.add_substructure(subs)
 
             # Add elements to Superstructure and Substructure
             inv.sups.add_l3l4_elements(sups_el)
-            inv.sups.subs.add_l3_l4_elements(subs_el)
+            inv.subs.add_l3_l4_elements(subs_el)
 
             return inv
         else:
