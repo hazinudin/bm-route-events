@@ -30,6 +30,7 @@ class BridgeInventory(object):
 
         class InvModel(profile_schema.model):
             BANGUNAN_ATAS: List[SupsModel]
+            INVENTORY_STATE: str = 'POPUP'  # The data state
         
         data = json.loads(json.dumps(data).upper().replace("NULL", "null"))
 
@@ -98,6 +99,7 @@ class BridgeInventory(object):
                 validation_alias=AliasChoices('BANGUNAN_BAWAH', 'bangunan_bawah')
             )
             MODE: Literal["INSERT", "UPDATE", "RETIRE", 'insert', 'update', 'retire']
+            INVENTORY_STATE: str = 'DETAIL' # The data state
             VAL_HISTORY: List
 
         data = json.loads(json.dumps(data).upper().replace("NULL", "null"))  # Upper case model
