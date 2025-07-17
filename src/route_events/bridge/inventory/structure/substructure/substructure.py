@@ -79,13 +79,11 @@ class Substructure(object):
                 BRIDGE_ID: Annotated[str, StringConstraints(to_upper=True)]
                 INV_YEAR: int
 
-            data = [SubsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
-            df = pl.DataFrame(data).drop(['ELEMEN'])
+            ta = TypeAdapter(List[SubsModel])
+            ta.validate_python(pl.DataFrame(data).rows(named=True))
 
-            self.artable = df.to_arrow()
-        else:
-            # Arrow Table
-            self.artable = data
+        # Arrow Table
+        self.artable = data
 
         # Elements
         self._elements = None
