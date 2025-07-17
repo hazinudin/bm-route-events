@@ -6,13 +6,37 @@ import pyarrow as pa
 
 class TestSuperstructureFactory(unittest.TestCase):
     def test_from_invij(self):
-        with open('tests/bridge/inventory/test_inventory_invij.json') as jf:
+        with open('tests/domain/bridge/inventory/test_inventory_invij.json') as jf:
             input_dict = json.load(jf)
 
         sups_dict = input_dict['bangunan_atas']
         sups = Superstructure.from_invij(bridge_id='x', inv_year=2024, data=sups_dict)
 
         self.assertTrue(type(sups.artable) == pa.Table)
+
+    def test_from_invij_popup(self):
+        with open('tests/domain/bridge/inventory/test_inventory_invij.json') as jf:
+            input_dict = json.load(jf)
+
+        sups_dict = input_dict['bangunan_atas']
+        sups = Superstructure.from_invij_popup(bridge_id='x', inv_year=2024, data=sups_dict)
+
+        self.assertTrue(type(sups.artable) == pa.Table)
+
+
+class TestSubStructureFactory(unittest.TestCase):
+    def test_from_invij(self):
+        with open('tests/domain/bridge/inventory/test_inventory_invij.json') as jf:
+            input_dict = json.load(jf)
+
+        subs_dict = input_dict['bangunan_bawah']
+        subs = Substructure.from_invij(
+            bridge_id='x', 
+            inv_year=2025, 
+            data=subs_dict
+        )
+
+        self.assertTrue(type(subs.artable) == pa.Table)
 
 
 class TestBridgeInventoryFactory(unittest.TestCase):
@@ -32,10 +56,10 @@ class TestBridgeInventoryFactory(unittest.TestCase):
         self.assertTrue(len(inv.subs.artable) == 3)
 
         self.assertTrue(type(inv.sups.elements.artable) == pa.Table)
-        self.assertTrue(len(inv.sups.elements.artable) == 76)
+        self.assertTrue(len(inv.sups.elements.artable) == 38)
 
         self.assertTrue(type(inv.subs.elements.artable) == pa.Table)
-        self.assertTrue(len(inv.subs.elements.artable) == 6)
+        self.assertTrue(len(inv.subs.elements.artable) == 30)
     
     def test_from_invij_pop_up(self):
         with open('tests/domain/bridge/inventory/test_inventory_popup_invij.json') as jf:

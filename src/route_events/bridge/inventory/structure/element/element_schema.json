@@ -6,11 +6,13 @@
         },
         "TIPE": {
             "dtype": "string",
-            "db_col": "TYPE"
+            "db_col": "TYPE",
+            "allow_null": true
         },
         "BHN": {
             "dtype": "string",
-            "db_col": "MATERIAL"
+            "db_col": "MATERIAL",
+            "allow_null": true
         },
         "SIFAT": {
             "dtype": "string",

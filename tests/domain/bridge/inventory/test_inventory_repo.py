@@ -18,7 +18,7 @@ class TestInventoryRepo(unittest.TestCase):
         engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
         
         # Bridge ID for query
-        bridge_id = '3500725'
+        bridge_id = '2201152'
 
         repo = BridgeInventoryRepo(sql_engine=engine)
         repo.inv_table_name = 'NAT_BRIDGE_PROFILE_DEV'
@@ -28,7 +28,7 @@ class TestInventoryRepo(unittest.TestCase):
         repo.subs_el_table_name = 'NAT_BRIDGE_ABT_L3L4_DEV'
 
         # Get by Bridge ID
-        inv = repo.get_by_bridge_id(bridge_id=bridge_id, inv_year=2023)
+        inv = repo.get_by_bridge_id(bridge_id=bridge_id, inv_year=2025)
 
         self.assertTrue(type(inv.artable) == pa.Table)
         self.assertTrue(type(inv.sups.artable) == pa.Table)

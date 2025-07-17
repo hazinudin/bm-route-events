@@ -182,8 +182,8 @@ class TestRouteSegments(unittest.TestCase):
         gap = se.sta_gap()
 
         self.assertTrue(len(gap) == 1)
-        self.assertTrue(gap[0].from_sta == 10)
-        self.assertTrue(gap[0].to_sta == 20)
+        self.assertTrue(gap[0]['from_sta'] == 10)
+        self.assertTrue(gap[0]['to_sta'] == 20)
     
     def test_overlapping_segments(self):
         """
