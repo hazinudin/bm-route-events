@@ -3,7 +3,7 @@ from ..substructure import Substructure, SubstructureSchema
 from ..element import StructureElement, ElementSchema
 from .sups_schema import SuperstructureSchema
 import polars as pl
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, TypeAdapter
 from typing import List, Optional, Literal
 import json
 
@@ -107,7 +107,8 @@ class Superstructure(object):
                 BRIDGE_ID: str
                 INV_YEAR: int
             
-            SupsModel.model_validate(pl.from_arrow(data).row(named=True))
+            ta = TypeAdapter(List[SupsModel])
+            ta.validate_python(pl.from_arrow(data).rows(named=True))
 
         # Default columns name
         self._bridge_id_col = 'BRIDGE_ID'
