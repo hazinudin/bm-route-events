@@ -286,3 +286,9 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         """
         self._repo.put(self._events, year=self._survey_year, semester=semester)
 
+    def base_validation(self):
+        super().base_validation()
+
+        self.invalid_pci_check()
+        self.defects_point_check()
+
