@@ -208,7 +208,9 @@ class RouteSegmentEventsValidation(object):
         # Check if all diff is negative, meaning the entire STA is flipped.
         df = self.df_lrs_mv
 
-        dir_error = df.group_by([
+        dir_error = df.with_columns(
+            pl.col('diff').fill_null(0)  # Fill null with zero, fix for lane with only 1 segment.
+        ).group_by([
             self._events._linkid_col,
             self._events._lane_code_col
         ]).agg(
