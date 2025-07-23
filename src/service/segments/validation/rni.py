@@ -474,3 +474,17 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         Delete and insert events data to geodatabase table.
         """
         self._repo.put(self._events, self._survey_year, semester)
+
+    def base_validation(self):
+        super().base_validation()
+
+        self.side_columns_check()
+        self.road_type_spec_check()
+        self.inner_shoulder_check()
+        self.surface_width_check()
+        self.single_value_attribute_check('VER_ALIGNMENT')
+        self.single_value_attribute_check('HOR_ALIGNMENT')
+        self.decreasing_lane_width_check()
+        self.decreasing_surf_width_check()
+        self.decreasing_lane_count()
+        self.paved_to_unpaved_check()
