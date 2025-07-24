@@ -452,8 +452,8 @@ class RouteRNI(RouteSegmentEvents):
             ]
         ).agg(
             pl.col(self._lane_code_col),
-            lane_width_sum = pl.col(self._lane_w_col).sum(),
-            surface_width = pl.col(self._surf_w_col).max()
+            lane_width_sum = pl.col(self._lane_width_col).sum(),
+            surface_width = pl.col(self._surf_width_col).max()
         ).filter(
             (pl.col('lane_width_sum').add(width_delta).lt(pl.col('surface_width'))) |
             (pl.col('lane_width_sum').gt(pl.col('surface_width')))
