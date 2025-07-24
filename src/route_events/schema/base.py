@@ -105,7 +105,7 @@ def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
     Error loc could be like this (BANGUNAN_ATAS, 0, BANGUNAN_BAWAH, 0, LONGITUDE), only use the last position for error message.
     """
     errors = []
-    input_val_re = "{?'input(?:_value)?': (\w+|.\w+.|\d*\.*\d*|.\d*\.*\d*.)(?:,|})"
+    input_val_re = "(?:,|{| )'input(?:_value)?': (\w+|.\w+.|\d*\.*\d*|.\d*\.*\d*.)(?:,|}| )"
 
     try:
         return handler(v)
@@ -114,7 +114,13 @@ def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
             err_type = error['type']
 
             if err_type in CUSTOM_ERROR_MSG:
-                error_val = re.findall(input_val_re, str(error))[0]
+                re_val = re.findall(input_val_re, str(error))
+
+                if len(re_val) == 0:
+                    error_val = re_val[0]
+                else:
+                    error_val = error['input']
+                
                 errors.append(
                     InitErrorDetails(
                         type = PydanticCustomError(
