@@ -1,7 +1,7 @@
 from .base import RouteSegmentEventsValidation
 from ..analysis import segments_join, CompareRNISegments, segments_coverage_join
 from ..summary import Kemantapan
-from ....route_events import (
+from route_events import (
     RouteRoughness, 
     LRSRoute, 
     RouteRoughnessRepo,

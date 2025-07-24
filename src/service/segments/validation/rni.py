@@ -1,6 +1,6 @@
 from .base import RouteSegmentEventsValidation
 from ..analysis import segments_join
-from ....route_events import RouteRNI, LRSRoute, RouteRNIRepo
+from route_events import RouteRNI, LRSRoute, RouteRNIRepo
 from ...validation_result.result import ValidationResult
 from typing import Type
 from sqlalchemy import Engine
