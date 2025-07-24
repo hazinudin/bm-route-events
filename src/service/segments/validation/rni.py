@@ -1,6 +1,6 @@
 from .base import RouteSegmentEventsValidation
 from ..analysis import segments_join
-from route_events import RouteRNI, LRSRoute, RouteRNIRepo
+from ....route_events import RouteRNI, LRSRoute, RouteRNIRepo
 from ...validation_result.result import ValidationResult
 from typing import Type
 from sqlalchemy import Engine
@@ -147,8 +147,13 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
             return self._prev_data
 
     def side_columns_check(self):
+        errors_ = self._events.incorrect_side_columns()
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_side_columns()
+            errors_
         )
 
         na_msg = pl.format(
@@ -217,8 +222,13 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         """
         Check segment with incorrect road type specification.
         """
+        errors_ = self._events.incorrect_road_type_spec()
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_road_type_spec()
+            errors_
         ).select(
             msg=pl.format(
                 "Segmen {}-{} memiliki spesifikasi yang tidak cocok dengan tipe jalan {}.",
@@ -239,8 +249,13 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         """
         Check segment with incorrect median and inner shoulder combination.
         """
+        errors_ = self._events.incorrect_inner_shoulder()
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_inner_shoulder()
+            errors_
         ).select(
             msg=pl.when(
                 pl.col('has_median')
@@ -270,8 +285,13 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         """
         Check segment with surface width that does not match the total lane width.
         """
+        errors_ = self._events.incorrect_surface_width(width_delta=width_delta)
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.incorrect_surface_width(width_delta=width_delta)
+            errors_
         ).select(
             msg=pl.format(
                 "Segmen {}-{} memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur.",
@@ -291,11 +311,13 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         """
         Check for segment with attribute N-Unique count above 1.
         """
+        errors_ = self._events.segment_attribute_n_unique([column], filter=('gt', 1))
+
+        if len(errors_) == 0:
+            return self
+        
         errors = pl.DataFrame(
-            self._events.segment_attribute_n_unique(
-                [column],
-                filter=('gt', 1)
-            )
+            errors_
         ).select(
             msg=pl.format(
                 "Segmen {}-{} memiliki nilai unik {} lebih dari 1.",
