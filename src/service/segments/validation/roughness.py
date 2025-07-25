@@ -328,7 +328,7 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
             pl.col(self._events._iri_col).gt(iri_threshold)
         ).select(
             msg=pl.format(
-                "Segmen {}-{} {} mengalami {}, namun nilai IRI lebih besar dari {}, yaitu {}",
+                "Segmen {}-{} {} mendapatkan {}, namun nilai IRI lebih besar dari {}, yaitu {}",
                 pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion).round(3),
                 pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion).round(3),
                 pl.col(self._events._lane_code_col),
