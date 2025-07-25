@@ -155,7 +155,7 @@ class RouteRNI(RouteSegmentEvents):
         else:
             return self._surf_types_map
     
-    def incorrect_side_columns(self) -> List[Type[CenterlineSegment]]:
+    def incorrect_side_columns(self, dump=True) -> List[Type[CenterlineSegment]]:
         # Segment group using LINKID, FROM_STA and TO_STA
         # Aggregate to acquire lanes and directions data
         segment_group = self.pl_df.group_by(
@@ -338,7 +338,8 @@ class RouteRNI(RouteSegmentEvents):
                 'single_value',
                 'type_column',
                 'wrong_value_type'
-            ]
+            ],
+            dump=dump
         )
 
         type_sided_error_dto = self._csegment_dto_mapper(
@@ -352,12 +353,13 @@ class RouteRNI(RouteSegmentEvents):
                 'na',
                 'wrong_side',
                 'single_value'
-            ]
+            ],
+            dump=dump
         )
 
         return value_sided_error_dto + type_sided_error_dto
     
-    def incorrect_road_type_spec(self) -> List[Type[CenterlineSegment]]:
+    def incorrect_road_type_spec(self, dump=True) -> List[Type[CenterlineSegment]]:
         spec_df = pl.DataFrame(road_types)
 
         error_rows = self.pl_df.group_by(
@@ -400,12 +402,13 @@ class RouteRNI(RouteSegmentEvents):
                 'lane_count',
                 'dir',
                 'median'
-            ]
+            ],
+            dump=dump
         )
 
         return dtos
     
-    def incorrect_inner_shoulder(self) -> List[Type[CenterlineSegment]]:
+    def incorrect_inner_shoulder(self, dump=True) -> List[Type[CenterlineSegment]]:
         error_rows = self.pl_df.group_by(
             [
                 self._linkid_col,
@@ -438,12 +441,13 @@ class RouteRNI(RouteSegmentEvents):
             additional_cols=[
                 'has_median',
                 'has_inner_sh'
-            ]
+            ],
+            dump=dump
         )
 
         return dtos
     
-    def incorrect_surface_width(self, width_delta: int = 2) -> List[Type[CenterlineSegment]]:
+    def incorrect_surface_width(self, width_delta: int = 2, dump=True) -> List[Type[CenterlineSegment]]:
         error_rows = self.pl_df.group_by(
             [
                 self._linkid_col,
@@ -464,7 +468,8 @@ class RouteRNI(RouteSegmentEvents):
             additional_cols= [
                 'lane_width_sum',
                 'surface_width'
-            ]
+            ],
+            dump=dump
         )
 
         return dtos
