@@ -287,7 +287,7 @@ class RouteSegmentEventsValidation(object):
     def lrs_sta_check(
             self, 
             sta: Literal['from', 'to'] = 'to',
-            tolerance: int = 10
+            tolerance: int = 30
         ):
         """
         Compare survey point M-Value with its STA
