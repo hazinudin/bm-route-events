@@ -153,7 +153,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
             return self
         
         errors = pl.DataFrame(
-            errors_
+            errors_,
+            infer_schema_length=None
         )
 
         na_msg = pl.format(
