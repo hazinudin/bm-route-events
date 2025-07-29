@@ -29,15 +29,23 @@ class BridgeInventory(object):
             pass
 
         class InvModel(profile_schema.model):
-            BANGUNAN_ATAS: List[SupsModel]
+            BANGUNAN_ATAS: List[SupsModel] = Field(
+                validation_alias=AliasChoices('BANGUNAN_ATAS', 'bangunan_atas')
+            )
             INVENTORY_STATE: str = 'POPUP'  # The data state
         
-        data = json.loads(json.dumps(data).upper().replace("NULL", "null"))
-
         # Pydantic validation start
         invij_model = InvModel.model_validate(data)
-        profile_data = invij_model.model_dump(exclude=[sups_key, 'MODE', 'VAL_HISTORY'], by_alias=True)  # Inventory profile
-        sups_data = invij_model.model_dump(include=sups_key, by_alias=True)[sups_key]  # Superstructure data
+        
+        profile_data = invij_model.model_dump(
+            exclude=[sups_key, 'MODE', 'VAL_HISTORY'], 
+            by_alias=True
+        )  # Inventory profile
+
+        sups_data = invij_model.model_dump(
+            include=sups_key, 
+            by_alias=True
+        )[sups_key]  # Superstructure data
 
         df = pl.from_dicts([profile_data])
 
