@@ -68,5 +68,5 @@ class TestBridgeInventoryFactory(unittest.TestCase):
         inv = BridgeInventory.from_invij_popup(input_dict)
 
         self.assertTrue(len(inv.artable) == 1)
-        self.assertTrue(len(inv.sups.artable) == 2)
+        self.assertTrue(len(inv.sups.artable) == 1)
         self.assertIsNone(inv.sups.subs)

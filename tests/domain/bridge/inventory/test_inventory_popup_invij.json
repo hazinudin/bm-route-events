@@ -1,42 +1,41 @@
 {
-    "mode": "insert",
-    "val_history": [],
-    "id_jbt": "3500725",
-    "tipe_lintasan": "XXX",
-    "tanggal_inv": "23/06/2023",
-    "tahun_inv": "2023",
-    "linkid": "56026",
-    "longitude": 1.2208504002,
-    "latitude": -3.49289000,
-    "pjg_total": 2.4,
-    "lbr_jembatan": 1.0,
-    "btg_terpanjang": 4.0,
-    "bangunan_atas": [
-      {
-        "no_btg": 1,
-        "tipe_btg": "utama",
-        "seq_btg": 1,
-        "pjg_btg": 100.83,
-        "jml_gelagar": 4,
-        "radius": 99,
-        "skew": 45,
-        "lbr_lantai_kend": 99.1,
-        "lbr_trotoar": 99.1,
-        "tinggi_ruang_bebas": 99.1,
-        "struktur_ba": "BKP"
-      },
-      {
-        "no_btg": 2,
-        "tipe_btg": "utama",
-        "seq_btg": 1,
-        "pjg_btg": 100,
-        "jml_gelagar": 99,
-        "radius": 99,
-        "skew": 45,
-        "lbr_lantai_kend": 99.1,
-        "lbr_trotoar": 99.1,
-        "tinggi_ruang_bebas": 99.1,
-        "struktur_ba": "BKP"
-      }
-    ]
-  }
+  "mode": "insert",
+  "val_history": [],
+  "id_jbt": "2200957",
+  "tanggal_inv": "11/05/2025",
+  "tahun_inv": "2025",
+  "linkid": "22026",
+  "longitude": 107.6298078,
+  "latitude": -6.864456,
+  "pjg_total": 7.6,
+  "lbr_jembatan": 8.65,
+  "btg_terpanjang": 7.0,
+  "tipe_lintasan": "KA",
+  "tipe_struktur": "Jembatan",
+  "tipe_ba_utama": "MBP",
+  "lokasi_dari": "BDG",
+  "lokasi_km": 115.11000061035156,
+  "tahun_bangun": 1984,
+  "jml_bentang": 1,
+  "bangunan_atas": [
+    {
+      "no_btg": 1,
+      "tipe_btg": "utama",
+      "seq_btg": 1,
+      "pjg_btg": 7.6,
+      "jml_gelagar": 8,
+      "radius": 0.0,
+      "skew": 0.0,
+      "lbr_lantai_kend": 6.5,
+      "lbr_trotoar_kiri": 0.0,
+      "lbr_trotoar_kanan": 0.0,
+      "lbr_drainase_kiri": 0.0,
+      "lbr_drainase_kanan": 0.0,
+      "lbr_bahu_kanan": 0.0,
+      "lbr_bahu_kiri": 0.0,
+      "lbr_median": 0.0,
+      "tinggi_ruang_bebas": 0.0,
+      "struktur_ba": "MBP"
+    }
+  ]
+}
