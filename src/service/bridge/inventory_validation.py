@@ -133,7 +133,6 @@ class BridgeInventoryValidation(object):
         """
         self.main_span_num_check()
         self.span_num_unique_check()
-        self.subs_num_unique_check()
         self.other_span_num_exist_in_main_span_check()
         self.span_seq_check()
         self.compare_length_to_master_data_check()
@@ -141,6 +140,7 @@ class BridgeInventoryValidation(object):
 
         # Only execute if input data has substructure
         if self._inv.subs is not None:
+            self.subs_num_unique_check()
             self.span_subs_count_check()
         
         self.lrs_distance_check()
