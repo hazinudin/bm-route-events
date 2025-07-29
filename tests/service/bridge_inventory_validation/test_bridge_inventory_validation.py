@@ -33,3 +33,17 @@ class TestBridgeInventoryValidation(unittest.TestCase):
             res.sort_stats(pstats.SortKey.TIME)
 
         self.assertTrue(True)
+
+    def test_popup(self):
+        check = BridgeInventoryValidation(
+            data=input_dict,
+            validation_mode='INSERT',
+            lrs_grpc_host='localhost:50052',
+            sql_engine=engine,
+            dev=True,
+            popup=True
+        )
+
+        check.insert_check()
+
+        self.assertTrue(True)
