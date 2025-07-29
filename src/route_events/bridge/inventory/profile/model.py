@@ -24,9 +24,12 @@ class BridgeInventory(object):
         profile_schema = InventoryProfileSchema(ignore_review_err)
         sups_schema = SuperstructureSchema(ignore_review_err)
 
+        profile_data = profile_schema.model.model_validate(data).model_dump(by_alias=True)
+
         # Pydantic validation models
         class SupsModel(sups_schema.model):
-            pass
+            BRIDGE_ID: str = str(profile_data['BRIDGE_ID']).upper()
+            INV_YEAR: int = profile_data['INV_YEAR']
 
         class InvModel(profile_schema.model):
             BANGUNAN_ATAS: List[SupsModel] = Field(
