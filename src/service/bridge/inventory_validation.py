@@ -188,14 +188,16 @@ class BridgeInventoryValidation(object):
         """
         Check if previous data exists.
         """
-        if should_exists and (self._current_inv.is_empty):
+        if should_exists and (self._current_inv is None):
             msg = "Jembatan belum memiliki data inventori."
+            self._result.add_message(msg, 'error')
 
-        elif (not should_exists) and (not self._current_inv.is_empty):
+        elif (not should_exists) and (not self._current_inv is None):
             msg = "Jembatan sudah memiliki data inventori."
+            self._result.add_message(msg, 'error')
 
-        self._result.add_message(msg, 'error')
-    
+        return
+        
     def main_span_num_check(self):
         """
         Main span number check. The main span's number should have monotonic pattern and start from 1.
