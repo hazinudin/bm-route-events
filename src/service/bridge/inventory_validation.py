@@ -92,10 +92,14 @@ class BridgeInventoryValidation(object):
 
         # BridgeInventory with the same bridge ID
         self._available_inv_years = self._repo.get_available_years(self._inv.id)
-        self._current_inv = self._repo.get_by_bridge_id(
-            self._inv.id, 
-            inv_year=max(self._available_inv_years)
-        )
+
+        if len(self._available_inv_years) == 0:
+            self._current_inv = None
+        else:
+            self._current_inv = self._repo.get_by_bridge_id(
+                self._inv.id, 
+                inv_year=max(self._available_inv_years)
+            )
 
         # Add review messages from Pydantic validation.
         for msg in review_msgs:
