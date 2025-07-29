@@ -201,7 +201,7 @@ class BridgeMaster(object):
         """
         Return bridge length.
         """
-        return self.artable[self._bridge_len_col][0].as_py()
+        return float(self.artable[self._bridge_len_col][0].as_py())
     
     def as_pb(self)->BridgePB:
         """
