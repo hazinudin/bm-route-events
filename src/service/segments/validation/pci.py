@@ -169,7 +169,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         ]
         errors = self._events.invalid_pci_value().select(
             msg=pl.when(
-                pl.col(self._events.pci_col).eq(self._events._pci_max)
+                pl.col(self._events._pci_col).eq(self._events._pci_max)
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki nilai PCI={}, namun segmen memiliki kerusakan.",
