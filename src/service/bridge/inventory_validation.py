@@ -206,7 +206,7 @@ class BridgeInventoryValidation(object):
             msg = "Bentang utama tidak memiliki nomor yang berurutan."
             self._result.add_message(msg, 'error')
 
-        if not self._inv.get_span_numbers('utama')[self._inv._sups._span_num_col].list.min()[0] != 1:
+        if self._inv.get_span_numbers('utama')[self._inv._sups._span_num_col].list.min()[0] != 1:
             msg = "Bentang utama memiliki nomor bentang yang tidak dimulai dari 1"
             self._result.add_message(msg, 'error')
 
