@@ -304,11 +304,8 @@ class BridgeInventoryValidation(object):
             span_count = spans[span]['SPAN_COUNT']
             subs_count = spans[span]['SUBS_COUNT']
 
-            if span_count != (subs_count + 1):
-                msg = f"""
-                Bentang {span[0]}/{span[1]} memiliki jumlah bangunan bawah yang tidak cocok dengan jumlah bangunan atas, 
-                yaitu {span_count} bangunan atas dan {subs_count} bangunan bawah.
-                """
+            if subs_count != (span_count + 1):
+                msg = f"Bentang {span[0]}/{span[1]} memiliki jumlah bangunan bawah yang tidak cocok dengan jumlah bangunan atas, yaitu {span_count} bangunan atas dan {subs_count} bangunan bawah."
 
                 self._result.add_message(msg, 'error')
 
