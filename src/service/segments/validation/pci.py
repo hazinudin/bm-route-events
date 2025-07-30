@@ -11,6 +11,7 @@ from route_events import (
 from ...validation_result.result import ValidationResult
 from typing import Type
 from sqlalchemy import Engine
+from sqlalchemy.exc import NoSuchTableError
 import polars as pl
 from pydantic import ValidationError
 
@@ -173,12 +174,12 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki nilai PCI={}, namun segmen memiliki kerusakan.",
-                    *[msg_args]
+                    *msg_args
                 )
             ).otherwise(
                 pl.format(
                     "Segmen {}-{} {} memiliki nilai PCI={}, namun segmen tidak memiliki kerusakan.",
-                    *[msg_args]
+                    *msg_args
                 )
             )
         )
@@ -194,43 +195,47 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         """
         Compare the damage data with the defect data. The listed damage should match the damage in defect data.
         """
-        pivot = segments_points_join(
-            segments=self._events,
-            points=self.defects,
-            point_select=[
-                self.defects._defects_type_col,
-                self.defects._defects_dimension_col
-            ]
-        ).with_columns(
-            **{
-                self.defects._defects_type_col: pl.format(
-                    "VOL_RDD_{}",
-                    pl.col(self.defects._defects_type_col)
-                )
-            }
-        ).pivot(
-            on=self.defects._defects_type_col,
-            index=[
-                self._events._linkid_col,
-                self._events._from_sta_col,
-                self._events._to_sta_col,
-                self._events._lane_code_col
-            ],
-            values=self.defects._defects_dimension_col,
-            aggregate_function=pl.element().sum()
-        ).join(
-            self._events.pl_df.with_columns(
-                pl.col(self._events._from_sta_col).mul(self._events.sta_conversion).cast(pl.Int32),
-                pl.col(self._events._to_sta_col).mul(self._events.sta_conversion).cast(pl.Int32)
-            ),
-            on=[
-                self._events._linkid_col,
-                self._events._from_sta_col,
-                self._events._to_sta_col,
-                self._events._lane_code_col
-            ],
-            how='right'
-        )
+        try:
+            pivot = segments_points_join(
+                segments=self._events,
+                points=self.defects,
+                point_select=[
+                    self.defects._defects_type_col,
+                    self.defects._defects_dimension_col
+                ]
+            ).with_columns(
+                **{
+                    self.defects._defects_type_col: pl.format(
+                        "VOL_RDD_{}",
+                        pl.col(self.defects._defects_type_col)
+                    )
+                }
+            ).pivot(
+                on=self.defects._defects_type_col,
+                index=[
+                    self._events._linkid_col,
+                    self._events._from_sta_col,
+                    self._events._to_sta_col,
+                    self._events._lane_code_col
+                ],
+                values=self.defects._defects_dimension_col,
+                aggregate_function=pl.element().sum()
+            ).join(
+                self._events.pl_df.with_columns(
+                    pl.col(self._events._from_sta_col).mul(self._events.sta_conversion).cast(pl.Int32),
+                    pl.col(self._events._to_sta_col).mul(self._events.sta_conversion).cast(pl.Int32)
+                ),
+                on=[
+                    self._events._linkid_col,
+                    self._events._from_sta_col,
+                    self._events._to_sta_col,
+                    self._events._lane_code_col
+                ],
+                how='right'
+            )
+        except NoSuchTableError:
+            self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+            return
 
         ldf = []  # For errors LazyFrame
 
