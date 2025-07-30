@@ -196,6 +196,10 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         Compare the damage data with the defect data. The listed damage should match the damage in defect data.
         """
         try:
+            if self.defects.pl_df.is_empty():
+                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                return 
+            
             pivot = segments_points_join(
                 segments=self._events,
                 points=self.defects,
@@ -233,6 +237,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 ],
                 how='right'
             )
+
         except NoSuchTableError:
             self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
             return
