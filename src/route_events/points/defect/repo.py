@@ -1,5 +1,6 @@
 from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, TIMESTAMP
+from sqlalchemy.exc import NoSuchTableError
 from .model import RouteDefects
 from ...utils import ora_pl_dtype
 import polars as pl
@@ -31,7 +32,7 @@ class RouteDefectsRepo(object):
         query = f"select * from {self.table}_{year} where linkid = '{linkid}'"
 
         if not self._inspect.has_table(f"{self.table}_{year}") and raise_if_table_does_not_exists:
-            raise Exception(f"Table {self.table}_{year} does not exists")
+            raise NoSuchTableError(f"Table {self.table}_{year} does not exists")
         
         df = pl.read_database(
             query,
