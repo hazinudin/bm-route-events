@@ -335,7 +335,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         return self
     
-    def decreasing_lane_width_check(self, tolerance=0.05):
+    def decreasing_lane_width_check(self, tolerance=0.01):
         """
         Check segment with decreasing lane widths.
         """
@@ -369,7 +369,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         return self
     
-    def decreasing_surf_width_check(self):
+    def decreasing_surf_width_check(self, tolerance=0.01):
         """
         Check segment with decreasing surface width if compared to previous year data.
         """
