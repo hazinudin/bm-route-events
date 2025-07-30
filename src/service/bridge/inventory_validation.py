@@ -301,8 +301,8 @@ class BridgeInventoryValidation(object):
         spans = self._inv.span_subs_count()
 
         for span in spans:
-            span_count = spans[span][self._inv.sups._span_num_col]
-            subs_count = spans[span][self._inv.sups.subs._abt_num_col]
+            span_count = spans[span]['SPAN_COUNT']
+            subs_count = spans[span]['SUBS_COUNT']
 
             if span_count != (subs_count + 1):
                 msg = f"""
