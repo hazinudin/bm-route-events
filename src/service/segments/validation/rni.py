@@ -353,8 +353,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         ).select(
             msg=pl.format(
                 "Segmen {}-{} {} mengalami penurunan lebar jalur dari {} ke {} dibandingkan data tahun lalu.",
-                pl.col(self._events._from_sta_col),
-                pl.col(self._events._to_sta_col),
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
                 pl.col(self._events._lane_code_col),
                 pl.col(lane_w_col + '_r'),
                 pl.col(lane_w_col)
@@ -385,12 +385,12 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         )
 
         errors = joined.filter(
-            pl.col(surf_w_col).lt(pl.col(surf_w_col+'_r'))
+            pl.col(surf_w_col).lt(pl.col(surf_w_col+'_r').sub(tolerance))
         ).select(
             msg=pl.format(
                 "Segmen {}-{} mengalami penurunan lebar perkerasan dari {} ke {} dibandingkan data tahun lalu.",
-                pl.col(self._events._from_sta_col),
-                pl.col(self._events._to_sta_col),
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
                 pl.col(surf_w_col+'_r'),
                 pl.col(surf_w_col)
             )
@@ -421,8 +421,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         ).select(
             msg = pl.format(
                 "Segmen {}-{} mengalami penurunan jumlah jalur dari {} ke {} dibandingkan data tahun lalu.",
-                pl.col(self._events._from_sta_col),
-                pl.col(self._events._to_sta_col),
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
                 pl.col(lane_code_col+'_r'),
                 pl.col(lane_code_col)
             )
@@ -480,8 +480,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         ).select(
             msg = pl.format(
                 "Segmen {}-{} mengalami perubahan tipe perkerasan dari paved ke unpaved jika dibandingkan dengan data tahun lalu.",
-                pl.col(self._events._from_sta_col),
-                pl.col(self._events._to_sta_col)
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion)
             )
         )
 
