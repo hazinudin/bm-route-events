@@ -116,7 +116,7 @@ def generate_missing_custom_msg(v: any, handler: ModelWrapValidatorHandler):
             if err_type in CUSTOM_ERROR_MSG:
                 re_val = re.findall(input_val_re, str(error))
 
-                if len(re_val) == 0:
+                if len(re_val) != 0:
                     error_val = re_val[0]
                 else:
                     error_val = error['input']
