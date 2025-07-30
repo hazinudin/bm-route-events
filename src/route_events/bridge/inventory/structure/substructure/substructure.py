@@ -202,7 +202,7 @@ class Substructure(object):
                 row[self._span_type_col],
                 row[self._span_seq_col]
             )] = {
-                self._abt_num_col: row[self._abt_num_col]
+                'SUBS_COUNT': row[self._abt_num_col]
             }
             
         return out_dict
