@@ -304,4 +304,9 @@ class BridgeInventory(object):
         """
         Count number of substructure for evvery span/seq.
         """
-        return self.subs.span_subs_count()
+        out = self.subs.span_subs_count()
+
+        for _span in out:
+            out[_span]['SPAN_COUNT'] = self.get_span_count(_span[0].lower(), _span[1])
+
+        return out
