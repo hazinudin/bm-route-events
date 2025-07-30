@@ -91,7 +91,7 @@ class Superstructure(object):
                 span_type_col: span[span_type_col],
                 span_seq_col: span[span_seq_col]
             }
-        ) for span in spans_data]
+        ) for span in spans_data if len(span['ELEMEN']) != 0]
 
         # Add Element to Superstructure
         for element in elements:

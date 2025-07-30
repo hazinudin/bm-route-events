@@ -53,7 +53,7 @@ class Substructure(object):
                 subs._abt_status_col: sub[subs._abt_status_col],
                 subs._abt_num_col: sub[subs._abt_num_col]
             }
-        ) for sub in data]
+        ) for sub in data if len(sub['ELEMEN']) != 0]
 
         # Add Element to Substructure
         for element in elements:
