@@ -304,6 +304,8 @@ class LRSRoute(object):
             ['point_id', 'm_val', 'dist_to_line']
         ).rename(
             {'dist_to_line': 'dist'}
+        ).unique(
+            'point_id'  # Used to drop duplicates
         )
 
         return points_row.join(
