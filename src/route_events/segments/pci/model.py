@@ -134,8 +134,11 @@ class RoutePCI(RouteSegmentEvents):
             self._to_sta_col,
             self._lane_code_col,
             self._pci_col,
-            *[
-                pl.col(f"{self._dvol}{dcol}" for dcol in self.all_damages).is_null()
+            *[ 
+                # Damage volume columns is null or equal to zero.
+                pl.col(f"{self._dvol}{dcol}").is_null().or_(
+                    pl.col(f"{self._dvol}{dcol}").eq(0)
+                ) for dcol in self.all_damages
             ]
         ).filter(
             pl.all_horizontal(
