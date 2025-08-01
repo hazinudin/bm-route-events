@@ -123,9 +123,9 @@ class BridgeMasterValidation(object):
             self.bridge_num_already_exists(exclude_self=False)
         elif self.validation_mode == 'UPDATE':
             self.bridge_num_already_exists(exclude_self=True)
+            self.bridge_num_is_different()
 
         self.bridge_num_format_check()
-        self.bridge_num_is_different()
         self.bridge_num_prov_check()
 
         return self
