@@ -468,6 +468,7 @@ class RouteSegmentEventsValidation(object):
         self._result.add_messages(
             errors,
             'error',
+            'force'
         )
 
         errors = pl.DataFrame(
