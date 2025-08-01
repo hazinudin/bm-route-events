@@ -27,6 +27,7 @@ CUSTOM_ERROR_MSG = {
     "less_than": "Nilai {0}={1} berada di luar rentang valid.",
     "less_than_equal": "Nilai {0}={1} berada di luar rentang valid.",
     "greater_than_equal": "Nilai {0}={1} berada di luar rentang valid.",
+    "greater_than": "Nilai {0}={1} berada di luar rentang valid.",
     "literal_error": "Nilai {0}={1} tidak termasuk di dalam domain valid.",
     "int_parsing": "Nilai {0}={1} bukan merupakan nilai numerik.",
     "int_type": "Nilai {0} harus diisi.",
