@@ -43,7 +43,7 @@
             "dtype": "integer",
             "db_col": "GIRDER_COUNT",
             "range": {
-                "lower": 1,
+                "lower": 0,
                 "upper": null,
                 "eq_upper": true,
                 "eq_lower": false
