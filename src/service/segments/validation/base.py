@@ -453,6 +453,9 @@ class RouteSegmentEventsValidation(object):
         
         errors = pl.DataFrame(
             errors_
+        ).filter(
+            # For main lane (R1 and L1) missing data is not negotiable
+            pl.col('lane').is_in(['L1', 'R1', 'l1', 'r1'])
         ).select(
             msg = pl.format(
                 "Tidak ditemukan data survey dari STA {} hingga {} pada lane {}.",
@@ -464,7 +467,27 @@ class RouteSegmentEventsValidation(object):
 
         self._result.add_messages(
             errors,
-            'error'
+            'error',
+        )
+
+        errors = pl.DataFrame(
+            errors_
+        ).filter(
+            # For other lanes, missing data is negotiable
+            pl.col('lane').is_in(['L1', 'R1', 'l1', 'r1']).not_()
+        ).select(
+            msg = pl.format(
+                "Tidak ditemukan data survey dari STA {} hingga {} pada lane {}.",
+                pl.col('from_sta'),
+                pl.col('to_sta'),
+                pl.col('lane')
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error',
+            'force'
         )
 
         return self
