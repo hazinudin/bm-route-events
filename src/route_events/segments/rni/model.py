@@ -424,11 +424,11 @@ class RouteRNI(RouteSegmentEvents):
             has_inner_sh =  (
                 (
                     (pl.col(self._l_inn_shwdith_col).drop_nulls().max() > 0) &
-                    (pl.col(self._l_inn_shwdith_col).is_not_null().all().not_())
+                    (pl.col(self._l_inn_shwdith_col).is_not_null().all())
                 ) |
                 (
                     (pl.col(self._r_inn_shwidth_col).drop_nulls().max() > 0) &
-                    (pl.col(self._r_inn_shwidth_col).is_not_null().all().not_())
+                    (pl.col(self._r_inn_shwidth_col).is_not_null().all())
                 )
             )
         ).filter(
