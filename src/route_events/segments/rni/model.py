@@ -456,16 +456,70 @@ class RouteRNI(RouteSegmentEvents):
             ]
         ).agg(
             pl.col(self._lane_code_col),
+
+            l_lane_width_sum = pl.when(
+                pl.col(self._lane_code_col).str.starts_with('L')
+            ).then(
+                pl.col(self._lane_width_col)
+            ).sum(),
+
+            r_lane_width_sum = pl.when(
+                pl.col(self._lane_code_col).str.starts_with('R')
+            ).then(
+                pl.col(self._lane_width_col)
+            ).sum(),
+
+            l_surf_width = pl.when(
+                pl.col(self._lane_code_col).str.starts_with('L')
+            ).then(
+                pl.col(self._surf_width_col)
+            ).max(),
+
+            r_surf_width = pl.when(
+                pl.col(self._lane_code_col).str.starts_with('R')
+            ).then(
+                pl.col(self._surf_width_col)
+            ).max(),
+
             lane_width_sum = pl.col(self._lane_width_col).sum(),
-            surface_width = pl.col(self._surf_width_col).max()
+            surface_width = pl.col(self._surf_width_col).max(),
+            has_median = (
+                (pl.col(self._med_width_col).max() > 0) & 
+                (pl.col(self._med_width_col).is_null().all().not_())
+            )
         ).filter(
-            (pl.col('lane_width_sum').add(width_delta).lt(pl.col('surface_width'))) |
-            (pl.col('lane_width_sum').gt(pl.col('surface_width')))
+            pl.col('has_median').not_().and_(
+                (
+                    pl.col('lane_width_sum').add(width_delta).lt(pl.col('surface_width'))
+                ) |
+                (
+                    pl.col('lane_width_sum').gt(pl.col('surface_width'))
+                )
+            ) |
+            pl.col('has_median').and_(
+                (
+                    pl.col('r_lane_width_sum').add(width_delta).lt(pl.col('r_surf_width'))
+                ) |
+                (
+                    pl.col('r_lane_width_sum').gt(pl.col('r_surf_width'))
+                ) |
+                (
+                    pl.col('l_lane_width_sum').add(width_delta).lt(pl.col('l_surf_width'))
+                ) |
+                (
+                    pl.col('l_lane_width_sum').gt(pl.col('l_surf_width'))
+                )
+            )
         )
 
         dtos = self._csegment_dto_mapper(
             error_rows,
             additional_cols= [
+                'has_median',
+                'l_lane_width_sum',
+                'l_surf_width',
+                'r_lane_width_sum',
+                'r_surf_width',
                 'lane_width_sum',
                 'surface_width'
             ],
