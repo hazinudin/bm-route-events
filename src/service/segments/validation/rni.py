@@ -294,10 +294,20 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         errors = pl.DataFrame(
             errors_
         ).select(
-            msg=pl.format(
-                "Segmen {}-{} memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur.",
-                pl.col('from_sta'),
-                pl.col('to_sta')
+            msg = pl.when(
+                pl.col('has_median').not_()
+            ).then(
+                pl.format(
+                    "Segmen {}-{} memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur.",
+                    pl.col('from_sta'),
+                    pl.col('to_sta')
+                )
+            ).otherwise(
+                pl.format(
+                    "Segmen {}-{} memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur satu sisi.",
+                    pl.col('from_sta'),
+                    pl.col('to_sta')
+                )
             )
         )
 
