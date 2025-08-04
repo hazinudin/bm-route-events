@@ -247,19 +247,20 @@ class RouteRNI(RouteSegmentEvents):
                         val_col.type_column.empty_type
                     ) &
                     pl.col(val_col.name).struct.field('val').ne(0)
+                    &
+                    pl.col(val_col.type_column.name).struct.field('empty').not_()
+                    &
+                    pl.col(val_col.name).struct.field('empty').not_()
                 ) | 
                 (
                     pl.col(val_col.type_column.name).struct.field('val').ne(
                         val_col.type_column.empty_type
                     ) &
                     pl.col(val_col.name).struct.field('val').eq(0)
-                ) |
-                (   
-                    # True if both are empty
-                    # Prevent null being returned from comparing null value
-                    pl.col(val_col.type_column.name).struct.field('empty').eq(
-                        pl.col(val_col.name).struct.field('empty')
-                    )
+                    &
+                    pl.col(val_col.type_column.name).struct.field('empty').not_()
+                    &
+                    pl.col(val_col.name).struct.field('empty').not_()
                 )
             )
 
