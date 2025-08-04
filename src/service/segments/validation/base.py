@@ -140,7 +140,8 @@ class RouteSegmentEventsValidation(object):
         if not self._events.correct_survey_date_year():
             self._result.add_message(
                 f"Data input memiliki tanggal survey ({self._events._survey_date_col}) dengan tahun yang bukan {self._events._data_year}",
-                'error'
+                'error',
+                'force'
             )
         
         return self
