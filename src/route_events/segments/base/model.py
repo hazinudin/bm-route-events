@@ -25,7 +25,7 @@ class RouteSegmentEvents(object):
         data_year: int = None,
         data_semester: int = None,
         segment_length: float = 0.1
-        ):
+    ):
         """
         Parse data from Excel file to Arrow format.
         """
@@ -169,11 +169,17 @@ class RouteSegmentEvents(object):
         return self.pl_df[self._lane_code_col].unique().to_list()
     
     @property
-    def seg_len_conversion(self):
+    def seg_len_conversion(self) -> int:
+        """
+        Conversion multiplier to Meters.
+        """
         return to_meter[self._segment_length_unit]
     
     @property
-    def sta_conversion(self):
+    def sta_conversion(self) -> int:
+        """
+        Conversion multiplier to Meters.
+        """
         return to_meter[self._sta_unit]
     
     @property
