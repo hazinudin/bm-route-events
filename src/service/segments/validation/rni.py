@@ -298,13 +298,13 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                 pl.col('has_median').not_()
             ).then(
                 pl.format(
-                    "Segmen {}-{} memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur.",
+                    "Segmen {}-{} tidak memiliki median dan memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur.",
                     pl.col('from_sta'),
                     pl.col('to_sta')
                 )
             ).otherwise(
                 pl.format(
-                    "Segmen {}-{} memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur satu sisi.",
+                    "Segmen {}-{} memiliki median dan memiliki lebar perkerasan (surface width) yang tidak cocok dengan total lebar jalur satu sisi.",
                     pl.col('from_sta'),
                     pl.col('to_sta')
                 )
