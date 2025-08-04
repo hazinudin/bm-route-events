@@ -269,7 +269,7 @@ class RouteSegmentEventsValidation(object):
                 pl.col(self._events._from_sta_col),
                 pl.col(self._events._to_sta_col),
                 pl.col(self._events._lane_code_col),
-                pl.col(self._events._seg_len_col),
+                pl.col(self._events._seg_len_col).mul(self._events.seg_len_conversion),
                 pl.col('diff')
             )
         ).select(
