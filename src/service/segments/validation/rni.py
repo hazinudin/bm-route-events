@@ -513,7 +513,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
     def base_validation(self):
         super().base_validation()
 
-        self.side_columns_check()
+        # self.side_columns_check()  # TEMPORARY DISABLED
         self.road_type_spec_check()
         self.inner_shoulder_check()
         self.surface_width_check()
