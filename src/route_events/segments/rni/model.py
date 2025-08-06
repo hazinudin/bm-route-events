@@ -155,10 +155,20 @@ class RouteRNI(RouteSegmentEvents):
         else:
             return self._surf_types_map
     
-    def incorrect_side_columns(self, dump=True) -> List[Type[CenterlineSegment]]:
+    def incorrect_side_columns(self, dump=True, survey_year: int | str = 'ALL') -> List[Type[CenterlineSegment]]:
+        # Filter for survey year
+        if survey_year == 'ALL':
+            filter_ = True  # Select all
+        elif type(survey_year) is int:
+            filter_ = pl.col(self._survey_date_col).dt.year().eq(survey_year)
+        else:
+            raise ValueError("survey_year is neither an integer or 'ALL'")
+        
         # Segment group using LINKID, FROM_STA and TO_STA
         # Aggregate to acquire lanes and directions data
-        segment_group = self.pl_df.group_by(
+        segment_group = self.pl_df.filter(
+            filter_
+        ).group_by(
             [
                 self._linkid_col,
                 self._from_sta_col,
@@ -416,8 +426,18 @@ class RouteRNI(RouteSegmentEvents):
 
         return dtos
     
-    def incorrect_inner_shoulder(self, dump=True) -> List[Type[CenterlineSegment]]:
-        error_rows = self.pl_df.group_by(
+    def incorrect_inner_shoulder(self, dump=True, survey_year: int | str = 'ALL') -> List[Type[CenterlineSegment]]:
+        # Filter for survey year
+        if survey_year == 'ALL':
+            filter_ = True  # Select all
+        elif type(survey_year) is int:
+            filter_ = pl.col(self._survey_date_col).dt.year().eq(survey_year)
+        else:
+            raise ValueError("survey_year is neither an integer or 'ALL'")
+        
+        error_rows = self.pl_df.filter(
+            filter_
+        ).group_by(
             [
                 self._linkid_col,
                 self._from_sta_col,
