@@ -146,8 +146,11 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         else:
             return self._prev_data
 
-    def side_columns_check(self):
-        errors_ = self._events.incorrect_side_columns()
+    def side_columns_check(self, current_year_only: bool = False):
+        if current_year_only:
+            errors_ = self._events.incorrect_side_columns(survey_year=self._survey_year)
+        else:
+            errors_ = self._events.incorrect_side_columns()
 
         if len(errors_) == 0:
             return self
@@ -246,11 +249,14 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         return self
     
-    def inner_shoulder_check(self):
+    def inner_shoulder_check(self, current_year_only: bool = True):
         """
         Check segment with incorrect median and inner shoulder combination.
         """
-        errors_ = self._events.incorrect_inner_shoulder()
+        if current_year_only:
+            errors_ = self._events.incorrect_inner_shoulder(survey_year=self._survey_year)
+        else:
+            errors_ = self._events.incorrect_inner_shoulder()
 
         if len(errors_) == 0:
             return self
@@ -515,7 +521,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         # self.side_columns_check()  # TEMPORARY DISABLED
         self.road_type_spec_check()
-        self.inner_shoulder_check()
+        self.inner_shoulder_check(current_year_only=True)  # TEMPORARY ONLY CHECK CURRENT YEAR DATA
         self.surface_width_check()
         self.single_value_attribute_check('VER_ALIGNMENT')
         self.single_value_attribute_check('HOR_ALIGNMENT')
