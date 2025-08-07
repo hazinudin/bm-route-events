@@ -126,7 +126,7 @@ class RouteSegmentEventsValidation(object):
         self.sta_overlap_check()
         self.survey_max_m_value_check()
         self.from_sta_start_from_zero()
-        self.survey_date_year_check()
+        # self.survey_date_year_check()
         # self.data_semester_check()
         # self.data_year_check()
 
