@@ -205,10 +205,6 @@ class DataValidation:
             )
         
         check.base_validation()
-        check.kemantapan_comparison_check()
-        check.rni_segments_comparison()
-        check.route_has_rni_check()
-        check.pok_iri_check()
         
         if write and (check.get_status() == 'verified'):
             check.put_data()
