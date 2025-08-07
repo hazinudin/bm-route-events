@@ -314,6 +314,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
     def base_validation(self):
         super().base_validation()
+        self.has_defect_data_check()
 
         self.invalid_pci_check()
         self.defects_point_check()
