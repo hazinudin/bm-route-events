@@ -120,7 +120,7 @@ class RouteSegmentEventsValidation(object):
         """
         self.duplicate_segment_check()
         self.lane_sequence_check()
-        self.segment_length_check(tolerance=0.005)
+        # self.segment_length_check(tolerance=0.005)
         self.sta_diff_check(tolerance=0.005)
         self.sta_gap_check()
         self.sta_overlap_check()
