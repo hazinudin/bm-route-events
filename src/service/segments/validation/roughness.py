@@ -355,7 +355,7 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
     def base_validation(self):
         super().base_validation()
 
-        self.segment_length_check()
+        self.segment_length_check(tolerance=0.005)
         self.kemantapan_comparison_check()
         self.rni_segments_comparison()
         self.route_has_rni_check()
