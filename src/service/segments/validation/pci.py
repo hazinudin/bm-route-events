@@ -206,6 +206,56 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 "error"
             )
             return
+
+    def surf_type_segment_length_check(self, tolerance=0.005):
+        """
+        Compare the surface type (from defects data) with the PCI segment length. Rigid surface should have segment length of 0.1km
+        and asphal with 0.05km segment length.
+        """
+        try:
+            if self.defects.no_data:
+                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                return
+            
+            pci_defect = segments_points_join(
+                segments=self._events,
+                points=self.defects,
+                point_select=[self.defects._surf_type_col],
+                segment_select=[self._events._seg_len_col]
+            )
+
+            error_ = pci_defect.filter(
+                # 21 equals to rigid
+                pl.col(self._defects._surf_type_col).eq(21).and_(
+                    pl.col(self._events._seg_len_col).lt(0.1 - tolerance) |
+                    pl.col(self._events._seg_len_col).gt(0.1 - tolerance)
+                ) |
+                # Other than 21 or not a rigid surface
+                pl.col(self._defects._surf_type_col).ne(21).and_(
+                    pl.col(self._events._seg_len_col).lt(0.05 - tolerance) |
+                    pl.col(self._events._seg_len_col).gt(0.05 - tolerance)
+                )
+            ).select(
+                msg = pl.format(
+                    "Segmen {}-{} memiliki tipe perkerasan {} namun memmiliki panjang segmen {}km.",
+                    pl.col(self._events._from_sta_col),
+                    pl.col(self._events._to_sta_col),
+                    pl.col(self.defects._surf_type_col),
+                    pl.col(self._events._seg_len_col)
+                )
+            )
+
+            if not error_.is_empty():
+                self._result.add_messages(
+                    error_,
+                    'error'
+                )
+            
+            return
+        
+        except NoSuchTableError:
+            self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+            return
         
     def defects_point_check(self):
         """
@@ -315,7 +365,9 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
     def base_validation(self):
         super().base_validation()
         self.has_defect_data_check()
-
-        self.invalid_pci_check()
-        self.defects_point_check()
+        
+        if self.get_status() != 'error':
+            self.surf_type_segment_length_check()
+            self.invalid_pci_check()
+            self.defects_point_check()
 
