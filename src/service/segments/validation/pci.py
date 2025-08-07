@@ -191,6 +191,22 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
         return
     
+    def has_defect_data_check(self):
+        """
+        Make sure the route has defects data.
+        """
+        try:
+            if self.defects.no_data:
+                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                return
+        
+        except NoSuchTableError:
+            self._result.add_message(
+                "Data defect tidak tersedia untuk dibandingkan.", 
+                "error"
+            )
+            return
+        
     def defects_point_check(self):
         """
         Compare the damage data with the defect data. The listed damage should match the damage in defect data.
