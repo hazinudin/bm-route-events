@@ -244,7 +244,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         self._result.add_messages(
             errors,
-            'error'
+            'error',
+            'force'
         )
 
         return self
@@ -348,6 +349,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         self._result.add_messages(
             errors,
             'error'
+            'force'
         )
 
         return self
@@ -448,7 +450,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         self._result.add_messages(
             errors,
-            'error'
+            'error',
+            'force'
         )
 
         return self
@@ -506,6 +509,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         self._result.add_messages(
             errors,
             'error'
+            'force'
         )
 
         return self
