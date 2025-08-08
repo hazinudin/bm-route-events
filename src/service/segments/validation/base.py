@@ -375,7 +375,7 @@ class RouteSegmentEventsValidation(object):
                 "Segmen {}-{} memiliki kode lajur yang tidak sesuai dengan aturan, yaitu {}",
                 pl.col('from_sta'),
                 pl.col('to_sta'),
-                pl.col('lanes')
+                pl.col('lanes').cast(pl.List(pl.String)).list.join(", ")
             )
         )
 
