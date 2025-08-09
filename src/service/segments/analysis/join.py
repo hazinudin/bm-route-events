@@ -73,16 +73,16 @@ def segments_coverage_join(
     # STA Query
     sta_query = f"""
     (
-    {target._from_sta_col} <= {covering._from_sta_col} and
-    {target._to_sta_col} > {covering._from_sta_col}
+    r.{target._from_sta_col} <= l.{covering._from_sta_col} and
+    r.{target._to_sta_col} > l.{covering._from_sta_col}
     ) or
     (
-    {target._from_sta_col} >= {covering._from_sta_col} and
-    {target._to_sta_col} <= {covering._to_sta_col}
+    r.{target._from_sta_col} >= l.{covering._from_sta_col} and
+    r.{target._to_sta_col} <= l.{covering._to_sta_col}
     ) or
     (
-    {target._from_sta_col} < {covering._to_sta_col} and
-    {target._to_sta_col} >= {covering._to_sta_col}
+    r.{target._from_sta_col} < l.{covering._to_sta_col} and
+    r.{target._to_sta_col} >= l.{covering._to_sta_col}
     )
     """
 
