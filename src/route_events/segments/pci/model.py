@@ -167,3 +167,39 @@ class RoutePCI(RouteSegmentEvents):
         )
         
         return segments
+    
+    def invalid_volume_with_severity(self) -> dict:
+        """
+        Segment with inconsistent volume and severity, segment should have 0/None volume 
+        and also NA/None severity. Segment with greater than 0 damage volume should have not None and not NA severity.
+        """
+        ldf = []  # For storing lazyframes.
+
+        for dcol in self.all_damages:
+            col_error = self.pl_df.lazy().select(
+                self._linkid_col,
+                self._from_sta_col,
+                self._to_sta_col,
+                self._lane_code_col,
+                pl.lit(dcol).alias('DAMAGE_COLUMN'),
+
+                pl.col(f"{self._dvol}{dcol}").gt(0).alias("HAS_DAMAGE"),
+
+                pl.col(f"{self._dsev}{dcol}").ne("NA").and_(
+                    pl.col(f"{self._dsev}{dcol}").is_not_null()
+                ).alias("HAS_SEVERITY")
+            ).filter(
+                pl.col('HAS_DAMAGE').and_(
+                    pl.col('HAS_SEVERITY').not_()
+                ) |
+                pl.col('HAS_DAMAGE').not_().and_(
+                    pl.col('HAS_SEVERITY')
+                )
+            )
+
+            ldf.append(col_error)
+
+        errors = pl.concat(ldf).collect()
+
+        return self._segment_dto_mapper(errors, dump=True, additional_cols=['DAMAGE_COLUMN', 'HAS_DAMAGE', 'HAS_SEVERITY'])
+
