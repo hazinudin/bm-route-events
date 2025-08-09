@@ -135,12 +135,32 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             route=route
         )
 
+        self._rni = None
+
         self._events = events
         self._repo = RoutePCIRepo(self._engine)
+        self._rni_repo = RouteRNIRepo(self._engine)
         self._defects_repo = RouteDefectsRepo(self._engine)
 
         # Defects data
         self._defects = None
+    
+    @property
+    def rni(self) -> RouteRNI:
+        """
+        Current year RNI
+        """
+        if self._rni is None:
+            self._rni = self._rni_repo.get_by_linkid(
+                self._route, 
+                year=self._survey_year,
+                raise_if_table_does_not_exists=True
+            )
+
+            return self._rni
+
+        else:
+            return self._rni
 
     @property
     def defects(self) -> RouteDefects:
