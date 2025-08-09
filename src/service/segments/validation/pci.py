@@ -452,6 +452,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
     def base_validation(self):
         super().base_validation()
         self.invalid_pci_check()
+        self.rni_surf_type_comparison()
         # self.has_defect_data_check()
         
         self.defect_surf_type_segment_length_check()
