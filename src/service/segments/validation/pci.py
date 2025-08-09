@@ -226,6 +226,71 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 "error"
             )
             return
+        
+    def rni_surf_type_comparison(self):
+        """
+        Compare the surface type (from RNI data) with the
+        """
+        joined = segments_coverage_join(
+            covering=self.rni,
+            target=self._events,
+            covering_select=[self.rni._surf_type_col],
+            target_select=self._events.all_severity + self._events.all_volume,
+            covering_agg=[pl.col(self.rni._surf_type_col).max()]
+        )
+
+        error = joined.filter(
+            # Rigid
+            pl.col(self.rni._surf_type_col).eq(21).and_(
+                pl.all_horizontal(pl.col('^VOL_AS.*$').is_not_null()) |
+                pl.all_horizontal(pl.col('^VOL_AS.*$').gt(0))
+            ) |
+            # Asphal
+            pl.col(self.rni._surf_type_col).ne(21).and_(
+                pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
+            ).and_(
+                pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null()) |
+                pl.all_horizontal(pl.col('^VOL_RG.*$').gt(0))
+            ) |
+            # Unpaved
+            pl.col(self.rni._surf_type_col).is_in([1,2]).and_(
+                pl.all_horizontal(pl.col('^VOL_AS.*$').is_not_null()) |
+                pl.all_horizontal(pl.col('^VOL_AS.*$').gt(0)) |
+                pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null()) |
+                pl.all_horizontal(pl.col('^VOL_RG.*$').gt(0))
+            )
+        ).select(
+            msg = pl.when(
+                pl.col(self.rni._surf_type_col).eq(21)
+            ).then(
+                pl.format(
+                    "Segmen {}-{} {} memiliki tipe perkerasan rigid namun memiliki kerusakan aspal.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._lane_code_col)
+                )
+            ).when(
+                pl.col(self.rni._surf_type_col).ne(21) & pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
+            ).then(
+                pl.format(
+                    "Segmen {}-{} {} memiliki tipe perkerasan aspal namum memiliki kerusakan rigid.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._lane_code_col)
+                )
+            ).when(
+                pl.col(self.rni._surf_type_col).is_in([1,2])
+            ).then(
+                pl.format(
+                    "Segmen {}-{} {} memiliki tipe perkerasan tanah namun memiliki nilai kerusakan.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._lane_code_col)
+                )
+            )
+        )
+
+        return
 
     def surf_type_segment_length_check(self, tolerance=0.005):
         """
