@@ -292,8 +292,68 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             )
         )
 
+        self._result.add_messages(
+            error,
+            'error'
+        )
+
         return
 
+    def rni_surf_type_segment_length_check(self, tolerance=0.005):
+        """
+        Compare the surface type (from defects data) with the PCI segment length. Rigid surface should have segment length of 0.1km
+        and asphal with 0.05km segment length.
+        """
+        joined = segments_coverage_join(
+            covering=self.rni,
+            target=self._events,
+            covering_select=[self.rni._surf_type_col],
+            target_select=self._events.all_severity + self._events.all_volume + [self._events._seg_len_col],
+            covering_agg=[pl.col(self.rni._surf_type_col).max()]
+        )
+
+        error = joined.filter(
+            # Rigid
+            pl.col(self.rni._surf_type_col).eq(21).and_(
+                pl.col(self._events._seg_len_col).lt(0.1 - tolerance) |
+                pl.col(self._events._seg_len_col).gt(0.1 - tolerance)
+            ) |
+            # Asphal
+            pl.col(self.rni._surf_type_col).ne(21).and_(
+                pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
+            ).and_(
+                pl.col(self._events._seg_len_col).lt(0.05 - tolerance) |
+                pl.col(self._events._seg_len_col).gt(0.05 - tolerance)
+            )
+        ).select(
+            msg = pl.when(
+                pl.col(self.rni._surf_type_col).eq(21)
+            ).then(
+                pl.format(
+                    "Segmen {}-{} {} memiliki tipe perkerasan rigid, namun memiliki panjang segmen yang bukan 0.1km.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._lane_code_col)
+                )
+            ).when(
+                pl.col(self.rni._surf_type_col).ne(21) & pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
+            ).then(
+                pl.format(
+                    "Segmen {}-{} {} memiliki tipe perkerasan aspal, namun tidak memiliki panjang segmen 0.05km.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._lane_code_col)
+                )
+            )
+        )
+
+        self._result.add_messages(
+            error,
+            'error'
+        )
+
+        return
+    
     def defect_surf_type_segment_length_check(self, tolerance=0.005):
         """
         Compare the surface type (from defects data) with the PCI segment length. Rigid surface should have segment length of 0.1km
@@ -453,6 +513,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         super().base_validation()
         self.invalid_pci_check()
         self.rni_surf_type_comparison()
+        self.rni_surf_type_segment_length_check()
         # self.has_defect_data_check()
         
         self.defect_surf_type_segment_length_check()
