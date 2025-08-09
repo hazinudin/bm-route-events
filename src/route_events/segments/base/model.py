@@ -458,6 +458,24 @@ class RouteSegmentEvents(object):
 
         return segment
     
+    def _segment_with_incorrect_value(
+            self,
+            column: str,
+            true_filter: Union[Tuple[Literal['ge', 'gt', 'le', 'lt'], int]] = None,
+            dump: bool = True
+        ) -> Union[Type[Segment] | dict]:
+        """
+        Return segments with incorrect value (true filter.not_()) from a column.
+        """
+        error_ = self.pl_df.filter(
+            getattr(pl.col(column), true_filter[0])(true_filter[1]).not_()
+        )
+
+        if not dump:
+            return self._segment_dto_mapper(error_, additional_cols=[column])
+        else:
+            return self._segment_dto_mapper(error_, additional_cols=[column], dump=True)
+    
     def segment_attribute_n_unique(
             self, 
             columns: List[str], 
