@@ -124,6 +124,22 @@ class RoutePCI(RouteSegmentEvents):
         """
         return self._as_damages + self._rg_damages
     
+    @property
+    def all_severity(self) -> list:
+        """
+        Return the list of all damage severity.
+        """
+        damages = self._as_damages + self._rg_damages
+        return [self._dsev + damage for damage in damages]
+    
+    @property
+    def all_volume(self) -> list:
+        """
+        Return the list of all damage volume.
+        """
+        damages = self._as_damages + self._rg_damages
+        return [self._dvol + damage for damage in damages]
+
     def invalid_pci_value(self) -> pl.DataFrame:
         """
         Segment with invalid PCI value if compared to its damage columns.
