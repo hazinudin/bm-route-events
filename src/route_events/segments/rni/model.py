@@ -92,6 +92,7 @@ class RouteRNI(RouteSegmentEvents):
         self._r_inn_shwidth_col = 'R_INN_SHWIDTH'
         self._lane_width_col = 'LANE_WIDTH'
         self._surf_width_col = 'SURF_WIDTH'
+        self._surf_year_col = 'SURF_YEAR'
 
         # Sided type columns
         l_inn_shtype = TypeSidedColumn(name='L_INN_SHTYPE', empty_type=0, side='L')
@@ -555,3 +556,12 @@ class RouteRNI(RouteSegmentEvents):
         )
 
         return dtos
+    
+    def incorrect_surf_year(self, dump=True) -> List[dict]:
+        """
+        Return segment with incorrect surface year (surface year which is greater than the data year).
+        """
+        return self._segment_with_incorrect_value(
+            self._surf_year_col, 
+            ('le', self._data_year)
+        )
