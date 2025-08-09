@@ -513,6 +513,30 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         )
 
         return self
+    
+    def surface_year_check(self):
+        """
+        Generate error message for route with incorrect surface year.
+        """
+        errors_ = self._events.incorrect_surf_year()
+
+        if len(errors_) == 0:
+            return
+        
+        errors = pl.DataFrame(errors_).select(
+            msg = pl.format(
+                "Segmen {}-{} {} memiliki surface year yang lebih besar dari tahun data yaitu {}",
+                pl.col('from_sta'),
+                pl.col('to_sta'),
+                pl.col('lane_code'),
+                pl.col(self._events._surf_year_col.lower())
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error'
+        )
 
     def put_data(self, semester: int=2):
         """
@@ -524,6 +548,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         super().base_validation()
 
         self.segment_length_check(tolerance=0.005)
+        self.surface_year_check()
         # self.side_columns_check()  # TEMPORARY DISABLED
         self.road_type_spec_check()
         self.inner_shoulder_check(current_year_only=True)  # TEMPORARY ONLY CHECK CURRENT YEAR DATA
