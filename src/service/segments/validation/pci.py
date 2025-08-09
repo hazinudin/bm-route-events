@@ -401,8 +401,35 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             return
         
         except NoSuchTableError:
-            self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+            # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
             return
+        
+    def damage_severity_check(self):
+        """
+        Check inconsistency between damage volume and its severity. 0/None volume should also come with NA/None severity.
+        Greater than 0 volume should come with other than NA severity.
+        """
+        errors_ = self._events.invalid_volume_with_severity()
+
+        if len(errors_) == 0:
+            return
+        
+        msg = pl.DataFrame(errors_).select(
+            msg = pl.format(
+                "Segmen {}-{} {} memiliki volume dan tingkat kerusakan {} yang tidak cocok.",
+                pl.col(self._events._from_sta_col),
+                pl.col(self._events._to_sta_col),
+                pl.col(self._events._lane_code_col),
+                pl.col('damage_column')
+            )
+        )
+
+        self._result.add_messages(
+            msg,
+            'error'
+        )
+
+        return
         
     def defects_point_check(self):
         """
@@ -452,7 +479,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             )
 
         except NoSuchTableError:
-            self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+            # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
             return
 
         ldf = []  # For errors LazyFrame
@@ -514,6 +541,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         self.invalid_pci_check()
         self.rni_surf_type_comparison()
         self.rni_surf_type_segment_length_check()
+        self.damage_severity_check()
         # self.has_defect_data_check()
         
         self.defect_surf_type_segment_length_check()
