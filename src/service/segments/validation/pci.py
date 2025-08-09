@@ -1,7 +1,9 @@
 from .base import RouteSegmentEventsValidation
-from ..analysis import segments_join
+from ..analysis import segments_join, segments_coverage_join
 from ...points.analysis import segments_points_join
 from route_events import (
+    RouteRNI,
+    RouteRNIRepo,
     RoutePCI, 
     LRSRoute, 
     RoutePCIRepo,
