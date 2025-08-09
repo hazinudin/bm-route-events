@@ -294,7 +294,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
         return
 
-    def surf_type_segment_length_check(self, tolerance=0.005):
+    def defect_surf_type_segment_length_check(self, tolerance=0.005):
         """
         Compare the surface type (from defects data) with the PCI segment length. Rigid surface should have segment length of 0.1km
         and asphal with 0.05km segment length.
@@ -451,10 +451,9 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
     def base_validation(self):
         super().base_validation()
-        self.has_defect_data_check()
+        self.invalid_pci_check()
+        # self.has_defect_data_check()
         
-        if self.get_status() != 'error':
-            self.surf_type_segment_length_check()
-            self.invalid_pci_check()
-            self.defects_point_check()
+        self.defect_surf_type_segment_length_check()
+        self.defects_point_check()
 
