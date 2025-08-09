@@ -48,7 +48,7 @@
         "SURF_YEAR": {
             "dtype": "integer",
             "range": {
-                "upper": 2024,
+                "upper": 2100,
                 "lower": 0,
                 "eq_lower": false,
                 "eq_upper": true,
