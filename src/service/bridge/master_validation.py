@@ -16,7 +16,9 @@ class BridgeMasterValidation(object):
             data: dict, 
             validation_mode: Literal['UPDATE', 'INSERT', 'RETIRE'], 
             lrs_grpc_host: str,
-            sql_engine: Engine
+            sql_engine: Engine,
+            ignore_review: bool = False,
+            ignore_force: bool = False
     ):
         """
         Bridge Master data validation object.
@@ -64,7 +66,16 @@ class BridgeMasterValidation(object):
         self._current_bm = self._repo.get_by_bridge_id(bridge_id=self._bm.id)
 
         # ValidationResult for tracking and storing validation result and status
-        self._result = ValidationResult(self._bm.id)
+        _ignored_msg = None
+
+        if ignore_review:
+            _ignored_msg = ['review']
+        elif ignore_force:
+            _ignored_msg = ['force']
+        elif ignore_force and ignore_review:
+            _ignored_msg = ['review', 'force']
+            
+        self._result = ValidationResult(self._bm.id, ignore_in=_ignored_msg)
 
         # Add review message from Pydantic validation.
         for msg in review_msgs:

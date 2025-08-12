@@ -19,6 +19,8 @@ class BridgeInventoryValidation(object):
             validation_mode: Literal['UPDATE', 'INSERT', 'RETIRE'],
             lrs_grpc_host: str,
             sql_engine: Engine,
+            ignore_review: bool = False,
+            ignore_force: bool = False,
             **kwargs
     ):
         """
@@ -85,7 +87,16 @@ class BridgeInventoryValidation(object):
             raise
         
         # ValidationResult for tracking and storing validation result and status.
-        self._result = ValidationResult(self._inv.id)
+        _ignored_msg = None
+
+        if ignore_review:
+            _ignored_msg = ['review']
+        elif ignore_force:
+            _ignored_msg = ['force']
+        elif ignore_force and ignore_review:
+            _ignored_msg = ['review', 'force']
+
+        self._result = ValidationResult(self._inv.id, ignore_in=_ignored_msg)
 
         # BridgeMaster data with the same bridge ID
         self._bm = self._bm_repo.get_by_bridge_id(self._inv.id)
