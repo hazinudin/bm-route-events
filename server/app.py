@@ -74,6 +74,12 @@ class DataValidation:
     ):
         val_mode = payload.input_json.get('mode')
 
+        if "force" in payload.input_json.get("val_history"):
+            ignore_force = True
+        
+        if "review" in payload.input_json.get("val_history"):
+            ignore_review = True
+
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
         
@@ -81,7 +87,9 @@ class DataValidation:
             data=payload.input_json,
             validation_mode=val_mode.upper(),
             lrs_grpc_host=self.lrs_host,
-            sql_engine=self.misc_engine
+            sql_engine=self.misc_engine,
+            ignore_force=ignore_force,
+            ignore_review=ignore_review
         )
 
         if check.get_status() == 'rejected':
@@ -107,6 +115,12 @@ class DataValidation:
     ):
         val_mode = payload.input_json.get('mode')
 
+        if "force" in payload.input_json.get("val_history"):
+            ignore_force = True
+        
+        if "review" in payload.input_json.get("val_history"):
+            ignore_review = True
+
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
         
@@ -116,7 +130,9 @@ class DataValidation:
             validation_mode=val_mode.upper(),
             sql_engine=self.misc_engine,
             dev=True,
-            popup=popup
+            popup=popup,
+            ignore_review=ignore_review,
+            ignore_force=ignore_force
         )
 
         if check.get_status() == 'rejected':
