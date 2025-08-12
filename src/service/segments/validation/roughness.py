@@ -288,8 +288,8 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
         errors = comp.rni_with_no_match().select(
             msg = pl.format(
                 "Segmen {}-{} {} ada pada data RNI, namun tidak ada pada data ini.",
-                pl.col(self.rni._from_sta_col),
-                pl.col(self.rni._to_sta_col),
+                pl.col(self.rni._from_sta_col).truediv(self.rni.sta_conversion),
+                pl.col(self.rni._to_sta_col).truediv(self.rni.sta_conversion),
                 pl.col(self.rni._lane_code_col)
             )
         )
