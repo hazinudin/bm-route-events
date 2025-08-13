@@ -316,14 +316,18 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             # Rigid
             pl.col(self.rni._surf_type_col).eq(21).and_(
                 pl.col(self._events._seg_len_col).lt(0.1 - tolerance) |
-                pl.col(self._events._seg_len_col).gt(0.1 - tolerance)
+                pl.col(self._events._seg_len_col).gt(0.1 + tolerance)
+            ).and_(
+                pl.col(self._events._from_sta_col + '_r').ne(self._events.last_segment.from_sta*self._events.sta_conversion)
             ) |
             # Asphal
             pl.col(self.rni._surf_type_col).ne(21).and_(
                 pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
             ).and_(
                 pl.col(self._events._seg_len_col).lt(0.05 - tolerance) |
-                pl.col(self._events._seg_len_col).gt(0.05 - tolerance)
+                pl.col(self._events._seg_len_col).gt(0.05 + tolerance)
+            ).and_(
+                pl.col(self._events._from_sta_col + '_r').ne(self._events.last_segment.from_sta*self._events.sta_conversion)
             )
         ).select(
             msg = pl.when(
@@ -331,8 +335,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki tipe perkerasan rigid, namun memiliki panjang segmen yang bukan 0.1km.",
-                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
                     pl.col(self._events._lane_code_col)
                 )
             ).when(
@@ -340,8 +344,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki tipe perkerasan aspal, namun tidak memiliki panjang segmen 0.05km.",
-                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
                     pl.col(self._events._lane_code_col)
                 )
             )
