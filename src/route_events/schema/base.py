@@ -33,7 +33,8 @@ CUSTOM_ERROR_MSG = {
     "int_type": "Nilai {0} harus diisi.",
     "float_parsing": "Nilai {0}={1} bukan merupakan nilai numerik.",
     "float_type": "Nilai {0} harus diisi.",
-    "string_type": "Nilai {0} harus diisi."
+    "string_type": "Nilai {0} harus diisi.",
+    "string_too_long": "{0} memiliki isi dengan jumlah karakter melebihi 255"
 }
 
 def serialize_date_str(v:any):
@@ -245,6 +246,7 @@ class RouteEventsSchema(object):
                 pa_type = pa.string()  # Pyarrow string
                 pyd_type = Annotated[str, StringConstraints(to_upper=True)]  # Pydantic type
                 field_kwargs['coerce_number_to_str'] = True
+                field_kwargs['max_length'] = 255
                 self.pl_schema[col] = String
             elif dtype == 'double':
                 pa_type = pa.float64()
