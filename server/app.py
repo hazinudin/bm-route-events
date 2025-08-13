@@ -76,9 +76,13 @@ class DataValidation:
 
         if "force" in payload.input_json.get("val_history"):
             ignore_force = True
+        else:
+            ignore_force = False
         
         if "review" in payload.input_json.get("val_history"):
             ignore_review = True
+        else:
+            ignore_review = False
 
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
@@ -117,9 +121,13 @@ class DataValidation:
 
         if "force" in payload.input_json.get("val_history"):
             ignore_force = True
+        else:
+            ignore_force = False
         
         if "review" in payload.input_json.get("val_history"):
             ignore_review = True
+        else:
+            ignore_review = False
 
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
