@@ -417,9 +417,9 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         msg = pl.DataFrame(errors_).select(
             msg = pl.format(
                 "Segmen {}-{} {} memiliki volume dan tingkat kerusakan {} yang tidak cocok.",
-                pl.col(self._events._from_sta_col),
-                pl.col(self._events._to_sta_col),
-                pl.col(self._events._lane_code_col),
+                pl.col('from_sta'),
+                pl.col('to_sta'),
+                pl.col('lane_code'),
                 pl.col('damage_column')
             )
         )
