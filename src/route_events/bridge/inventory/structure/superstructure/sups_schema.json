@@ -46,7 +46,7 @@
                 "lower": 0,
                 "upper": null,
                 "eq_upper": true,
-                "eq_lower": false
+                "eq_lower": true
             }
         },
         "SKEW": {
