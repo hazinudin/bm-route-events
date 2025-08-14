@@ -53,7 +53,7 @@ class BridgeInventory(object):
         df = pl.from_dicts([profile_data])
 
         # Initiate BridgeInventory object
-        inv = cls(df.to_arrow())
+        inv = cls(df.to_arrow(), state=invij_model.INVENTORY_STATE)
 
         # Initiate Superstructure object
         sups = Superstructure.from_invij_popup(
@@ -124,7 +124,7 @@ class BridgeInventory(object):
         df = pl.from_dicts([profile_data])
 
         # Initiate BridgeInventory object
-        inv = cls(df.to_arrow())
+        inv = cls(df.to_arrow(), state=invij_model.INVENTORY_STATE)
 
         # Initiate Superstructure object
         sups = Superstructure.from_invij(inv.id, inv.inv_year, sups_data, validate=False)
@@ -136,7 +136,7 @@ class BridgeInventory(object):
 
         return inv
     
-    def __init__(self, inv_data: pa.Table):
+    def __init__(self, inv_data: pa.Table, state: str = None):
         # Columns name
         self._bridge_id_col = 'BRIDGE_ID'
         self._inv_year_col = 'INV_YEAR'
@@ -148,6 +148,7 @@ class BridgeInventory(object):
         self.artable = inv_data
         self._sups = None
         self._subs = None
+        self._state = state
 
         # DuckDB Session
         self.ddb = duckdb.connect()
@@ -171,6 +172,13 @@ class BridgeInventory(object):
     @property
     def is_empty(self):
         return self._empty
+    
+    @property
+    def inventory_state(self) -> Literal['DETAIL', 'POPUP']:
+        """
+        The inventory state, either DETAIL or POPUP
+        """
+        return self._state
     
     def add_superstructure(self, obj: Superstructure, replace=False):
         """
