@@ -97,24 +97,42 @@ class BridgeInventoryRepo(object):
         """
         Insert BridgeInventory to database table.
         """
-        inv_df = obj.pl_df
-        sups_df = obj.sups.pl_df
-        subs_df = obj.subs.pl_df
-        sups_el_df = obj.sups.elements.pl_df
-        subs_el_df = obj.subs.elements.pl_df
+        if obj.inventory_state == 'DETAIL':
+            inv_df = obj.pl_df
+            sups_df = obj.sups.pl_df
+            subs_df = obj.subs.pl_df
+            sups_el_df = obj.sups.elements.pl_df
+            subs_el_df = obj.subs.elements.pl_df
 
-        # Convert string INV_DATE from string to datetime
-        inv_df = inv_df.with_columns(
-            INV_DATE=pl.col('INV_DATE').dt.strftime("%d/%b/%Y, 12:00:00%p")
-        )
+            # Convert string INV_DATE from string to datetime
+            inv_df = inv_df.with_columns(
+                INV_DATE=pl.col('INV_DATE').dt.strftime("%d/%b/%Y, 12:00:00%p")
+            )
 
-        table_mapping = {
-            self.inv_table_name: inv_df,
-            self.sups_table_name: sups_df,
-            self.subs_table_name: subs_df,
-            self.sups_el_table_name: sups_el_df,
-            self.subs_el_table_name: subs_el_df 
-        }
+            table_mapping = {
+                self.inv_table_name: inv_df,
+                self.sups_table_name: sups_df,
+                self.subs_table_name: subs_df,
+                self.sups_el_table_name: sups_el_df,
+                self.subs_el_table_name: subs_el_df 
+            }
+        else:
+            inv_df = obj.pl_df
+            sups_df = obj.sups.pl_df
+            sups_el_df = obj.sups.elements.pl_df
+            subs_el_df = obj.subs.elements.pl_df
+
+            # Convert string INV_DATE from string to datetime
+            inv_df = inv_df.with_columns(
+                INV_DATE=pl.col('INV_DATE').dt.strftime("%d/%b/%Y, 12:00:00%p")
+            )
+
+            table_mapping = {
+                self.inv_table_name: inv_df,
+                self.sups_table_name: sups_df,
+                self.sups_el_table_name: sups_el_df,
+                self.subs_el_table_name: subs_el_df 
+            }
 
         for table, df in zip(table_mapping, table_mapping.values()):
             args = []
