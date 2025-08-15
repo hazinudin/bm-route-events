@@ -394,25 +394,50 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         Check segment with decreasing surface width if compared to previous year data.
         """
         surf_w_col = self._events._surf_width_col
+        med_w_col = self._events._med_width_col
+
+        rni_agg = [
+            pl.col(surf_w_col).max().alias('surf_w_max'),
+            pl.col(surf_w_col).sum().alias('surf_w_sum'),
+            pl.col(med_w_col).max().gt(0).alias('has_median')
+        ]
 
         joined = segments_join(
             left = self._events,
             right = self._prev_data,
-            l_select = [surf_w_col],
-            r_select = [surf_w_col],
-            l_agg = [pl.col(surf_w_col).max()],
-            r_agg = [pl.col(surf_w_col).max()]
+            l_select = [surf_w_col, med_w_col],
+            r_select = [surf_w_col, med_w_col],
+            l_agg = rni_agg,
+            r_agg = rni_agg
         )
 
         errors = joined.filter(
-            pl.col(surf_w_col).lt(pl.col(surf_w_col+'_r').sub(tolerance))
+            pl.when(
+                pl.col('has_median')
+            ).then(
+                pl.col('surf_w_sum').lt(pl.col('surf_w_sum' + '_r').sub(tolerance))
+            ).otherwise(
+                pl.col('surf_w_max').lt(pl.col('surf_w_max'+'_r').sub(tolerance))
+            )
         ).select(
-            msg=pl.format(
-                "Segmen {}-{} mengalami penurunan lebar perkerasan dari {} ke {} dibandingkan data tahun lalu.",
-                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
-                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
-                pl.col(surf_w_col+'_r'),
-                pl.col(surf_w_col)
+            msg=pl.when(
+                pl.col('has_median')
+            ).then(
+                pl.format(
+                    "Segmen {}-{} memiliki median dan mengalami penurunan lebar perkerasan dari {} ke {} dibandingkan data tahun lalu.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col('surf_w_sum'+'_r'),
+                    pl.col('surf_w_sum')
+                )
+            ).otherwise(
+                pl.format(
+                    "Segmen {}-{} tidak memiliki median dan mengalami penurunan lebar perkerasan dari {} ke {} dibandingkan data tahun lalu.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col('surf_w_max'+'_r'),
+                    pl.col('surf_w_max')
+                )
             )
         )
 
