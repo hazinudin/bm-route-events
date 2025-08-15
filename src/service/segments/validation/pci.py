@@ -423,7 +423,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 "Segmen {}-{} {} memiliki volume dan tingkat kerusakan {} yang tidak cocok.",
                 pl.col('from_sta'),
                 pl.col('to_sta'),
-                pl.col('lane_code'),
+                pl.col('lane'),
                 pl.col('damage_column')
             )
         )
