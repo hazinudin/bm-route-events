@@ -438,7 +438,8 @@ class RouteSegmentEventsValidation(object):
 
         self._result.add_messages(
             errors,
-            'error'
+            'error',
+            'force'
         )
 
         return self
