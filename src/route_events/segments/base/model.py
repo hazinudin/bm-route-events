@@ -373,10 +373,33 @@ class RouteSegmentEvents(object):
             sta_diff=(pl.col(self._to_sta_col)-pl.col(self._from_sta_col))*self.sta_conversion
         ).filter(
             (pl.col('sta_diff').lt(0)) |  # Negative, means FROM_STA is larger than TO_STA
-            (pl.col('sta_diff').gt(pl.col(self._seg_len_col).mul(self.seg_len_conversion).add(tolerance))) |
-            (pl.col('sta_diff').lt(pl.col(self._seg_len_col).mul(self.seg_len_conversion).sub(tolerance)))
+            (
+                pl.col('sta_diff').gt(
+                    pl.col(self._seg_len_col).mul(self.seg_len_conversion).add(tolerance)
+                ).and_(
+                    pl.col(self._from_sta_col).ne(self.last_segment.from_sta)
+                )
+            ) |
+            (
+                pl.col('sta_diff').lt(
+                    pl.col(self._seg_len_col).mul(self.seg_len_conversion).sub(tolerance)
+                ).and_(
+                    pl.col(self._from_sta_col).ne(self.last_segment.from_sta)
+                )
+            ) |
+            (
+                pl.col(self._from_sta_col).eq(self.last_segment.from_sta).and_(
+                    pl.col('sta_diff').lt(
+                        pl.col(self._seg_len_col).mul(self.seg_len_conversion)
+                    ).or_(
+                        pl.col('sta_diff').sub(10).gt(
+                            pl.col(self._seg_len_col).mul(self.seg_len_conversion)
+                        )
+                    )
+                )
+            )
         )
-
+        
         return self._segment_dto_mapper(df, additional_cols=[self._seg_len_col], dump=True)
     
     def sta_gap(self) -> List[Segment]:
