@@ -257,9 +257,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             # Unpaved
             pl.col(self.rni._surf_type_col).is_in([1,2]).and_(
                 pl.all_horizontal(pl.col('^VOL_AS.*$').is_not_null()) |
-                pl.all_horizontal(pl.col('^VOL_AS.*$').gt(0)) |
-                pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null()) |
-                pl.all_horizontal(pl.col('^VOL_RG.*$').gt(0))
+                pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null())
             )
         ).select(
             msg = pl.when(
