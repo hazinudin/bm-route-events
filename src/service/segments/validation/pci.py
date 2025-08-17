@@ -237,7 +237,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             covering=self.rni,
             target=self._events,
             covering_select=[self.rni._surf_type_col],
-            target_select=self._events.all_severity + self._events.all_volume,
+            target_select=self._events.all_severity + self._events.all_volume + [self._events._pci_col],
             covering_agg=[pl.col(self.rni._surf_type_col).max()]
         )
 
@@ -288,6 +288,26 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                     pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
                     pl.col(self._events._lane_code_col)
                 )
+            )
+        )
+
+        self._result.add_messages(
+            error,
+            'error'
+        )
+
+        # Check for PCI correlation to surface type from RNI
+        # The unpaved segments should not have PCI value
+        error = joined.filter(
+            pl.col(self.rni._surf_type_col).is_in([1,2]).and_(
+                pl.col(self._events._pci_col).is_not_null()
+            )
+        ).select(
+            msg=pl.format(
+                "Segmen {}-{} {} memiliki tipe perkerasan tanah namun memiliki nilai PCI.",
+                pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
+                pl.col(self._events._lane_code_col)
             )
         )
 
