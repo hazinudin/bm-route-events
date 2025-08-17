@@ -292,7 +292,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
         self._result.add_messages(
             error,
-            'error'
+            'error',
+            'force'
         )
 
         # Check for PCI correlation to surface type from RNI
@@ -312,7 +313,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
         self._result.add_messages(
             error,
-            'error'
+            'error',
+            'force'
         )
 
         return
