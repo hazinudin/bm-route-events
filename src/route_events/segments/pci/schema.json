@@ -489,7 +489,8 @@
             "dtype": "integer"
         },
         "PCI": {
-            "dtype": "double"
+            "dtype": "double",
+            "allow_null": true
         },
         "CONSULTANT_ID": {
             "dtype": "integer"
