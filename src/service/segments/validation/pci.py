@@ -238,7 +238,6 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             target=self._events,
             covering_select=[self.rni._surf_type_col],
             target_select=self._events.all_severity + self._events.all_volume + [self._events._pci_col],
-            covering_agg=[pl.col(self.rni._surf_type_col).max()]
         )
 
         # Check for volume relation to surface type from RNI
