@@ -265,8 +265,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki tipe perkerasan rigid namun memiliki kerusakan aspal.",
-                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
                     pl.col(self._events._lane_code_col)
                 )
             ).when(
@@ -274,8 +274,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki tipe perkerasan aspal namum memiliki kerusakan rigid.",
-                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
                     pl.col(self._events._lane_code_col)
                 )
             ).when(
@@ -283,8 +283,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             ).then(
                 pl.format(
                     "Segmen {}-{} {} memiliki tipe perkerasan tanah namun memiliki nilai kerusakan.",
-                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
                     pl.col(self._events._lane_code_col)
                 )
             )
