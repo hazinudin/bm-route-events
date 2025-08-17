@@ -241,6 +241,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             covering_agg=[pl.col(self.rni._surf_type_col).max()]
         )
 
+        # Check for volume relation to surface type from RNI
         error = joined.filter(
             # Rigid
             pl.col(self.rni._surf_type_col).eq(21).and_(
