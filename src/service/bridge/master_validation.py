@@ -48,10 +48,12 @@ class BridgeMasterValidation(object):
             for error in e.errors():
                 if 'review' in error['type']:
                     review_msgs.append(error['msg'])
+                elif error['type'] != 'missing':
+                    self._result.add_message(error['msg'], 'error')
                 else:
                     self._result.add_message(error['msg'], 'rejected')
             
-            if self.get_status() == 'rejected':
+            if self.get_status() in ['rejected', 'error']:
                 return
             else:
                 self._bm = BridgeMaster.from_invij(data, ignore_review_err=True)
