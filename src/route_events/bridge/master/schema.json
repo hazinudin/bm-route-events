@@ -65,8 +65,7 @@
         "eq_lower": true,
         "eq_upper": false,
         "review": false
-      },
-      "allow_null": true
+      }
     },
     "PJG_TOTAL": {
       "dtype": "double",
