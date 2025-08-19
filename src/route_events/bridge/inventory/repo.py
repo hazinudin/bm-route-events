@@ -119,8 +119,6 @@ class BridgeInventoryRepo(object):
         else:
             inv_df = obj.pl_df
             sups_df = obj.sups.pl_df
-            sups_el_df = obj.sups.elements.pl_df
-            subs_el_df = obj.subs.elements.pl_df
 
             # Convert string INV_DATE from string to datetime
             inv_df = inv_df.with_columns(
@@ -130,8 +128,6 @@ class BridgeInventoryRepo(object):
             table_mapping = {
                 self.inv_table_name: inv_df,
                 self.sups_table_name: sups_df,
-                self.sups_el_table_name: sups_el_df,
-                self.subs_el_table_name: subs_el_df 
             }
 
         for table, df in zip(table_mapping, table_mapping.values()):
