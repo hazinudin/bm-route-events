@@ -96,7 +96,7 @@ class DataValidation:
             ignore_review=ignore_review
         )
 
-        if check.get_status() == 'rejected':
+        if check.get_status() in ['rejected', 'error']:
             return check.invij_json_result(as_dict=True)
 
         if check.validation_mode == 'UPDATE':
