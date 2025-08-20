@@ -102,6 +102,12 @@
     "JENIS_JBT": {
       "dtype": "string",
       "db_col": "BRIDGE_STR_TYPE",
+      "domain": [
+        "FO",
+        "UP",
+        "OP",
+        "lainnya"
+      ],
       "allow_null": true
     },
     "CONS_STATUS": {
