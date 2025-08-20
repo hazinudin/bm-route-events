@@ -137,7 +137,7 @@ class DataValidation:
             lrs_grpc_host=self.lrs_host,
             validation_mode=val_mode.upper(),
             sql_engine=self.misc_engine,
-            dev=True,
+            dev=False,
             popup=popup,
             ignore_review=ignore_review,
             ignore_force=ignore_force
