@@ -328,8 +328,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             covering=self.rni,
             target=self._events,
             covering_select=[self.rni._surf_type_col],
-            target_select=self._events.all_severity + self._events.all_volume + [self._events._seg_len_col],
-            covering_agg=[pl.col(self.rni._surf_type_col).max()]
+            target_select=self._events.all_severity + self._events.all_volume + [self._events._seg_len_col]
         )
 
         error = joined.filter(
