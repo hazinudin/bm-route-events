@@ -63,8 +63,7 @@ class DataValidation:
         
         # Google Storage client
         # Use service account JSON
-        cred = service_account.Credentials.from_service_account_file(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
-        self.gs_client = storage.Client(credentials=cred)
+        self.cred = service_account.Credentials.from_service_account_file(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
     
     @app.post('/bridge/master_validation')
     def validate_bridgemaster_data(
@@ -251,8 +250,10 @@ class DataValidation:
             payload.input_json.routes[0]
         )
 
+        gs_client = storage.Client(credentials=self.cred)
+
         sp = gs.SurveyPhotoStorage(
-            gs_client=self.gs_client,
+            gs_client=gs_client,
             bucket_name='sidako-bucket',
             sql_engine=self.smd_engine
         )
@@ -284,6 +285,8 @@ class DataValidation:
             check.put_data()
             check.put_photos()
         
+        del(gs_client)
+
         return check.smd_output_msg(
             show_all_msg=payload.input_json.show_all_msg,
             as_dict=True
