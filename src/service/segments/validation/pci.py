@@ -385,7 +385,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         """
         try:
             if self.defects.no_data:
-                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
                 return
             
             pci_defect = segments_points_join(
@@ -461,7 +461,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         """
         try:
             if self.defects.pl_df.is_empty():
-                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
                 return 
             
             pivot = segments_points_join(
