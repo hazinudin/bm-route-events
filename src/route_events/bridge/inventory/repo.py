@@ -49,7 +49,7 @@ class BridgeInventoryRepo(object):
             self.inv_table_name
         ]
     
-    def get_by_bridge_id(self, bridge_id: str, inv_year: int)->BridgeInventory:
+    def get_by_bridge_id(self, bridge_id: str, inv_year: int)-> BridgeInventory | None:
         """
         Load BridgeInventory from database table.
         """
@@ -73,12 +73,13 @@ class BridgeInventoryRepo(object):
             subs_el = StructureElement(df_subs_el.to_arrow())
             
             # Populate the BridgeInventory object
-            inv.add_superstructure(sups)
-            inv.add_substructure(subs)
+            if not df_sups.is_empty():
+                inv.add_superstructure(sups)
+                inv.sups.add_l3_l4_elements(sups_el)
 
-            # Add elements to Superstructure and Substructure
-            inv.sups.add_l3l4_elements(sups_el)
-            inv.subs.add_l3_l4_elements(subs_el)
+            if not df_subs.is_empty():
+                inv.add_substructure(subs)
+                inv.subs.add_l3_l4_elements(subs_el)
 
             return inv
         else:
