@@ -95,7 +95,7 @@ class Superstructure(object):
 
         # Add Element to Superstructure
         for element in elements:
-            spans.add_l3l4_elements(element)
+            spans.add_l3_l4_elements(element)
 
         return spans
     
@@ -160,12 +160,15 @@ class Superstructure(object):
 
         return self
     
-    def add_l3l4_elements(self, obj):
+    def add_l3_l4_elements(self, obj):
         """
         Add Element to Superstructure object.
         """
         if type(obj) != StructureElement:
             raise TypeError(f"Could not only set element with StructureElement object, not with {type(obj)}.")
+
+        if obj.artable.num_rows == 0:
+            return self
 
         # Check if Element span parents exists in this class
         if not pl.from_arrow(obj.artable).join(
