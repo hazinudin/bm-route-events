@@ -1,5 +1,5 @@
 from route_events.bridge import BridgeMaster
-from route_events.bridge import BridgeMasterRepoDB, BridgeMasterRepo
+from route_events.bridge import BridgeMasterRepoDB, BridgeInventoryRepo, BridgeInventory
 from route_events.route import LRSRoute
 from pydantic import ValidationError
 
