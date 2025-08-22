@@ -126,13 +126,15 @@ class BridgeInventory(object):
         # Initiate BridgeInventory object
         inv = cls(df.to_arrow(), state=invij_model.INVENTORY_STATE)
 
-        # Initiate Superstructure object
-        sups = Superstructure.from_invij(inv.id, inv.inv_year, sups_data, validate=False)
-        inv.add_superstructure(sups)
+        if len(sups_data) != 0:
+            # Initiate Superstructure object
+            sups = Superstructure.from_invij(inv.id, inv.inv_year, sups_data, validate=False)
+            inv.add_superstructure(sups)
 
-        # Initiate Substructure object
-        subs = Substructure.from_invij(inv.id, inv.inv_year, subs_data, validate=False)
-        inv.add_substructure(subs)
+        if len(subs_data) != 0:
+            # Initiate Substructure object
+            subs = Substructure.from_invij(inv.id, inv.inv_year, subs_data, validate=False)
+            inv.add_substructure(subs)
 
         return inv
     
@@ -187,6 +189,9 @@ class BridgeInventory(object):
         if type(obj) != Superstructure:
             raise TypeError(f"Could only set superstructure with Superstructure object, not with {type(obj)}.")
         
+        if obj.artable.num_rows == 0:
+            return self
+        
         if (self._sups is None) or replace:
             self._sups = obj
         else:
@@ -200,7 +205,10 @@ class BridgeInventory(object):
         """
         if type(obj) != Substructure:
             raise TypeError(f"Could only set substructure with Substructure object, not with {type(obj)}.")
-    
+
+        if obj.artable.num_rows == 0:
+            return
+        
         if (self._subs is None) or replace:
             self._subs = obj
         else:
