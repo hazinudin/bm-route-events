@@ -333,7 +333,14 @@ class BridgeMasterValidation(object):
             self._repo.insert(self._bm)
 
         if self.validation_mode == 'UPDATE':
-            self._repo.update(self._bm)
+            other_bridges = self._repo.get_by_bridge_id(self._bm.id)
+            other_bridge = other_bridges  # Get the first one
+
+            if (other_bridge.number != self._bm.number) or (not isclose(self._bm.length, self._current_bm.length)):
+                self._repo.retire(self._bm)
+                self._repo.insert(self._bm)
+            else:
+                self._repo.update(self._bm)
         
         elif self.validation_mode == 'RETIRE':
             self._repo.retire(self._bm)
