@@ -299,6 +299,20 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
             'error'
         )
 
+        iri_errors = comp.other_with_no_match().select(
+            pl.format(
+                "Segmen {}-{} {} tidak ada pada data RNI.",
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._lane_code_col)
+            )
+        )
+
+        self._result.add_messages(
+            iri_errors,
+            'error'
+        )
+
         return
     
     def route_has_rni_check(self):
