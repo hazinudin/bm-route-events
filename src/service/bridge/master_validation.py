@@ -125,6 +125,7 @@ class BridgeMasterValidation(object):
         """
         self.bridge_num_check()
         self.lrs_distance_check()
+        self.bridge_inv_distance_check()
 
         return self
     
@@ -281,7 +282,22 @@ class BridgeMasterValidation(object):
         distance = self._bm.distance_to(self._current_bm)
 
         if distance > threshold:
-            msg = f"Jembatan berjarak {distance} dari data jembatan lama."
+            msg = f"Jembatan berjarak {distance}m dari data jembatan lama."
+            self._result.add_message(msg, status='error', ignore_in='force')
+
+        return self
+    
+    def bridge_inv_distance_check(self, threshold=30):
+        """
+        Compare the bridge location to the inventory data location.
+        """
+        if self.inv is None:
+            return self
+        
+        distance = self._bm._point_lambert.distance_to(self.inv._point_lambert)
+
+        if distance > threshold:
+            msg = f"Jembatan berjarak {distance}m dari data inventori."
             self._result.add_message(msg, status='error', ignore_in='force')
 
         return self
