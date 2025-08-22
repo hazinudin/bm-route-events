@@ -143,6 +143,7 @@ class BridgeMasterValidation(object):
         """
         self.base_data_check()
         self.bridge_old_distance_check()
+        self.compare_bridge_length()
 
         return self
 
