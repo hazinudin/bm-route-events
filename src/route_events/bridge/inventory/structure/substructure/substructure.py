@@ -99,6 +99,9 @@ class Substructure(object):
         if type(obj) != StructureElement:
             raise TypeError(f"Could not only set element with StructureElement object, not with {type(obj)}.")
 
+        if obj.artable.num_rows == 0:
+            return self
+        
         # Check if Element span parents exists in this class
         if not pl.from_arrow(obj.artable).join(
             self.pl_df,
