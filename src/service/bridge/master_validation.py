@@ -37,6 +37,11 @@ class BridgeMasterValidation(object):
             sql_engine=sql_engine
             )
         
+        # Bridge inventory repo
+        self._inv_repo = BridgeInventoryRepo(
+            sql_engine=sql_engine
+        )
+        
         # Initial review messages
         review_msgs = []
 
@@ -65,7 +70,9 @@ class BridgeMasterValidation(object):
             print(self._bm.linkid)
             raise
         
+        # Comparison data
         self._current_bm = self._repo.get_by_bridge_id(bridge_id=self._bm.id)
+        self._inv = None
 
         # ValidationResult for tracking and storing validation result and status
         _ignored_msg = None
@@ -88,6 +95,17 @@ class BridgeMasterValidation(object):
 
         if self._lrs is None:
             self._result.add_message(f'Ruas {self._bm.linkid} bukan merupakan jalan nasional.', 'rejected')
+
+    @property
+    def inv(self) -> None | BridgeInventory:
+        """
+        Get the bridge inventory data with the same bridge ID.
+        """
+        if self._inv is None:
+            inv = self._inv_repo.get_by_bridge_id(self._bm.id, self._bm.master_survey_year)
+            self._inv = inv
+
+        return self._inv
     
     def get_all_messages(self):
         """
