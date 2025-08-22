@@ -126,6 +126,7 @@ class BridgeMasterValidation(object):
         self.bridge_num_check()
         self.lrs_distance_check()
         self.bridge_inv_distance_check()
+        self.bridge_inv_length_comparison()
 
         return self
     
@@ -300,6 +301,16 @@ class BridgeMasterValidation(object):
             msg = f"Jembatan berjarak {distance}m dari data inventori."
             self._result.add_message(msg, status='error', ignore_in='force')
 
+        return self
+    
+    def bridge_inv_length_comparison(self):
+        """
+        Compare bridge length with the inventory data.
+        """
+        if not isclose(self._bm.length, self._inv.length):
+            msg = f"Jembatan memiliki panjang yang berbeda dengan data inventori, panjang jemabatan data ini adalah {self._bm.length}m sedangkan data inventori {self._inv.length}m."
+            self._result.add_message(msg, status='review', ignore_in='review')
+        
         return self
 
     def bridge_near_check(self, radius=50):
