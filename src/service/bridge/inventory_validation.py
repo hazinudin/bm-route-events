@@ -138,10 +138,36 @@ class BridgeInventoryValidation(object):
         """
         return self._result.status
     
+    def has_sups_check(self):
+        """
+        Check if the inventory data has superstructure data.
+        """
+        if self._inv.sups is None:
+            self._result.add_message('Jembatan tidak memiliki data bangunan atas.', 'error')
+        
+        return self
+    
+    def has_subs_check(self):
+        """
+        Check if the inventory data has substructure data.
+        """
+        if self._inv.subs is None:
+            self._result.add_message('Jembatan tidak memiliki data bangunan bawah.', 'error')
+    
     def base_check(self):
         """
         Base validation function.
         """
+        # Check if data has superstructure
+        self.has_sups_check()
+
+        # Check if DETAIL inventory has substructure
+        if self._inv.inventory_state == 'DETAIL':
+            self.has_subs_check()
+
+        if self.get_status() == 'error':
+            return
+        
         self.main_span_num_check()
         self.span_num_unique_check()
         self.other_span_num_exist_in_main_span_check()
