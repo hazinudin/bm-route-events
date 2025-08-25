@@ -107,10 +107,10 @@ class TestRouteRNIEventsValidation(unittest.TestCase):
         self.assertTrue(True)
 
     def test_prev_year_comparison(self):
-        routeid = '15010'
+        routeid = '22025'
         events = RouteRNI.from_excel(
-            'tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
-            linkid='15010',
+            'C:/Users/hazin/Downloads/rni_6_14-08-2025_170221_6756 (1).xlsx',
+            linkid='22025',
             ignore_review=True
         )
         results = ValidationResult(routeid)
@@ -131,18 +131,21 @@ class TestRouteRNIEventsValidation(unittest.TestCase):
         self.assertTrue(True)
 
     def test_excel_validation(self):
-        routeid = '15010'
+        routeid = '13006'
+        lrs = LRSRoute.from_feature_service('localhost:50052', routeid)
+
         check = RouteRNIValidation.validate_excel(
-            excel_path='tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
+            excel_path="C:/Users/hazin/Downloads/rni_25_08-08-2025_105655_5855.xlsx",
             route=routeid,
-            survey_year=2024,
+            survey_year=2025,
             sql_engine=engine,
-            lrs=None,
+            lrs=lrs,
             ignore_review=False
         )
 
+        check.base_validation()
         self.assertFalse(check.get_status() == 'rejected')
-        self.assertTrue(check.get_status() == 'review')
+        self.assertTrue(check.get_status() == 'error')
         self.assertFalse(check._events.pl_df.is_empty())
 
     def test_paved_to_unpaved_check(self):
@@ -357,6 +360,66 @@ from src.service import RoutePCIValidation
 
 
 class TestRoutePCIEventsValidation(unittest.TestCase):
+    def test_pci_base_validation(self):
+        """
+        Test the base validation.
+        """
+        # routeid = '52013'
+        routeid = '56039'
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", routeid)
+        file_name = "tests/domain/route_segments/input_excels/pci_14_31-07-2025_020817_9581.xlsx"
+
+        check = RoutePCIValidation.validate_excel(
+            file_name,
+            route=routeid,
+            survey_year=2025,
+            sql_engine=engine,
+            lrs=lrs
+        )
+
+        check.base_validation()
+
+        self.assertTrue(True)
+
+    def test_pci_rni_surf_type_comparison(self):
+        """
+        Test PCI and RNI comparison.
+        """
+        routeid = '52051'
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", routeid)
+
+        check = RoutePCIValidation.validate_excel(
+            "tests/domain/route_segments/input_excels/pci_14_17-08-2025_133137_8988.xlsx",
+            route=routeid,
+            survey_year=2025,
+            sql_engine=engine,
+            lrs=lrs
+        )
+
+        check.rni_surf_type_comparison()
+        self.assertTrue(True)
+
+    def test_pci_rni_surf_type_segment_length_check(self):
+        """
+        Test PCI and RNI comparison for segment length.
+        """
+        routeid = '52051'
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", routeid)
+
+        check = RoutePCIValidation.validate_excel(
+            "tests/domain/route_segments/input_excels/pci_14_19-08-2025_052614_7961.xlsx",
+            route=routeid,
+            survey_year=2025,
+            sql_engine=engine,
+            lrs=lrs
+        )
+
+        check.rni_surf_type_segment_length_check()
+        self.assertTrue(check.get_status() == 'verified')
+        
     def test_defects_point_check(self):
         """
         Check the consistency between damages in PCI and Defects data.
