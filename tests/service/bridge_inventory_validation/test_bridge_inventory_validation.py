@@ -20,21 +20,22 @@ with open('tests/service/bridge_inventory_validation/test_inventory_data_1.json'
 
 class TestBridgeInventoryValidation(unittest.TestCase):
     def test_init(self):
-        with cProfile.Profile() as profile:
-            check = BridgeInventoryValidation(
-                data=input_dict,
-                validation_mode='INSERT',
-                lrs_grpc_host='localhost:50052',
-                sql_engine=engine,
-                dev = True
-            )
+        check = BridgeInventoryValidation(
+            data=input_dict,
+            validation_mode='INSERT',
+            lrs_grpc_host='localhost:50052',
+            sql_engine=engine,
+            dev = True
+        )
 
-            res = pstats.Stats(profile)
-            res.sort_stats(pstats.SortKey.TIME)
+        check.insert_check()
 
         self.assertTrue(True)
 
     def test_popup(self):
+        with open('tests/service/bridge_inventory_validation/test_popup_data.json') as jf:
+            input_dict = json.load(jf)
+            
         check = BridgeInventoryValidation(
             data=input_dict,
             validation_mode='INSERT',

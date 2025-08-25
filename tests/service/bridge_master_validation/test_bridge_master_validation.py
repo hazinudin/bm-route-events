@@ -22,7 +22,7 @@ class TestBridgeMasterValidation(unittest.TestCase):
 
         check = BridgeMasterValidation(
             data=input_dict, 
-            validation_mode='UPDATE',
+            validation_mode='INSERT',
             lrs_grpc_host='localhost:50052',
             sql_engine=engine
         )

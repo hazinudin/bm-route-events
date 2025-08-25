@@ -1,170 +1,165 @@
 {
     "mode": "insert",
     "val_history": [],
-    "id_jbt": "2201152",
-    "tanggal_inv": "06/05/2025",
+    "id_jbt": "2801665",
+    "tanggal_inv": "23/07/2025",
     "tahun_inv": "2025",
-    "linkid": "22041",
-    "longitude": 107.9518873,
-    "latitude": -7.1624494,
-    "pjg_total": 15.75,
-    "lbr_jembatan": 11.199999809265137,
-    "btg_terpanjang": 15.0,
+    "linkid": "28121",
+    "longitude": 112.6560193,
+    "latitude": -7.2689654,
+    "pjg_total": 26.2,
+    "lbr_jembatan": 7.6,
+    "btg_terpanjang": 14.0,
     "tipe_lintasan": "S",
+    "tipe_struktur": "Jembatan",
+    "tipe_ba_utama": "GPP",
+    "lokasi_dari": "MLG",
+    "lokasi_km": 3385.0,
+    "tahun_bangun": 1970,
+    "jml_bentang": 2,
     "bangunan_atas": [
         {
             "no_btg": 1,
             "tipe_btg": "utama",
             "seq_btg": 1,
-            "pjg_btg": 15.75,
-            "jml_gelagar": 7,
-            "radius": 189.0,
+            "pjg_btg": 26.2,
+            "jml_gelagar": 15,
+            "radius": 0.0,
             "skew": 0.0,
-            "lbr_lantai_kend": 8.0,
-            "lbr_trotoar": 2.1,
-            "tinggi_ruang_bebas": 3.0,
-            "struktur_ba": "GTP",
+            "lbr_lantai_kend": 7.6,
+            "lbr_trotoar_kiri": 0.0,
+            "lbr_trotoar_kanan": 0.0,
+            "lbr_drainase_kiri": 0.0,
+            "lbr_drainase_kanan": 0.0,
+            "lbr_bahu_kanan": 0.9,
+            "lbr_bahu_kiri": 0.8,
+            "lbr_median": 0.0,
+            "tinggi_ruang_bebas": 0.0,
+            "struktur_ba": "GPP",
             "elemen": [
                 {
-                    "L3": "",
+                    "L3": "2.400",
+                    "tipe": "M",
+                    "bhn": "B",
+                    "sifat": "P",
+                    "L4": null
+                },
+                {
+                    "L3": "4.511",
                     "tipe": null,
                     "bhn": "T",
-                    "sifat": "",
+                    "sifat": null,
                     "L4": null
                 },
                 {
-                    "L3": "",
+                    "L3": "4.514",
                     "tipe": null,
                     "bhn": "A",
-                    "sifat": "",
+                    "sifat": null,
                     "L4": null
                 },
                 {
-                    "L3": "",
+                    "L3": "3.620",
                     "tipe": null,
-                    "bhn": "A",
-                    "sifat": "",
+                    "bhn": "Z",
+                    "sifat": "P",
                     "L4": null
-                },
-                {
-                    "L3": "3.610",
-                    "tipe": null,
-                    "bhn": "B",
-                    "sifat": "",
-                    "L4": [
-                        {
-                            "kode_element": "4.611 b",
-                            "bhn": "FRP"
-                        },
-                        {
-                            "kode_element": "4.611 a",
-                            "bhn": "FRP"
-                        },
-                        {
-                            "kode_element": "4.611 b",
-                            "bhn": ""
-                        },
-                        {
-                            "kode_element": "4.611 a",
-                            "bhn": "FRP"
-                        }
-                    ]
-                },
-                {
-                    "L3": "3.610",
-                    "tipe": null,
-                    "bhn": "L",
-                    "sifat": "",
-                    "L4": [
-                        {
-                            "kode_element": "4.611 b",
-                            "bhn": "FRP"
-                        },
-                        {
-                            "kode_element": "4.611 a",
-                            "bhn": "FRP"
-                        },
-                        {
-                            "kode_element": "4.611 b",
-                            "bhn": ""
-                        },
-                        {
-                            "kode_element": "4.611 a",
-                            "bhn": "FRP"
-                        }
-                    ]
-                },
-                {
-                    "L3": "3.600",
-                    "tipe": null,
-                    "bhn": "A",
-                    "sifat": "",
-                    "L4": [
-                        {
-                            "kode_element": "4.604",
-                            "bhn": ""
-                        },
-                        {
-                            "kode_element": "4.604",
-                            "bhn": ""
-                        },
-                        {
-                            "kode_element": "4.604",
-                            "bhn": ""
-                        }
-                    ]
-                },
-                {
-                    "L3": "3.710",
-                    "tipe": null,
-                    "bhn": "L",
-                    "sifat": "",
-                    "L4": [
-                        {
-                            "kode_element": "4.712 a",
-                            "bhn": ""
-                        },
-                        {
-                            "kode_element": "4.712 a",
-                            "bhn": ""
-                        },
-                        {
-                            "kode_element": "4.712 a",
-                            "bhn": ""
-                        }
-                    ]
                 }
-            ],
-            "bangunan_bawah": [
+            ]
+        },
+        {
+            "no_btg": 2,
+            "tipe_btg": "utama",
+            "seq_btg": 1,
+            "pjg_btg": 26.2,
+            "jml_gelagar": 15,
+            "radius": 0.0,
+            "skew": 0.0,
+            "lbr_lantai_kend": 7.6,
+            "lbr_trotoar_kiri": 0.0,
+            "lbr_trotoar_kanan": 0.0,
+            "lbr_drainase_kiri": 0.0,
+            "lbr_drainase_kanan": 0.0,
+            "lbr_bahu_kanan": 0.9,
+            "lbr_bahu_kiri": 0.8,
+            "lbr_median": 0.0,
+            "tinggi_ruang_bebas": 0.0,
+            "struktur_ba": "GPP",
+            "elemen": [
                 {
-                    "status": "kpl_jbt",
-                    "no": 1,
-                    "latitude": 0.0,
-                    "longitude": 0.0,
-                    "elemen": [
-                        {
-                            "L3": "",
-                            "tipe": "P",
-                            "bhn": "D",
-                            "sifat": "",
-                            "L4": null
-                        }
-                    ]
+                    "L3": "2.400",
+                    "tipe": "M",
+                    "bhn": "B",
+                    "sifat": "P",
+                    "L4": null
                 },
                 {
-                    "status": "pilar",
-                    "no": 2,
-                    "latitude": 0.0,
-                    "longitude": 0.0,
-                    "elemen": [
-                        {
-                            "L3": "",
-                            "tipe": "P",
-                            "bhn": "D",
-                            "sifat": "",
-                            "L4": null
-                        }
-                    ]
+                    "L3": "4.511",
+                    "tipe": null,
+                    "bhn": "T",
+                    "sifat": null,
+                    "L4": null
+                },
+                {
+                    "L3": "4.514",
+                    "tipe": null,
+                    "bhn": "A",
+                    "sifat": null,
+                    "L4": null
+                },
+                {
+                    "L3": "3.620",
+                    "tipe": null,
+                    "bhn": "Z",
+                    "sifat": "P",
+                    "L4": null
+                }
+            ]
+        }
+    ],
+    "bangunan_bawah": [
+        {
+            "status": "kpl_jbt",
+            "no": 1,
+            "tipe": "utama",
+            "seq": 1,
+            "elemen": [
+                {
+                    "L3": "3.320",
+                    "tipe": "B",
+                    "bhn": "M",
+                    "sifat": null,
+                    "L4": null
+                }
+            ]
+        },
+        {
+            "status": "kpl_jbt",
+            "no": 2,
+            "tipe": "utama",
+            "seq": 1,
+            "elemen": [
+                {
+                    "L3": "3.320",
+                    "tipe": "P",
+                    "bhn": "M",
+                    "sifat": null,
+                    "L4": null
+                }
+            ]
+        },
+        {
+            "status": "pilar",
+            "no": 1,
+            "tipe": "utama",
+            "seq": 1,
+            "elemen": [
+                {
+                    "L3": "3.320",
+                    "tipe": "B",
+                    "bhn": "M",
+                    "sifat": null,
+                    "L4": null
                 }
             ]
         }
