@@ -27,6 +27,22 @@ class TestPCI(unittest.TestCase):
         )
 
         self.assertFalse(pci.pl_df.is_empty())
+
+    def test_invalid_volume_with_severity(self):
+        """
+        Test RoutePCI invalid_volume_with_severity.
+        """
+        excel_path = "tests/domain/route_segments/input_excels/pci_10_01-08-2025_022606_9382.xlsx",
+
+        pci = RoutePCI.from_excel(
+            excel_path=excel_path,
+            linkid = '440591',
+            ignore_review=True
+        )
+
+        error = pci.invalid_volume_with_severity()
+        pci.overlapping_segments()
+        self.assertTrue(True)
     
     def test_repo(self):
         """

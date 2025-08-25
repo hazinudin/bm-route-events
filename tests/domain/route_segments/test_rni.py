@@ -61,11 +61,11 @@ class TestRNI(unittest.TestCase):
         """
         Load data from Excel file with correct schema.
         """
-        excel_path = "tests/domain/route_segments/input_excels/balai_5_15010.xlsx"
+        excel_path = "C:/Users/hazin/Downloads/rni_25_08-08-2025_105655_5855.xlsx"
 
         rni = RouteRNI.from_excel(
             excel_path=excel_path,
-            linkid = '15010',
+            linkid = '13006',
             ignore_review=True
         )
 
@@ -99,13 +99,13 @@ class TestRNI(unittest.TestCase):
         """
         Test incorrect side columns fill pattern check function.
         """
-        excel_path = "tests/domain/route_segments/input_excels/balai_5_15010.xlsx"
+        excel_path = "tests/route_segments/input_excels/rni_7_04-08-2025_055329_2970.xlsx"
 
         rni = RouteRNI.from_excel(
             excel_path=excel_path,
-            linkid = '15010',
+            linkid = '2400512',
             ignore_review=True,
-            data_year=2023
+            data_year=2025
         )
         
         rni.incorrect_side_columns()
@@ -133,18 +133,18 @@ class TestRNI(unittest.TestCase):
         """
         Test segment with incorrect inner shoulder placement.
         """
-        excel_path = "tests/domain/route_segments/input_excels/balai_5_15010.xlsx"
+        excel_path = "tests/route_segments/input_excels/rni_7_01-08-2025_095037_4760.xlsx"
 
         rni = RouteRNI.from_excel(
             excel_path=excel_path,
-            linkid = '15010',
+            linkid = '2402416',
             ignore_review=True,
-            data_year=2023
+            data_year=2025
         )
 
-        rni.incorrect_inner_shoulder()
+        result = rni.incorrect_inner_shoulder()
 
-        self.assertTrue(True)
+        self.assertTrue(len(result) == 0)
 
     def test_surface_types_mapping(self):
         """
@@ -159,3 +159,37 @@ class TestRNI(unittest.TestCase):
         )
 
         self.assertEqual(rni.surface_types_mapping.shape[0], 2)
+
+    def test_surface_width_check(self):
+        """
+        Surface width check test.
+        """
+        excel_path = "tests/route_segments/input_excels/rni_7_01-08-2025_080000_2492.xlsx"
+
+        rni = RouteRNI.from_excel(
+            excel_path=excel_path,
+            linkid = '241092',
+            ignore_review=True
+        )
+
+        result = rni.incorrect_surface_width()
+
+        self.assertTrue(len(result) == 0)
+
+    def test_incorrect_surface_year_check(self):
+        """
+        Surface year check test.
+        """
+
+        excel_path = "tests/route_segments/input_excels/rni_7_01-08-2025_080000_2492.xlsx"
+
+        rni = RouteRNI.from_excel(
+            excel_path=excel_path,
+            linkid='241092',
+            ignore_review=True,
+            data_year=2020  # For testing purpose
+        )
+
+        result = rni.incorrect_surf_year()
+
+        self.assertTrue(len(result) > 0)
