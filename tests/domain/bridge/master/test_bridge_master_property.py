@@ -27,6 +27,15 @@ class BridgeMasterProperty(unittest.TestCase):
 
         self.assertTrue(year == 2024)
 
+    def test_bridge_length(self):
+        with open('tests/domain/bridge/master/test_master_data.json') as jf:
+            input_dict = json.load(jf)
+
+        bm = BridgeMaster.from_invij(input_dict)
+        length = bm.length
+
+        self.assertTrue(type(length) is float)
+
     def test_master_as_pb(self):
         # with open('tests/bridge/test_master_data.json') as jf:
         #     input_dict = json.load(jf)
