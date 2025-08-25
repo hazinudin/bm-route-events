@@ -145,7 +145,7 @@ class TestRouteSegments(unittest.TestCase):
                 "FROM_STA": [0, 0, 10, 10, 20, 20],
                 "TO_STA": [10, 10, 20, 20, 25, 25],
                 "LANE_CODE": ["L1", "L2", "L1", "L2", "L1", "L2"],
-                "SEGMENT_LENGTH": [0.1, 0.98, 0.11, 0.110000003, 0.05999, 0.0399]
+                "SEGMENT_LENGTH": [0.1, 0.098, 0.11, 0.110000003, 0.05999, 0.0399]
             }
         )
 
@@ -156,10 +156,29 @@ class TestRouteSegments(unittest.TestCase):
         )
 
         seg_len_error = se.incorrect_segment_length(tolerance=0.01)
-        self.assertTrue(len(seg_len_error) == 2)
+        self.assertTrue(len(seg_len_error) == 1)
 
         sta_diff_error = se.incorrect_sta_diff(tolerance=0.01)
         self.assertTrue(len(sta_diff_error) == 3)
+
+        df = pl.DataFrame(
+            {
+                "LINKID": ["a" for _ in range(6)],
+                "FROM_STA": [0, 0, 10, 10, 20, 20],
+                "TO_STA": [10, 10, 20, 20, 21, 21],
+                "LANE_CODE": ["L1", "L2", "L1", "L2", "L1", "L2"],
+                "SEGMENT_LENGTH": [0.1, 0.098, 0.11, 0.110000003, 0.01, 0.0099]
+            }
+        )
+
+        se = RouteSegmentEvents(
+            df.to_arrow(),
+            route = "a",
+            segment_length = 0.1
+        )
+
+        sta_diff_error = se.incorrect_sta_diff(tolerance=0.01)
+        self.assertTrue(len(sta_diff_error) == 1)
 
     def test_sta_gap(self):
         """
