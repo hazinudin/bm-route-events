@@ -67,6 +67,14 @@
                 "AS_RAVELING",
                 "AS_BLEEDING",
                 "AS_SH_DROPOFF",
+                "AS_POLISHED_AGGREGATE",
+                "AS_BLOCK_CRACK",
+                "AS_JOIN_REFLECTION_CRACK",
+                "AS_SLIPPAGE_CRACK",
+                "AS_BUMP_SAG",
+                "AS_SHOVING",
+                "AS_RAILROAD_CROSS",
+                "AS_SWELL",
                 "RG_COBREAK",
                 "RG_DIV_SLAB",
                 "RG_FAULTING",
@@ -77,8 +85,15 @@
                 "RG_COSPALLING",
                 "RG_JSPALLING",
                 "RG_JSEAL",
-                "RG_PATCHING",
-                "RG_SH_DROPOFF"
+                "RG_SM_PATCHING",
+                "RG_BG_PATCHING",
+                "RG_SH_DROPOFF",
+                "RG_BLOWUP_BUCKLING",
+                "RG_POLISHED_AGGREGATE",
+                "RG_POPOUTS",
+                "RG_RAILROAD_CROSS",
+                "RG_DURABILITY_CRACK",
+                "RG_SCALING_MAP_CRACK"
             ]
         },
         "DEFECTS_DIMENSION": {
