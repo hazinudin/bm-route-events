@@ -307,8 +307,11 @@ class BridgeMasterValidation(object):
         """
         Compare bridge length with the inventory data.
         """
+        if self.inv is None:
+            return self
+        
         if not isclose(self._bm.length, self._inv.length):
-            msg = f"Jembatan memiliki panjang yang berbeda dengan data inventori, panjang jemabatan data ini adalah {self._bm.length}m sedangkan data inventori {self._inv.length}m."
+            msg = f"Jembatan memiliki panjang yang berbeda dengan data inventori, panjang jembatan data ini adalah {self._bm.length}m sedangkan data inventori {self._inv.length}m."
             self._result.add_message(msg, status='review', ignore_in='review')
         
         return self
