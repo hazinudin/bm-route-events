@@ -22,6 +22,7 @@ class ValidationMessages(object):
         }
 
         self._df = pl.DataFrame([], schema=self._df_schema)
+        self._messages = [self._df]
 
         self._supported_status = allowed_status
         self._supported_ignore = allowed_ignored_status
@@ -44,7 +45,8 @@ class ValidationMessages(object):
             'id': [self._id]
         }, schema=self._df_schema)
 
-        self._df = pl.concat([self._df, new_row])
+        self._messages.append(new_row)
+        # self._df = pl.concat([self._df, new_row])
 
         return self
     
@@ -58,15 +60,14 @@ class ValidationMessages(object):
         if (ignore_in not in self._supported_ignore) and (ignore_in is not None):
             raise ValueError(f"ignore message in {ignore_in} is not supported.")
         
-        self._df = pl.concat([
+        self._df = self._messages.append(
             df.with_columns(
                 status=pl.lit(msg_status),
                 status_idx=pl.lit(self._supported_status.index(msg_status)).cast(pl.Int16),
                 ignore_in=pl.lit(ignore_in).cast(pl.String),
                 id=pl.lit(self._id)
-            ), 
-            self._df
-        ])
+            )
+        )
 
         return self
     
@@ -75,15 +76,17 @@ class ValidationMessages(object):
         Get message with 'ignore_in' filter applied.
         """
         if type(ignored) == list:
-            return self._df.filter(
+            return self.df.filter(
                 (
                     pl.col('ignore_in').is_in(ignored).not_()
                 ) | (
                     pl.col('status').eq('rejected')    
+                ) | (
+                    pl.col('ignore_in').is_null()
                 )
             )
         elif type(ignored) == str:
-            return self._df.filter(
+            return self.df.filter(
                 (
                     (pl.col('ignore_in') != ignored) |
                     (pl.col('ignore_in').is_null())
@@ -98,8 +101,8 @@ class ValidationMessages(object):
         """
         Return all messages as Arrow Table.
         """
-        return self._df.to_arrow()
+        return self.df.to_arrow()
     
     @property
     def df(self):
-        return self._df
+        return pl.concat(self._messages)

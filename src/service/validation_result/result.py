@@ -30,7 +30,7 @@ class ValidationResult(object):
         """
         Return all messages in Polars DataFrame.
         """
-        return self._msg._df
+        return self._msg.df
     
     def get_filtered_msg(self)->pl.DataFrame:
         """
