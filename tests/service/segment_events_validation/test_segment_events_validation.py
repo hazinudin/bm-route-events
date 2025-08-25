@@ -332,6 +332,25 @@ class TestRouteRoughnessEventsValidation(unittest.TestCase):
 
         self.assertTrue(True)
 
+    def test_validate_excel(self):
+        routeid = '44039'
+
+        lrs = LRSRoute.from_feature_service('localhost:50052', routeid)
+        results = ValidationResult(routeid)
+
+        c = RouteRoughnessValidation.validate_excel(
+            "tests/domain/route_segments/input_excels/iri_10_21-08-2025_034607_1157 44039.xlsx",
+            route=routeid,
+            survey_year=2025,
+            survey_semester=1,
+            sql_engine=engine,
+            lrs=lrs
+        )
+
+        c.base_validation()
+
+        self.assertTrue(True)
+
 
 from src.route_events import RoutePCI, RoutePCIRepo
 from src.service import RoutePCIValidation
