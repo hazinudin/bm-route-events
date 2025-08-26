@@ -109,4 +109,12 @@ class ValidationMessages(object):
     
     @property
     def df(self):
-        return pl.concat(self._messages)
+        """
+        Return the concatted DataFrames/messages.
+        """
+        # If contain other object other than the original self._df
+        if len(self._messages) > 1:
+            self._df =  pl.concat(self._messages)
+            self._messages = [self._df]
+
+        return self._df
