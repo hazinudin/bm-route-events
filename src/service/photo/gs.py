@@ -81,8 +81,8 @@ class SurveyPhotoStorage(object):
             photos = self.validate_photos_url(photos, return_invalid=False)
 
         with self._repo.session() as session:
-            self._repo.delete(photos, session, commit=False)
-            self._repo.insert(photos, session, commit=False)
+            self._repo.delete(photos, session, commit=True)
+            self._repo.insert(photos, session, commit=True)
 
             session.commit()
         
