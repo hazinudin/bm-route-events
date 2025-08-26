@@ -195,6 +195,10 @@ class RouteEventsSchema(object):
             domain = schema_dict[col].get('domain')
             db_col = schema_dict[col].get('db_col')
             allow_null = schema_dict[col].get('allow_null')
+            upper_case = schema_dict[col].get('uppercase')  # Only for string column, default is True
+
+            if upper_case is None:
+                upper_case = True
 
             if allow_null is None:
                 allow_null = False  # Set default value to False
@@ -244,7 +248,7 @@ class RouteEventsSchema(object):
             
             if dtype == 'string':
                 pa_type = pa.string()  # Pyarrow string
-                pyd_type = Annotated[str, StringConstraints(to_upper=True)]  # Pydantic type
+                pyd_type = Annotated[str, StringConstraints(to_upper=upper_case)]  # Pydantic type
                 field_kwargs['coerce_number_to_str'] = True
                 field_kwargs['max_length'] = 255
                 self.pl_schema[col] = String
