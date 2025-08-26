@@ -17,7 +17,8 @@ class RouteDefects(RoutePointEvents):
         linkid: str | list = 'ALL',
         linkid_col: str = 'LINKID',
         ignore_review: bool = False,
-        data_year: int = None
+        data_year: int = None,
+        photo_url_col: str = 'URL_PHOTO'
     ):
         """
         Parse data from Excel file to Arrow format and load it into Route Defect object.
@@ -46,7 +47,7 @@ class RouteDefects(RoutePointEvents):
         ).cast(
             pl.String
         ).with_columns(
-            pl.col(pl.String).str.to_uppercase()
+            pl.col(pl.String).exclude(photo_url_col).str.to_uppercase()
         )
 
         ta = TypeAdapter(List[schema.model])
