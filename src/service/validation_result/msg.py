@@ -61,11 +61,15 @@ class ValidationMessages(object):
             raise ValueError(f"ignore message in {ignore_in} is not supported.")
         
         self._df = self._messages.append(
-            df.with_columns(
+            df.select(
+                pl.first().alias('msg')
+            ).with_columns(
                 status=pl.lit(msg_status),
                 status_idx=pl.lit(self._supported_status.index(msg_status)).cast(pl.Int16),
                 ignore_in=pl.lit(ignore_in).cast(pl.String),
                 id=pl.lit(self._id)
+            ).select(
+                ['msg', 'status', 'status_idx', 'ignore_in', 'id']
             )
         )
 
