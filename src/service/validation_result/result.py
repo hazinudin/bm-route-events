@@ -1,7 +1,9 @@
 from .msg import ValidationMessages
 import polars as pl
+import pyarrow as pa
 from typing import Literal, List, Union
 from pydantic import BaseModel
+import base64
 
 
 class ValidationResult(object):
@@ -200,3 +202,16 @@ class ValidationResult(object):
 
         return out_dict
     
+    def to_arrow_base64(self) -> str:
+        """
+        Return Apache Arrow batches as bytes encoded in base64 encoding.
+        """
+
+        sink = pa.BufferOutputStream()
+        schema = self.get_all_messages().to_arrow().schema
+
+        with pa.ipc.new_stream(sink, schema) as writer:
+            for batch in self.get_all_messages().to_arrow().to_batches():
+                writer.write_batch(batch)
+
+        return base64.b64encode(sink.getvalue().to_pybytes()).decode('utf-8')
