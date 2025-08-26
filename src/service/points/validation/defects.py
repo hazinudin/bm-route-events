@@ -162,17 +162,17 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                     ]
                 ).select(
                     pl.when(
-                        pl.col(self._events._photo_url_cols).str.to_lowercase().str.starts_with(self._storage.root_url)
+                        pl.col(self._events._photo_url_cols).str.starts_with(self._storage.root_url)
                     ).then(
                         # Lowercased full URL
-                        pl.col(self._events._photo_url_cols).str.to_lowercase()
+                        pl.col(self._events._photo_url_cols)
                     ).otherwise(
                         pl.format(
                             # Filename must include /<province folder>/<route>/<file name>
                             "{}/{}/{}",
                             pl.lit(self._storage.root_url),
                             pl.col(self._events._year_col),
-                            pl.col(self._events._photo_url_cols).str.to_lowercase()
+                            pl.col(self._events._photo_url_cols)
                         )
                     ).alias('url'),
                     pl.col('m_val').alias('sta_meters'),
