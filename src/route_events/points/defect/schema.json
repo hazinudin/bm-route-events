@@ -50,7 +50,8 @@
             "allow_null": true
         },
         "URL_PHOTO": {
-            "dtype": "string"
+            "dtype": "string",
+            "uppercase": false
         },
         "DEFECTS_TYPE": {
             "dtype": "string",
