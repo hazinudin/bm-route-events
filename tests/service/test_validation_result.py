@@ -30,6 +30,20 @@ class TestValidationResult(unittest.TestCase):
         self.assertTrue(result.get_all_messages().is_empty)
         self.assertTrue(result.status == 'verified')
 
+    def test_message_status(self):
+        """
+        Test all available message status property
+        """
+        result = ValidationResult('1234')
+
+        result.add_message('test', 'error')
+        result.add_message('test', 'review')
+
+        self.assertListEqual(
+            sorted(['review', 'error']), 
+            sorted(result.all_message_status)
+        )
+
     def test_message_count(self):
         """
         Test the count of message.
