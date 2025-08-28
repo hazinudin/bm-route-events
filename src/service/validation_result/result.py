@@ -48,6 +48,18 @@ class ValidationResult(object):
         """
         return self._msg.df[self._msg._status_col].unique().to_list()
     
+    @property
+    def all_ignorables(self) -> List[str]:
+        """
+        All available ignorable tags.
+        """
+        if self.status == 'rejected':
+            return []
+        else:
+            return self._msg.df.filter(
+                pl.col(self._msg._ignore_in_col).is_not_null()
+            )[self._msg._ignore_in_col].unique().to_list()
+    
     def get_filtered_msg(self)->pl.DataFrame:
         """
         Retual all messages that is not ignored.
