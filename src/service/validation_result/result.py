@@ -41,6 +41,13 @@ class ValidationResult(object):
         """
         return self._msg.df.select(pl.len())['len'][0]
     
+    @property
+    def all_message_status(self) -> List[str]:
+        """
+        All available message status.
+        """
+        return self._msg.df[self._msg._status_col].unique().to_list()
+    
     def get_filtered_msg(self)->pl.DataFrame:
         """
         Retual all messages that is not ignored.
