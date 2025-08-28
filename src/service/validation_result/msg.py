@@ -12,13 +12,20 @@ class ValidationMessages(object):
         ):
         self._id = id
 
+        # Default columns
+        self._msg_col = 'msg'
+        self._status_col = 'status'
+        self._status_idx_col = 'status_idx'
+        self._ignore_in_col = 'ignore_in'
+        self._id_col = 'id'
+
         # Polars dataframe and schema
         self._df_schema = {
-            'msg': pl.String,
-            'status': pl.String,
-            'status_idx': pl.Int16,
-            'ignore_in': pl.String,
-            'id': pl.String
+            self._msg_col: pl.String,
+            self._status_col: pl.String,
+            self._status_idx_col: pl.Int16,
+            self._ignore_in_col: pl.String,
+            self._id_col: pl.String
         }
 
         self._df = pl.DataFrame([], schema=self._df_schema)
