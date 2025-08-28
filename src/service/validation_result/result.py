@@ -33,6 +33,13 @@ class ValidationResult(object):
         Return all messages in Polars DataFrame.
         """
         return self._msg.df
+
+    @property
+    def message_count(self) -> int:
+        """
+        Get all messages count.
+        """
+        return self._msg.df.select(pl.len())['len'][0]
     
     def get_filtered_msg(self)->pl.DataFrame:
         """
