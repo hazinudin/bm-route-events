@@ -64,6 +64,25 @@ class TestValidationResult(unittest.TestCase):
 
         self.assertTrue(result.message_count == 5)
 
+    def test_all_ignorables(self):
+        """
+        Test get all ignorables tag.
+        """
+        result = ValidationResult('1234')
+
+        result.add_message('test', 'error', 'force')
+        result.add_message('test', 'error')
+        result.add_message('test', 'review', 'review')
+
+        self.assertListEqual(
+            ['force', 'review'],
+            sorted(result.all_ignorables)
+        )
+
+        result.add_message('test', 'rejected')
+
+        self.assertListEqual([], result.all_ignorables)
+
     def test_to_smd_format(self):
         """
         Test SMD format output
