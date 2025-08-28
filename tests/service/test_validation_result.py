@@ -30,6 +30,26 @@ class TestValidationResult(unittest.TestCase):
         self.assertTrue(result.get_all_messages().is_empty)
         self.assertTrue(result.status == 'verified')
 
+    def test_message_count(self):
+        """
+        Test the count of message.
+        """
+        result = ValidationResult('1234')
+
+        self.assertTrue(result.message_count == 0)
+
+        for _ in range(5):
+            result.add_message('test', 'error')
+
+        self.assertTrue(result.message_count == 5)
+
+        result = ValidationResult('1234', ['force'])
+
+        for _ in range(5):
+            result.add_message('test', 'error', 'force')
+
+        self.assertTrue(result.message_count == 5)
+
     def test_to_smd_format(self):
         """
         Test SMD format output
