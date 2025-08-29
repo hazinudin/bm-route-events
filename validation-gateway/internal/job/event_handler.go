@@ -207,16 +207,25 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
-		// Job submitted event handler
-		case job.JOB_SUBMITTED:
-			var event job.JobSubmitted
+		// Generic job handler, just append the events to event store
+		case job.JOB_SUBMITTED, job.JOB_EXECUTED, job.JOB_FAILED:
+			var event job.JobEventInterface
 
-			if err := json.Unmarshal(envelope.Payload, &event); err != nil {
+			switch envelope.Type {
+			case job.JOB_SUBMITTED:
+				event = &job.JobSubmitted{}
+			case job.JOB_EXECUTED:
+				event = &job.JobExecuted{}
+			case job.JOB_FAILED:
+				event = &job.JobFailed{}
+			}
+
+			if err := json.Unmarshal(envelope.Payload, event); err != nil {
 				log.Printf("Failed to unmarshal into even: %v", err)
 				continue
 			}
 
-			err := j.GenericHandler(&event)
+			err := j.GenericHandler(event)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
