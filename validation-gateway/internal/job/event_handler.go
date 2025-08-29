@@ -1,6 +1,8 @@
 package job
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"time"
@@ -8,6 +10,9 @@ import (
 	"validation-gateway/pkg/job"
 	"validation-gateway/pkg/repo"
 
+	"github.com/apache/arrow/go/v16/arrow/array"
+	"github.com/apache/arrow/go/v16/arrow/ipc"
+	"github.com/apache/arrow/go/v16/arrow/memory"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -78,6 +83,72 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 	}
 
 	err = j.dispatcher.PublishEvent(&new_event)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (j *JobEventHandler) HandleSuccededEvent(event *job.JobSucceded) error {
+	// Apache Arrow decoding and serialization
+	arrowBytes, err := base64.StdEncoding.DecodeString(event.ArrowBatches)
+
+	if err != nil {
+		log.Printf("Failed to decode Arrow data: %v", err)
+	}
+
+	mem := memory.NewGoAllocator()
+	r := bytes.NewReader(arrowBytes)
+	reader, err := ipc.NewReader(r, ipc.WithAllocator(mem))
+
+	if err != nil {
+		return err
+	}
+
+	var rows [][]any
+
+	for reader.Next() {
+		rec := reader.Record()
+		rec.Retain()
+		defer rec.Release()
+
+		num_rows := int(rec.NumRows())
+		num_cols := int(rec.NumCols())
+
+		for i := range num_rows {
+			row := make([]any, num_cols+1)
+			row[0] = event.JobID
+
+			// Extract values from each column
+			for colIdx := range num_cols {
+				col := rec.Column(colIdx)
+
+				switch arr := col.(type) {
+				case *array.Int16:
+					row[colIdx+1] = arr.Value(i)
+				case *array.LargeString:
+					row[colIdx+1] = arr.Value(i)
+				default:
+					log.Printf("Uhandled Arrow Array type: %T", arr)
+					row[colIdx+1] = nil // Handle unknown types
+				}
+			}
+
+			rows = append(rows, row)
+		}
+	}
+
+	defer reader.Release()
+
+	err = j.repo.InsertJobResults(rows)
+
+	if err != nil {
+		return err
+	}
+
+	err = j.repo.AppendEvents(event)
 
 	if err != nil {
 		return err
