@@ -3,6 +3,9 @@ drop table if exists validation_jobs_event_store;
 drop table if exists validation_job_results;
 drop table if exists validation_jobs;
 
+drop index if exists job_idx;
+drop index if exists job_event_store_idx;
+drop index if exists job_result_idx;
 -- For recovering the Users
 -- drop table if exists temp_users;
 
