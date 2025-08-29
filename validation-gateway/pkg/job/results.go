@@ -1,13 +1,8 @@
 package job
 
-import "gorm.io/gorm"
-
 type ValidationJobResults struct {
-	gorm.Model
-	JobID     string `json:"jobid" gorm:"index"`
-	Msg       string `json:"msg"`
-	Status    string `json:"status"`
-	StatusIDX int    `json:"status_idx"`
-	IgnoreIn  string `json:"ignore_in"`
-	ContentID string `json:"content_id"`
+	Status           string   `json:"status"`
+	MessageCount     int      `json:"msg_count"`
+	AllMessageStatus []string `json:"all_msg_status"`
+	Ignorables       []string `json:"ignorables"`
 }
