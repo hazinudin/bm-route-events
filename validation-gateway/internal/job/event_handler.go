@@ -223,6 +223,29 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
+		// Job succeeded event handler
+		case job.JOB_SUCCEEDED:
+			var event job.JobSucceded
+			var payload map[string]interface{}
+
+			if err := json.Unmarshal(envelope.Payload, &event); err != nil {
+				log.Printf("Failed to unmarshal into event: %v", err)
+				continue
+			}
+
+			if err := json.Unmarshal(envelope.Payload, &payload); err != nil {
+				log.Printf("Failed to unmarshal into map: %v", err)
+				continue
+			}
+
+			event.ArrowBatches = payload["arrow_batches"].(string)
+
+			err := j.HandleSuccededEvent(&event)
+
+			if err != nil {
+				log.Printf("Failed to handle event: %v", err)
+				continue
+			}
 		}
 	}
 }
