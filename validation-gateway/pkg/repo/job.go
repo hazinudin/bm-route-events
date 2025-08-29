@@ -97,3 +97,22 @@ func (r *ValidationJobRepository) AppendEvents(event job.JobEventInterface) erro
 
 	return nil
 }
+
+func (r *ValidationJobRepository) InsertJobResults(rows [][]any) error {
+	ctx := context.Background()
+
+	_, err := r.db.Pool.CopyFrom(
+		ctx,
+		pgx.Identifier{"validation_job_results"},
+		[]string{"job_id", "msg", "msg_status", "msg_status_idx", "ignore_in", "content_id"},
+		pgx.CopyFromSlice(len(rows), func(i int) ([]any, error) {
+			return rows[i], nil
+		}),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
