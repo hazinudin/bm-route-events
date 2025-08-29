@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"validation-gateway/infra"
 	"validation-gateway/pkg/job"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type ValidationJobRepository struct {
