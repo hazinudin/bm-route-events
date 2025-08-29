@@ -26,9 +26,6 @@ func NewJobService(db *infra.Database, conf *internal.Config) *JobService {
 	// Create event dispatcher
 	dispatcher := NewJobEventDispatcher(rmq_url)
 
-	// Listen to job result queue from RabbitMQ
-	go q.ListenJobResult()
-
 	return &JobService{
 		q:          q,
 		db:         db,
