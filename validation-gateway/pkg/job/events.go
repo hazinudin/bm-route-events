@@ -2,8 +2,6 @@ package job
 
 import (
 	"encoding/json"
-
-	"github.com/apache/arrow/go/v16/arrow"
 )
 
 type JobEventType string
@@ -12,6 +10,8 @@ const (
 	JOB_CREATED   JobEventType = "created"
 	JOB_SUBMITTED JobEventType = "submitted"
 	JOB_SUCCEEDED JobEventType = "succeeded"
+	JOB_EXECUTED  JobEventType = "executed"
+	JOB_FAILED    JobEventType = "failed"
 )
 
 type EventEnvelope struct {
@@ -43,7 +43,7 @@ type JobEventInterface interface {
 
 type JobEvent struct {
 	JobID     string `json:"job_id"`
-	OccuredAt int64  `json:"occured_at"`
+	OccuredAt int64  `json:"occurred_at"`
 }
 
 // Actual Job Events
@@ -105,10 +105,11 @@ func (e *JobSubmitted) GetOccurredAt() int64 {
 }
 
 // Job Succeded event
+// Triggered when a job is processed succesfully by the workers.
 type JobSucceded struct {
-	// Triggered when a job is processed succesfully by the workers.
 	JobEvent
-	Results *arrow.Record `json:"-"` // The Arrow Record will not be included in the event store
+	Result       *ValidationJobResults
+	ArrowBatches string `json:"-"` // The Arrow Record will not be included in the event store
 }
 
 func (e *JobSucceded) SerializeToEnvelope() ([]byte, error) {
@@ -122,7 +123,7 @@ func (e *JobSucceded) SerializeToEnvelope() ([]byte, error) {
 }
 
 func (e *JobSucceded) GetEventType() JobEventType {
-	return JOB_SUBMITTED
+	return JOB_SUCCEEDED
 }
 
 func (e *JobSucceded) GetJobID() string {
@@ -130,5 +131,59 @@ func (e *JobSucceded) GetJobID() string {
 }
 
 func (e *JobSucceded) GetOccurredAt() int64 {
+	return e.OccuredAt
+}
+
+// Job Failed event
+type JobFailed struct {
+	JobEvent
+}
+
+func (e *JobFailed) SerializeToEnvelope() ([]byte, error) {
+	bytes, err := serialize(JOB_FAILED, e)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func (e *JobFailed) GetEventType() JobEventType {
+	return JOB_FAILED
+}
+
+func (e *JobFailed) GetJobID() string {
+	return e.JobID
+}
+
+func (e *JobFailed) GetOccurredAt() int64 {
+	return e.OccuredAt
+}
+
+// Job Executed event
+type JobExecuted struct {
+	JobEvent
+}
+
+func (e *JobExecuted) SerializeToEnvelope() ([]byte, error) {
+	bytes, err := serialize(JOB_EXECUTED, e)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func (e *JobExecuted) GetEventType() JobEventType {
+	return JOB_EXECUTED
+}
+
+func (e *JobExecuted) GetJobID() string {
+	return e.JobID
+}
+
+func (e *JobExecuted) GetOccurredAt() int64 {
 	return e.OccuredAt
 }
