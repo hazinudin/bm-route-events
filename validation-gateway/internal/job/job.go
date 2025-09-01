@@ -85,7 +85,7 @@ func (s *JobService) CreateValidationJob(data_type string, details any) (*job.Va
 }
 
 // PublishSMDValidationJob accepts a validation request, create a new ValidationJob and publish it to message broker
-func (s *JobService) PublishSMDValidationJob(request *JobRequest[SMDPayload], data_type string) (map[string]any, error) {
+func (s *JobService) PublishSMDValidationJob(request *JobRequest[SMDPayload], data_type string) (any, error) {
 	job, err := s.CreateValidationJob(strings.ToUpper(data_type), request.InputJSON)
 
 	if err != nil {
@@ -96,7 +96,7 @@ func (s *JobService) PublishSMDValidationJob(request *JobRequest[SMDPayload], da
 }
 
 // PublishSMDValidationJob accepts a validation request, create a new ValidationJob and publish it to message broker
-func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload], data_type string) (map[string]any, error) {
+func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload], data_type string) (any, error) {
 	job, err := s.CreateValidationJob(strings.ToUpper(data_type), request.InputJSON)
 
 	if err != nil {
