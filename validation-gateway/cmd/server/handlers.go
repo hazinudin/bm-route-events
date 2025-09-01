@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strings"
 	"validation-gateway/internal"
 	"validation-gateway/internal/job"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5"
 )
 
 type ErrorResponse struct {
@@ -128,6 +130,78 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 
 	if err != nil {
 		http.Error(w, "Error when publishing job to queue", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// Handler for fetching the job status.
+func (s *Server) GetJobStatusHandler(w http.ResponseWriter, r *http.Request) {
+	job_id := r.PathValue("job_id")
+	data_type := strings.ToUpper(r.PathValue("data_type"))
+
+	if strings.Split(job_id, "_")[0] != data_type {
+		out := make(map[string]string)
+		out["error"] = "Data type does not match Job ID"
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(out)
+		return
+	}
+
+	resp, err := s.job_service.GetJobStatus(job_id, data_type)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			out := make(map[string]string)
+			out["error"] = "Job ID not found."
+
+			w.Header().Set("Content-Type", "application-json")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(out)
+			return
+		}
+
+		http.Error(w, "Error when submitting query", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(resp)
+}
+
+// Handler for fetching the job result.
+func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
+	job_id := r.PathValue("job_id")
+	data_type := strings.ToUpper(r.PathValue("data_type"))
+
+	if strings.Split(job_id, "_")[0] != data_type {
+		out := make(map[string]string)
+		out["error"] = "Data type does not match Job ID"
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(out)
+		return
+	}
+
+	resp, err := s.job_service.GetJobResult(job_id, data_type)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			out := make(map[string]string)
+			out["error"] = "Not available"
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(out)
+			return
+		}
+
+		http.Error(w, "Error when submitting query", http.StatusInternalServerError)
 		return
 	}
 
