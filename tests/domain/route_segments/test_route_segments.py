@@ -290,3 +290,23 @@ class TestRouteSegments(unittest.TestCase):
         )
 
         self.assertTrue(se.correct_survey_date_year())
+
+    def test_last_segment_to_sta(self):
+        df = pl.DataFrame(
+            {
+                "LINKID": ["a" for _ in range(6)],
+                "FROM_STA": [0, 0, 10, 10, 20, 20],
+                "TO_STA": [10, 10, 20, 20, 23, 24],
+                "LANE_CODE": ["L1", "L2", "L1", "L2", "L1", "L2"],
+            }
+        )
+
+        se = RouteSegmentEvents(
+            df.to_arrow(),
+            route='a',
+        )
+
+        self.assertEqual(
+            len(se.last_segment_to_sta),
+            2
+        )
