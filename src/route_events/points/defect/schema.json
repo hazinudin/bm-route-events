@@ -103,6 +103,7 @@
         "DEFECTS_SEVERITY": {
             "dtype": "string",
             "domain": [
+                "NA",
                 "R",
                 "S", 
                 "T"
