@@ -112,6 +112,32 @@ class ValidationWorker:
         except KeyboardInterrupt:
             self._rmq_channel.stop_consuming()
             raise KeyboardInterrupt
+        
+    def publish_executed_event(self, job_id: str):
+        """
+        Publish Job Executed event.
+        """
+        self._rmq_channel.basic_publish(
+            "",
+            routing_key=self.job_event_queue,
+            body=generate_generic_event(job_id, 'executed'),
+            properties=pika.BasicProperties(delivery_mode=2)
+        )
+
+        return
+    
+    def publish_failed_event(self, job_id: str):
+        """
+        Publish Job Failed event.
+        """
+        self._rmq_channel.basic_publish(
+            "",
+            routing_key=self.job_event_queue,
+            body=generate_generic_event(job_id, 'failed'),
+            properties=pika.BasicProperties(delivery_mode=2)
+        )
+
+        return
 
     def handle_job(self, ch, methods, properties, body):
         try:
@@ -156,10 +182,10 @@ class ValidationWorker:
                 properties=pika.BasicProperties(delivery_mode=2)
             )
  
-        except Exception as e:
+        except Exception:
             trace = traceback.format_exc()
-            error_msg = e
             print(trace)
+            self.publish_failed_event(job_id)
             ch.basic_ack(methods.delivery_tag)
 
 
