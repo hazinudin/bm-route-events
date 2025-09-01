@@ -6,10 +6,10 @@ import (
 )
 
 type ValidationJob struct {
-	JobID       string `json:"job_id"`
-	DataType    string `json:"data_type"`
-	SubmittedAt int64  `json:"submitted_at"`
-	Details     []byte `json:"details"`
+	JobID     string `json:"job_id"`
+	DataType  string `json:"data_type"`
+	CreatedAt int64  `json:"created_at"`
+	Details   []byte `json:"details"`
 }
 
 func NewValidationJob(job_id string, data_type string, details any) (*ValidationJob, error) {
