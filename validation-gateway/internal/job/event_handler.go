@@ -91,7 +91,7 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 	return nil
 }
 
-func (j *JobEventHandler) HandleSuccededEvent(event *job.JobSuccedeed) error {
+func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 	// Apache Arrow decoding and serialization
 	arrowBytes, err := base64.StdEncoding.DecodeString(event.ArrowBatches)
 
