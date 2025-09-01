@@ -27,12 +27,15 @@ func NewValidationJob(job_id string, data_type string, details any) (*Validation
 	}, nil
 }
 
-func (job *ValidationJob) AsJobResponse() map[string]any {
-	out := make(map[string]any)
-
-	out["job_id"] = job.JobID
-	out["submitted_at"] = job.SubmittedAt
-	out["status"] = "Queued"
+// Convert the ValidationJob to job response which is a struct containing Job ID and its created at timestamp.
+func (job *ValidationJob) AsJobResponse() any {
+	out := struct {
+		JobID     string `json:"job_id"`
+		CreatedAt int64  `json:"created_at"`
+	}{
+		JobID:     job.JobID,
+		CreatedAt: job.CreatedAt,
+	}
 
 	return out
 }
