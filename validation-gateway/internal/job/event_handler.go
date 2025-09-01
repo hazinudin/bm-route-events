@@ -242,8 +242,8 @@ func (j *JobEventHandler) Listening() {
 
 		// Job succeeded event handler
 		case job.JOB_SUCCEEDED:
-			var event job.JobSucceded
-			var payload map[string]interface{}
+			var event job.JobSuccedeed
+			var payload map[string]any
 
 			if err := json.Unmarshal(envelope.Payload, &event); err != nil {
 				log.Printf("Failed to unmarshal into event: %v", err)
@@ -257,7 +257,7 @@ func (j *JobEventHandler) Listening() {
 
 			event.ArrowBatches = payload["arrow_batches"].(string)
 
-			err := j.HandleSuccededEvent(&event)
+			err := j.HandleSucceededEvent(&event)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
