@@ -106,13 +106,13 @@ func (e *JobSubmitted) GetOccurredAt() int64 {
 
 // Job Succeded event
 // Triggered when a job is processed succesfully by the workers.
-type JobSucceded struct {
+type JobSuccedeed struct {
 	JobEvent
 	Result       *ValidationJobResult `json:"result"`
 	ArrowBatches string               `json:"-"` // The Arrow Record will not be included in the event store
 }
 
-func (e *JobSucceded) SerializeToEnvelope() ([]byte, error) {
+func (e *JobSuccedeed) SerializeToEnvelope() ([]byte, error) {
 	bytes, err := serialize(JOB_SUCCEEDED, e)
 
 	if err != nil {
@@ -122,15 +122,15 @@ func (e *JobSucceded) SerializeToEnvelope() ([]byte, error) {
 	return bytes, nil
 }
 
-func (e *JobSucceded) GetEventType() JobEventType {
+func (e *JobSuccedeed) GetEventType() JobEventType {
 	return JOB_SUCCEEDED
 }
 
-func (e *JobSucceded) GetJobID() string {
+func (e *JobSuccedeed) GetJobID() string {
 	return e.JobID
 }
 
-func (e *JobSucceded) GetOccurredAt() int64 {
+func (e *JobSuccedeed) GetOccurredAt() int64 {
 	return e.OccuredAt
 }
 
