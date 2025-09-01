@@ -150,7 +150,7 @@ func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 
 	defer reader.Release()
 
-	err = j.repo.InsertJobResults(rows)
+	err = j.repo.InsertJobResultMessages(rows)
 
 	if err != nil {
 		return err
