@@ -384,7 +384,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         """
         try:
             if self.defects.no_data:
-                # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
                 return
             
             pci_defect = segments_points_join(
@@ -424,7 +424,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             return
         
         except NoSuchTableError:
-            # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+            self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
             return
         
     def damage_severity_check(self):
@@ -460,7 +460,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         """
         try:
             if self.defects.pl_df.is_empty():
-                # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+                self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
                 return 
             
             pivot = segments_points_join(
@@ -502,7 +502,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             )
 
         except NoSuchTableError:
-            # self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
+            self._result.add_message("Data defect tidak tersedia untuk dibandingkan.", "error")
             return
 
         ldf = []  # For errors LazyFrame
@@ -565,7 +565,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         self.rni_surf_type_comparison()
         self.rni_surf_type_segment_length_check()
         self.damage_severity_check()
-        # self.has_defect_data_check()
+        self.has_defect_data_check()
         
         self.defect_surf_type_segment_length_check()
         self.defects_point_check()
