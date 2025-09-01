@@ -28,8 +28,8 @@ func NewValidationJobRepository(db *infra.Database) *ValidationJobRepository {
 	}
 }
 
+// Insert a new ValidationJob into database
 func (r *ValidationJobRepository) InsertJob(job *job.ValidationJob) error {
-	// Insert a new ValidationJob into database
 	ctx := context.Background()
 
 	tx, err := r.db.Pool.Begin(ctx)
@@ -46,7 +46,7 @@ func (r *ValidationJobRepository) InsertJob(job *job.ValidationJob) error {
 		query,
 		job.JobID,
 		job.DataType,
-		job.SubmittedAt,
+		job.CreatedAt,
 		job.Details,
 	)
 
@@ -129,9 +129,6 @@ func (r *ValidationJobRepository) GetJobResult(job_id string, data_type string) 
 // Append event to Validation Job event store table
 // Serialize the event and insert it to the database
 func (r *ValidationJobRepository) AppendEvents(event job.JobEventInterface) error {
-	// Append event to Validation Job event store table
-	// Serialize the event and insert it to the database
-
 	ser, err := json.Marshal(event)
 	json_ser := json.RawMessage(ser)
 
@@ -168,12 +165,13 @@ func (r *ValidationJobRepository) AppendEvents(event job.JobEventInterface) erro
 	return nil
 }
 
-func (r *ValidationJobRepository) InsertJobResults(rows [][]any) error {
+// Insert job result messages to database.
+func (r *ValidationJobRepository) InsertJobResultMessages(rows [][]any) error {
 	ctx := context.Background()
 
 	_, err := r.db.Pool.CopyFrom(
 		ctx,
-		pgx.Identifier{"validation_job_results"},
+		pgx.Identifier{r.result_msg_table},
 		[]string{"job_id", "msg", "msg_status", "msg_status_idx", "ignore_in", "content_id"},
 		pgx.CopyFromSlice(len(rows), func(i int) ([]any, error) {
 			return rows[i], nil
