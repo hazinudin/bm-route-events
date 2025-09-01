@@ -84,7 +84,7 @@ class ValidationWorker:
         self._rmq_conn = None
         self._rmq_channel = None
         self.job_queue = "validation_queue"
-        self.result_queue = "result_queue"
+        self.job_event_queue = "job_event_queue"
 
     def connect(self):
         self._rmq_conn = pika.BlockingConnection(
@@ -94,7 +94,7 @@ class ValidationWorker:
 
         # Declare queues
         self._rmq_channel.queue_declare(queue=self.job_queue, durable=True)
-        self._rmq_channel.queue_declare(queue=self.result_queue, durable=True)
+        self._rmq_channel.queue_declare(queue=self.job_event_queue, durable=True)
 
         self._rmq_channel.basic_qos(prefetch_count=1)
 
