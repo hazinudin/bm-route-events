@@ -91,12 +91,20 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 	return nil
 }
 
-func (j *JobEventHandler) HandleSuccededEvent(event *job.JobSucceded) error {
+func (j *JobEventHandler) HandleSuccededEvent(event *job.JobSuccedeed) error {
 	// Apache Arrow decoding and serialization
 	arrowBytes, err := base64.StdEncoding.DecodeString(event.ArrowBatches)
 
 	if err != nil {
-		log.Printf("Failed to decode Arrow data: %v", err)
+		log.Printf("failed to decode Arrow data: %v", err)
+		return err
+	}
+
+	err = j.repo.InsertJobResult(event.Result)
+
+	if err != nil {
+		log.Printf("failed to insert: %v", err)
+		return err
 	}
 
 	mem := memory.NewGoAllocator()
