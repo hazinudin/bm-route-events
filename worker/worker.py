@@ -1,7 +1,6 @@
 import traceback
 import pika
 import json
-from route_events_service.validation_result.result import ValidationResult
 from route_events_service import (
     BridgeMasterValidation,
     BridgeInventoryValidation,
@@ -11,8 +10,6 @@ from route_events_service import (
     RoutePCIValidation,
 )
 from route_events import LRSRoute
-import polars as pl
-import pyarrow as pa
 import base64
 import os
 from dotenv import load_dotenv
