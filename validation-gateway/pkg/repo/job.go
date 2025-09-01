@@ -59,11 +59,75 @@ func (r *ValidationJobRepository) InsertJob(job *job.ValidationJob) error {
 	return nil
 }
 
-func (r *ValidationJobRepository) GetJobStatus(job *job.ValidationJob) error {
-	// Get job status
-	return nil
+// Get Job latest status.
+// Query direct from event store table to determine the latest status.
+func (r *ValidationJobRepository) GetJobStatus(job_id string, data_type string) (*string, error) {
+	var status string
+
+	job_query := fmt.Sprintf("SELECT '%s' as status from %s where job_id = $1 AND data_type = $2", job.JOB_CREATED, r.job_table)
+
+	err := r.db.Pool.QueryRow(
+		context.Background(),
+		job_query,
+		job_id,
+		data_type,
+	).Scan(
+		&status,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	status_query := fmt.Sprintf("SELECT event_name from %s WHERE job_id = $1 ORDER BY occurred_at desc LIMIT 1", r.event_store_table)
+
+	err = r.db.Pool.QueryRow(
+		context.Background(),
+		status_query,
+		job_id,
+	).Scan(
+		&status,
+	)
+
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return &status, nil
+		}
+
+		return nil, err
+	}
+
+	return &status, nil
 }
 
+// Get job result
+func (r *ValidationJobRepository) GetJobResult(job_id string, data_type string) (*job.ValidationJobResult, error) {
+	var out job.ValidationJobResult
+
+	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables from %s WHERE job_id = $1 AND split_part(job_id, '_', 1) = $2", r.result_table)
+
+	err := r.db.Pool.QueryRow(
+		context.Background(),
+		query,
+		job_id,
+		data_type,
+	).Scan(
+		&out.JobID,
+		&out.Status,
+		&out.MessageCount,
+		&out.AllMessageStatus,
+		&out.Ignorables,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &out, nil
+}
+
+// Append event to Validation Job event store table
+// Serialize the event and insert it to the database
 func (r *ValidationJobRepository) AppendEvents(event job.JobEventInterface) error {
 	// Append event to Validation Job event store table
 	// Serialize the event and insert it to the database
