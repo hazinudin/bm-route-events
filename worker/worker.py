@@ -84,14 +84,14 @@ def validate_rni(payload: PayloadSMD, job_id: str) -> str:
     )
 
     if check.get_status() == 'rejected':
-        return check._result.to_arrow_base64()
+        return check._result.to_job_event(job_id)
 
     check.base_validation()
 
     if (check.get_status() == 'verified'):
         check.put_data(semester=payload.semester)
 
-    return check._result.to_arrow_base64()
+    return check._result.to_job_event(job_id)
 
 
 class ValidationWorker:
