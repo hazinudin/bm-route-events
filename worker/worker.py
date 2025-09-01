@@ -18,6 +18,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from pydantic import BaseModel
+from datetime import datetime
 from typing import Optional, Literal, List
 
 
