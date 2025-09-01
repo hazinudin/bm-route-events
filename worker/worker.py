@@ -155,18 +155,8 @@ class ValidationWorker:
                 self.publish_executed_event(job_id)
                 event = validate_rni(payload, job_id)
             else:
-                # Testing purpose
-                result = ValidationResult(job_id)
-
-                messages = pl.DataFrame([{"msg": TEST_MSG} for _ in range(10000)])
-                result.add_messages(messages, 'error', 'force')
-                sink = pa.BufferOutputStream()
-
-                with pa.ipc.new_stream(sink, result._msg.df.to_arrow().schema) as writer:
-                    for batch in result.get_all_messages().to_arrow().to_batches():
-                        writer.write_batch(batch)
-
-                arrow_b64 = base64.b64encode(sink.getvalue().to_pybytes()).decode('utf-8')
+                print("Unhandled data")  # Temporary, just for the lulz
+                return
 
             print(job_data)  # Should be replaced by logger
 
