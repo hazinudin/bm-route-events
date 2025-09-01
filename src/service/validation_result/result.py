@@ -3,6 +3,8 @@ import polars as pl
 import pyarrow as pa
 from typing import Literal, List, Union
 from pydantic import BaseModel
+from datetime import datetime
+import json
 import base64
 
 
@@ -241,3 +243,24 @@ class ValidationResult(object):
                 writer.write_batch(batch)
 
         return base64.b64encode(sink.getvalue().to_pybytes()).decode('utf-8')
+    
+    def to_job_event(self, job_id: str) -> str:
+        """
+        Serialize result data into JobSucceded event JSON.
+        """
+        payload = {
+            "job_id": job_id,  # The Job ID
+            "occurred_at":int(datetime.now().timestamp()*1000),  # UNIX timestamp in miliseconds
+            "status": self.status,
+            "msg_count": self.message_count,
+            "all_msg_status": self.all_message_status,
+            "ignorables": self.all_ignorables,
+            "arrow_batches": self.to_arrow_base64()  # The Arrow Batches string encoded in base64
+        }
+
+        envelope = {
+            "type": "succeeded",
+            "payload": payload
+        }
+
+        return json.dumps(envelope)
