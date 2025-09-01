@@ -13,6 +13,8 @@ import (
 type ValidationJobRepository struct {
 	db                *infra.Database
 	job_table         string
+	result_table      string
+	result_msg_table  string
 	event_store_table string
 }
 
@@ -20,6 +22,8 @@ func NewValidationJobRepository(db *infra.Database) *ValidationJobRepository {
 	return &ValidationJobRepository{
 		db:                db,
 		job_table:         "validation_jobs",
+		result_table:      "validation_job_results",
+		result_msg_table:  "validation_job_results_msg",
 		event_store_table: "validation_jobs_event_store",
 	}
 }
