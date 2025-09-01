@@ -186,3 +186,35 @@ func (r *ValidationJobRepository) InsertJobResults(rows [][]any) error {
 
 	return nil
 }
+
+// Insert job result
+func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResult) error {
+	ctx := context.Background()
+
+	tx, err := r.db.Pool.Begin(ctx)
+
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	query := fmt.Sprintf("INSERT INTO %s (job_id, status, message_count, all_msg_status, ignorables) VALUES ($1, $2, $3, $4, $5)", r.result_table)
+
+	_, err = tx.Exec(
+		ctx,
+		query,
+		result.JobID,
+		result.Status,
+		result.MessageCount,
+		result.AllMessageStatus,
+		result.Ignorables,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to insert job data to database: %w", err)
+	}
+
+	tx.Commit(ctx)
+
+	return nil
+}
