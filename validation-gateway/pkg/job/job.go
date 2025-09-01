@@ -20,10 +20,10 @@ func NewValidationJob(job_id string, data_type string, details any) (*Validation
 	}
 
 	return &ValidationJob{
-		JobID:       job_id,
-		SubmittedAt: time.Now().Unix(),
-		Details:     details_string,
-		DataType:    data_type,
+		JobID:     job_id,
+		CreatedAt: time.Now().Unix(),
+		Details:   details_string,
+		DataType:  data_type,
 	}, nil
 }
 
