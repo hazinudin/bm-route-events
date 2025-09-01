@@ -180,12 +180,8 @@ class ValidationWorker:
 
             self._rmq_channel.basic_publish(
                 "",
-                routing_key=self.result_queue,
-                body=json.dumps({
-                    "jobid": job_id, 
-                    "status": "SUCCESS", 
-                    "result": arrow_b64, 
-                }),
+                routing_key=self.job_event_queue,
+                body=event,
                 properties=pika.BasicProperties(delivery_mode=2)
             )
  
