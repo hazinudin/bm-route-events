@@ -152,7 +152,8 @@ class ValidationWorker:
 
             if data_type == 'RNI':
                 payload = PayloadSMD(**json.loads(payload_str))
-                arrow_b64 = validate_rni(payload)
+                self.publish_executed_event(job_id)
+                event = validate_rni(payload, job_id)
             else:
                 # Testing purpose
                 result = ValidationResult(job_id)
