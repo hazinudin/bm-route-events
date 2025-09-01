@@ -24,7 +24,7 @@ create index if not exists job_event_store_idx on validation_jobs_event_store (
     occurred_at desc
 );
 
-create table if not exists validation_job_results (
+create table if not exists validation_job_results_msg (
     id serial primary key,
     job_id varchar(200) not null references validation_jobs(job_id) on delete cascade,
     msg varchar(400),
@@ -34,9 +34,22 @@ create table if not exists validation_job_results (
     content_id varchar(50)
 );
 
-create index if not exists job_result_idx on validation_job_results (
+create index if not exists job_result_idx on validation_job_results_msg (
     job_id,
     msg_status_idx asc
+);
+
+create table if not exists validation_job_results (
+    id serial primary key,
+    job_id varchar(200) not null references validation_jobs(job_id) on delete cascade,
+    status varchar(50) not null,
+    message_count bigint,
+    all_msg_status text[],
+    ignorables text[]
+);
+
+create index if not exists validation_job_results_idx on validation_job_results (
+    job_id
 );
 
 -- create table if not exists users as select * from temp_users;
