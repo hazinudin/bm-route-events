@@ -214,6 +214,17 @@ class RouteSegmentEvents(object):
         return self._segment_dto_mapper(last_segment)[0]
     
     @property
+    def last_segment_to_sta(self) -> List[int | float]:
+        """
+        Return the list of all TO STA value from the last segment.
+        """
+        to_sta = self.pl_df.filter(
+            pl.col(self._from_sta_col).eq(self.max_from_sta)
+        )[self._to_sta_col].unique().to_list()
+
+        return to_sta
+    
+    @property
     def max_to_sta(self) -> int:
         """
         Return largest TO STA number.
