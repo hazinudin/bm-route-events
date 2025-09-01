@@ -126,6 +126,7 @@ class RouteSegmentEventsValidation(object):
         self.sta_overlap_check()
         self.survey_max_m_value_check()
         self.from_sta_start_from_zero()
+        self.last_segment_single_to_sta_check()
         # self.survey_date_year_check()
         # self.data_semester_check()
         # self.data_year_check()
@@ -614,3 +615,14 @@ class RouteSegmentEventsValidation(object):
             show_all_msg=show_all_msg,
             as_dict=as_dict
         )
+    
+    def last_segment_single_to_sta_check(self):
+        """
+        Make sure the last segment has single TO STA value. 
+        Example: last segment is FROM STA = 30, the last segment could only has single TO STA value. So 30-35 L1, 30-35 L2, 30-37 R1 would be invalid. 
+        """
+        if len(self._events.last_segment_to_sta) > 1:
+            msg = f"Segmen terakhir memiliki nilai {self._events._to_sta_col} lebih dari satu. Yaitu {self._events.last_segment_to_sta}."
+            self._result.add_message(msg, 'error')
+
+        return
