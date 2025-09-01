@@ -251,10 +251,13 @@ class ValidationResult(object):
         payload = {
             "job_id": job_id,  # The Job ID
             "occurred_at":int(datetime.now().timestamp()*1000),  # UNIX timestamp in miliseconds
-            "status": self.status,
-            "msg_count": self.message_count,
-            "all_msg_status": self.all_message_status,
-            "ignorables": self.all_ignorables,
+            "result": {
+                "job_id": job_id,
+                "status": self.status,
+                "msg_count": self.message_count,
+                "all_msg_status": self.all_message_status,
+                "ignorables": self.all_ignorables,
+            },
             "arrow_batches": self.to_arrow_base64()  # The Arrow Batches string encoded in base64
         }
 
