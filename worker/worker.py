@@ -47,8 +47,23 @@ class PayloadSMD(BaseModel):
     routes: List[str]
     show_all_msg: Optional[bool] = False
   
+def generate_generic_event(job_id: str, event_type: Literal['executed', 'failed']) -> str:
+    """
+    Generate Job Executed event.
+    """
+    payload = {
+        "job_id": job_id,  # The Job ID
+        "occurred_at": int(datetime.now().timestamp()*1000),  # UNIX timestamp in miliseconds
+    }
 
-def validate_rni(payload: PayloadSMD) -> str:
+    envelope = {
+        "type": event_type,
+        "payload": payload
+    }
+
+    return json.dumps(envelope)
+
+def validate_rni(payload: PayloadSMD, job_id: str) -> str:
     """
     RNI validation handler function.
     """
