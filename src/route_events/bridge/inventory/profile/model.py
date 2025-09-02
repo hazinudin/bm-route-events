@@ -256,7 +256,7 @@ class BridgeInventory(object):
         """
         Return bridge inventory data length
         """
-        return self.artable[self._length_col][0].as_py()
+        return float(self.artable[self._length_col][0].as_py())
     
     @property
     def pl_df(self):
