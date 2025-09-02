@@ -37,7 +37,13 @@
         },
         "PJG_BTG": {
             "dtype": "double",
-            "db_col": "SPAN_LENGTH"
+            "db_col": "SPAN_LENGTH",
+            "range": {
+                "lower": 0,
+                "upper": null,
+                "eq_upper": false,
+                "eq_lower": false
+            }
         },
         "JML_GELAGAR": {
             "dtype": "integer",
