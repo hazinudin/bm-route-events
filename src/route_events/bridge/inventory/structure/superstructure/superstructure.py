@@ -295,12 +295,14 @@ class Superstructure(object):
         """
         Total span length from the specified span type.
         """
-        return self.pl_df.filter(
+        length = self.pl_df.filter(
             (pl.col(self._span_type_col) == span_type.upper()) &
             (pl.col(self._span_seq_col) == seq)
         ).select(
             LENGTH=pl.col(self._span_len_col).sum()
         )[0, 0]
+
+        return float(length)
     
     def get_span_numbers(
             self, 
