@@ -208,3 +208,29 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }
+
+// Handler for fetching the job result messages.
+func (s *Server) GetJobResultMessages(w http.ResponseWriter, r *http.Request) {
+	job_id := r.PathValue("job_id")
+	data_type := strings.ToUpper(r.PathValue("data_type"))
+
+	if strings.Split(job_id, "_")[0] != data_type {
+		out := make(map[string]string)
+		out["error"] = "Data type does not match Job ID"
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(out)
+		return
+	}
+
+	messages, err := s.job_service.GetJobResultMessages(job_id)
+
+	if err != nil {
+		http.Error(w, "Error when submitting query", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(messages)
+}
