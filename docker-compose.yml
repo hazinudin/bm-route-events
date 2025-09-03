@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - "5431:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - validation-gateway/cmd/server/docker.env
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  eventlistener:
+    build:
+      context: validation-gateway
+      dockerfile: cmd/eventlistener/Dockerfile
+    container_name: eventlistener_service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "eventlistener"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - validation-gateway/cmd/eventlistener/docker.env
+
+  server:
+    build:
+      context: validation-gateway
+      dockerfile: cmd/server/Dockerfile
+    container_name: server_service
+    depends_on:
+      eventlistener:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "server"]
+    env_file:
+      - validation-gateway/cmd/server/docker.env
+
+  workers:
+    build:
+      context: worker
+      dockerfile: Dockerfile
+    container_name: validation_worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eventlistener:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    networks:
+      - backend
+    env_file:
+      - worker/docker.env
+
+networks:
+  backend:
+    driver: bridge
