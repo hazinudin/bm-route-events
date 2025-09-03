@@ -22,7 +22,7 @@ func LoadConfig() *Config {
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatalf("failed to load .env file: %v", err)
+		log.Printf("failed to load .env file: %v", err)
 	}
 
 	return &Config{
