@@ -50,6 +50,17 @@ func (s *JobService) GetJobResult(job_id string, data_type string) (*job.Validat
 	return status, nil
 }
 
+// Get job messsages
+func (s *JobService) GetJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
+	messages, err := s.repo.GetJobResultMessages(job_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}
+
 // CreateValidationJob will return a ValidationJob struct
 // This function will also store the new ValidationJob to database
 func (s *JobService) CreateValidationJob(data_type string, details any) (*job.ValidationJob, error) {
