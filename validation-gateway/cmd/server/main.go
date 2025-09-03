@@ -32,12 +32,13 @@ func main() {
 	}
 
 	// Road data
-	http.HandleFunc("POST /road/{data_type}/validation/submitJob", middleware.Auth(server.PublishSMDValidationHandler, []byte(conf.TokenSecret)))
+	http.HandleFunc("POST /road/{data_type}/validation/submit", middleware.Auth(server.PublishSMDValidationHandler, []byte(conf.TokenSecret)))
 	http.HandleFunc("GET /road/{data_type}/validation/{job_id}/status", middleware.Auth(server.GetJobStatusHandler, []byte(conf.TokenSecret)))
 	http.HandleFunc("GET /road/{data_type}/validation/{job_id}/result", middleware.Auth(server.GetJobResultHandler, []byte(conf.TokenSecret)))
+	http.HandleFunc("GET /road/{data_type}/validation/{job_id}/result/msg", middleware.Auth(server.GetJobResultMessages, []byte(conf.TokenSecret)))
 
 	// Bridge data
-	http.HandleFunc("POST /bridge/{data_type}/validation/submitJob", middleware.Auth(server.PublishINVIJValidationHandler, []byte(conf.TokenSecret)))
+	http.HandleFunc("POST /bridge/{data_type}/validation/submit", middleware.Auth(server.PublishINVIJValidationHandler, []byte(conf.TokenSecret)))
 
 	// Login
 	http.HandleFunc("POST /login", server.LoginHandler)
