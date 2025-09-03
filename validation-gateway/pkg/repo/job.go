@@ -126,6 +126,39 @@ func (r *ValidationJobRepository) GetJobResult(job_id string, data_type string) 
 	return &out, nil
 }
 
+func (r *ValidationJobRepository) GetJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
+	var messages []job.ValidationJobResultMessage
+
+	query := fmt.Sprintf("SELECT msg, msg_status, content_id as id FROM %s WHERE job_id = $1", r.result_msg_table)
+
+	rows, err := r.db.Pool.Query(context.Background(), query, job_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var msg_row job.ValidationJobResultMessage
+		err := rows.Scan(
+			&msg_row.Message,
+			&msg_row.MessageStatus,
+			&msg_row.ContentID,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		messages = append(messages, msg_row)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return messages, nil
+}
+
 // Append event to Validation Job event store table
 // Serialize the event and insert it to the database
 func (r *ValidationJobRepository) AppendEvents(event job.JobEventInterface) error {
