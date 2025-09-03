@@ -22,7 +22,9 @@ from typing import Optional, Literal, List
 TEST_MSG = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In semper vitae sem sit amet lobortis. Morbi vulputate ut tellus eu mattis. Mauris eget tellus sit amet libero pretium dictum vel ac tortor. Ut efficitur lectus sapien, nec elementum ante gravida consectetur. Donec sagittis eu velit quis vulputate. Suspendisse viverra odio malesuada lobortis elementum. Suspendisse sed tortor dui. Proin ac euismod diam, in aliquet justo."
 load_dotenv(os.path.dirname(__file__) + '/.env')
 
-HOST = os.getenv('DB_HOST')
+RMQ_HOST = os.getenv('RMQ_HOST')
+RMQ_PORT = os.getenv('RMQ_PORT')
+DB_HOST = os.getenv('DB_HOST')
 SMD_USER = os.getenv('SMD_USER')
 SMD_PWD = os.getenv('SMD_PWD')
 
@@ -33,8 +35,8 @@ LRS_HOST = os.getenv('LRS_HOST')
 
 SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
 
-SMD_ENGINE = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{HOST}:1521/geodbbm")
-MISC_ENGINE = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{HOST}:1521/geodbbm")
+SMD_ENGINE = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{DB_HOST}:1521/geodbbm")
+MISC_ENGINE = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{DB_HOST}:1521/geodbbm")
 
 # Pydantic model
 class PayloadSMD(BaseModel):
@@ -190,5 +192,5 @@ class ValidationWorker:
 
 
 if __name__ == '__main__':
-    worker = ValidationWorker("amqp://localhost:5672")
+    worker = ValidationWorker(f"amqp://{RMQ_HOST}:{RMQ_PORT}")
     worker.start_listening()
