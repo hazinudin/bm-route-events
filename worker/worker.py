@@ -93,6 +93,7 @@ def validate_rni(payload: PayloadSMD, job_id: str) -> str:
 
     return check._result.to_job_event(job_id)
 
+worker_logger = setup_logger("system")
 
 class ValidationWorker:
     def __init__(self):
@@ -101,16 +102,15 @@ class ValidationWorker:
         self._rmq_channel = None
         self.job_queue = "validation_queue"
         self.job_event_queue = "job_event_queue"
-        self.worker_logger = setup_logger("system")
 
     def connect(self):
-        self.worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
+        worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
 
         self._rmq_conn = pika.BlockingConnection(
             pika.URLParameters(self._rmq_url)
         )
         
-        self.worker_logger.info(f"connected to RabbitMQ")
+        worker_logger.info(f"connected to RabbitMQ")
         self._rmq_channel = self._rmq_conn.channel()
 
         # Declare queues
@@ -123,7 +123,7 @@ class ValidationWorker:
         try:
             self.connect()
 
-            self.worker_logger.info(f"start listening on {self.job_queue}")
+            worker_logger.info(f"start listening on {self.job_queue}")
             self._rmq_channel.basic_consume(
                 queue=self.job_queue,
                 on_message_callback=self.handle_job
