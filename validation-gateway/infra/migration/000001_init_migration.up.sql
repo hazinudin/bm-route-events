@@ -52,5 +52,11 @@ create index if not exists validation_job_results_idx on validation_job_results 
     job_id
 );
 
+create table if not exists users (
+    username varchar(200) primary key,
+    password_hash varchar(400) not null,
+    created_at bigint
+)
+
 -- create table if not exists users as select * from temp_users;
 -- drop table if exists temp_users;
