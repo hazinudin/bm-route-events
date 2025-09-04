@@ -17,6 +17,7 @@ from sqlalchemy import create_engine
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, Literal, List
+from logger import setup_logger, get_job_logger
 
 
 TEST_MSG = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In semper vitae sem sit amet lobortis. Morbi vulputate ut tellus eu mattis. Mauris eget tellus sit amet libero pretium dictum vel ac tortor. Ut efficitur lectus sapien, nec elementum ante gravida consectetur. Donec sagittis eu velit quis vulputate. Suspendisse viverra odio malesuada lobortis elementum. Suspendisse sed tortor dui. Proin ac euismod diam, in aliquet justo."
@@ -94,17 +95,22 @@ def validate_rni(payload: PayloadSMD, job_id: str) -> str:
 
 
 class ValidationWorker:
-    def __init__(self, rabbitmq_url: str):
-        self._rmq_url = rabbitmq_url
+    def __init__(self):
+        self._rmq_url = f"amqp://{RMQ_HOST}:{RMQ_PORT}"
         self._rmq_conn = None
         self._rmq_channel = None
         self.job_queue = "validation_queue"
         self.job_event_queue = "job_event_queue"
+        self.worker_logger = setup_logger("system")
 
     def connect(self):
+        self.worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
+
         self._rmq_conn = pika.BlockingConnection(
             pika.URLParameters(self._rmq_url)
         )
+        
+        self.worker_logger.info(f"connected to RabbitMQ")
         self._rmq_channel = self._rmq_conn.channel()
 
         # Declare queues
@@ -117,6 +123,7 @@ class ValidationWorker:
         try:
             self.connect()
 
+            self.worker_logger.info(f"start listening on {self.job_queue}")
             self._rmq_channel.basic_consume(
                 queue=self.job_queue,
                 on_message_callback=self.handle_job
@@ -164,16 +171,20 @@ class ValidationWorker:
             job_id = job_data.get("job_id")
             data_type = job_data.get("data_type")
             payload_str = base64.b64decode(job_data.get("details"))
+            job_logger = get_job_logger(job_id)
 
             if data_type == 'RNI':
                 payload = PayloadSMD(**json.loads(payload_str))
+
+                job_logger.info("processing RNI validation.")
+
                 self.publish_executed_event(job_id)
                 event = validate_rni(payload, job_id)
+
+                job_logger.info("finished executing RNI validation.")
             else:
                 print("Unhandled data")  # Temporary, just for the lulz
                 return
-
-            print(job_data)  # Should be replaced by logger
 
             ch.basic_ack(methods.delivery_tag)
 
@@ -183,14 +194,16 @@ class ValidationWorker:
                 body=event,
                 properties=pika.BasicProperties(delivery_mode=2)
             )
+
+            job_logger.info("job succeeded event published.")
  
         except Exception:
             trace = traceback.format_exc()
-            print(trace)
+            job_logger.error(trace)
             self.publish_failed_event(job_id)
             ch.basic_ack(methods.delivery_tag)
 
 
 if __name__ == '__main__':
-    worker = ValidationWorker(f"amqp://{RMQ_HOST}:{RMQ_PORT}")
+    worker = ValidationWorker()
     worker.start_listening()
