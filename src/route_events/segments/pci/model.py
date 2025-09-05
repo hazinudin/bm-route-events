@@ -149,21 +149,40 @@ class RoutePCI(RouteSegmentEvents):
             self._from_sta_col,
             self._to_sta_col,
             self._lane_code_col,
-            self._pci_col,
+            pl.col(self._pci_col).fill_null(-1),  # For easier comparison
             *[ 
-                # Damage volume columns is null or equal to zero.
-                pl.col(f"{self._dvol}{dcol}").is_null().or_(
-                    pl.col(f"{self._dvol}{dcol}").eq(0)
-                ) for dcol in self.all_damages
+                # OLD Damage volume columns is null or equal to zero.
+                # REVISION 1: No damage is when the VOLUME = 0.
+                pl.col(f"{self._dvol}{dcol}").fill_null(-1).eq(0).alias(f"{self._dvol}{dcol}_EQ0") for dcol in self.all_damages
+            ] + [
+                # Separate for detecting Null
+                pl.col(f"{self._dvol}{dcol}").is_null().alias(f"{self._dvol}{dcol}_ISNULL") for dcol in self.all_damages
             ]
         ).filter(
             pl.all_horizontal(
-                *[f"{self._dvol}{dcol}" for dcol in self.all_damages]
+                *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
             ).not_().and_(pl.col(self._pci_col).eq(self._pci_max)) 
             |
             pl.all_horizontal(
-                *[f"{self._dvol}{dcol}" for dcol in self.all_damages]
-            ).and_(pl.col(self._pci_col).lt(self._pci_max))
+                *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
+            ).and_(pl.col(self._pci_col).ne(self._pci_max))
+            |
+            pl.all_horizontal(
+                *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
+            ).and_(pl.col(self._pci_col).ne(-1))
+            |
+            pl.all_horizontal(
+                *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
+            ).not_().and_(pl.col(self._pci_col).eq(-1))
+        ).with_columns(
+            # Revert back the -1 value to Null/None
+            pl.when(
+                pl.col(self._pci_col).eq(-1)
+            ).then(
+                pl.lit(None)
+            ).otherwise(
+                pl.col(self._pci_col)
+            ).alias(self._pci_col)
         )
         
         return segments
