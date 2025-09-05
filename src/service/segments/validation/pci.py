@@ -190,7 +190,9 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             pl.col(self._events._lane_code_col),
             pl.col(self._events._pci_col)
         ]
-        errors = self._events.invalid_pci_value().select(
+        errors = self._events.invalid_pci_value().filter(
+            pl.col(self._events._pci_col).is_not_null()
+        ).select(
             msg=pl.when(
                 pl.col(self._events._pci_col).eq(self._events._pci_max)
             ).then(
@@ -208,6 +210,20 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
         self._result.add_messages(
             errors,
+            'error'
+        )
+
+        null_errors = self._events.invalid_pci_value().filter(
+            pl.col(self._events._pci_col).is_null()
+        ).select(
+            msg=pl.format(
+                "Segmen {}-{} {} tidak memiliki nilai PCI (PCI = Null), namun masih memiliki nilai kerusakan.",
+                *msg_args[:-1]
+            )
+        )
+
+        self._result.add_messages(
+            null_errors,
             'error'
         )
 
