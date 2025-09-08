@@ -164,7 +164,6 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                     pl.when(
                         pl.col(self._events._photo_url_cols).str.starts_with(self._storage.root_url)
                     ).then(
-                        # Lowercased full URL
                         pl.col(self._events._photo_url_cols)
                     ).otherwise(
                         pl.format(
