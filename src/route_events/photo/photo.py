@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from urllib.parse import unquote
 
 @dataclass
 class SurveyPhoto(object):
@@ -11,3 +12,9 @@ class SurveyPhoto(object):
     linkid: str
     latitude: float
     longitude: float
+
+    def unquoted_url(self):
+        """
+        Return unquoted URL for comparison.
+        """
+        return unquote(self.url)
