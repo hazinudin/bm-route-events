@@ -198,7 +198,7 @@ class RoutePointEventsValidation(object):
         ).select(
             msg=pl.format(
                 "Titik {} {} tidak memiliki padanan segmen RNI.",
-                pl.col(self._events._sta_col),
+                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int32()),
                 pl.col(self._events._lane_code_col)
             )
         )
