@@ -52,14 +52,14 @@ class SurveyPhotoStorage(object):
         bucket =  self.gs_client.bucket(self.bucket_name)
 
         for photo in photos:
-            url_re = rf"{self._root_url_re}/{photo.survey_year}/[\w\-./?=&]*$"
+            url_re = rf"{self._root_url_re}/{photo.survey_year}/.+"
             
             # None meaning the string does not match the regex
-            if re.match(url_re, photo.url) is None:  
+            if re.match(url_re, photo.unquoted_url()) is None:  
                 invalid.append(photo)
                 continue
 
-            if not bucket.blob(photo.url.split(self._root_url)[1]).exists():
+            if not bucket.blob(photo.unquoted_url().split(self._root_url)[1]).exists():
                 invalid.append(photo)
             else:
                 valid.append(photo)
