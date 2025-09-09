@@ -18,6 +18,10 @@
             "dtype": "string",
             "db_col": "BRIDGE_ID"
         },
+        "NO_JBT":{
+            "dtype": "string",
+            "db_col": "BRIDGE_NUM"
+        },
         "TIPE_LINTASAN": {
             "dtype": "string",
             "db_col": "CROSS_TYPE"
