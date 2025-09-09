@@ -1,0 +1,53 @@
+{
+    "column_details": {
+        "BRIDGE_ID": {
+            "dtype": "string"
+        },
+        "INV_YEAR": {
+            "dtype": "integer"
+        },
+        "NO_BTG": {
+            "dtype": "integer",
+            "db_col": "SPAN_NUMBER",
+            "range": {
+                "lower": 1,
+                "upper": null,
+                "eq_lower": true,
+                "eq_upper": false
+            }
+        },
+        "TIPE_BTG": {
+            "dtype": "string",
+            "db_col": "SPAN_TYPE",
+            "domain": [
+                "UTAMA",
+                "KANAN",
+                "KIRI"
+            ]
+        },
+        "SEQ_BTG": {
+            "dtype": "integer",
+            "db_col": "SPAN_SEQ",
+            "range": {
+                "lower": 1,
+                "upper": null,
+                "eq_upper": true,
+                "eq_lower": true
+            }
+        },
+        "PJG_BTG": {
+            "dtype": "double",
+            "db_col": "SPAN_LENGTH",
+            "range": {
+                "lower": 0,
+                "upper": null,
+                "eq_upper": false,
+                "eq_lower": false
+            }
+        },
+       "STRUKTUR_BA": {
+            "dtype": "string",
+            "db_col": "SUPERSTRUCTURE"
+        }
+    }
+}

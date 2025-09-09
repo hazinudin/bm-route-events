@@ -1,0 +1,61 @@
+{
+    "column_details": {
+        "MODE": {
+            "dtype": "string",
+            "domain": [
+                "update",
+                "insert",
+                "archive",
+                "force"
+            ],
+            "skip": true
+        },
+        "VAL_HISTORY": {
+            "dtype": "list",
+            "skip": true
+        },
+        "ID_JBT": {
+            "dtype": "string",
+            "db_col": "BRIDGE_ID"
+        },
+        "NO_JBT":{
+            "dtype": "string",
+            "db_col": "BRIDGE_NUM"
+        },
+        "TIPE_LINTASAN": {
+            "dtype": "string",
+            "db_col": "CROSS_TYPE"
+        },
+        "TANGGAL_INV": {
+            "dtype": "date",
+            "db_col": "INV_DATE"
+        },
+        "TAHUN_INV": {
+            "dtype": "integer",
+            "db_col": "INV_YEAR"
+        },
+        "LINKID": {
+            "dtype": "string",
+            "db_col": "LINKID"
+        },
+        "PJG_TOTAL": {
+            "dtype": "double",
+            "range": {
+                "lower": 0,
+                "upper": 4000,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": true
+            },
+            "db_col": "BRIDGE_LENGTH"
+        },
+        "TIPE_BA_UTAMA": {
+            "dtype": "string",
+            "db_col": "MAIN_SPAN_TYPE"
+        },
+        "JML_BENTANG": {
+            "dtype": "integer",
+            "db_col": "MAIN_SPAN_COUNT"
+        }
+    }
+}
