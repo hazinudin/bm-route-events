@@ -324,6 +324,12 @@ class BridgeInventory(object):
         """
         return self._sups.select_structure_type(structure)
     
+    def get_main_span_structure(self) -> List[str]:
+        """
+        Get main span structure type.
+        """
+        return self._sups.get_span_structure_type('utama')
+    
     def span_subs_count(self) -> dict:
         """
         Count number of substructure for evvery span/seq.
