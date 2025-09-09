@@ -141,6 +141,7 @@ class BridgeInventory(object):
     def __init__(self, inv_data: pa.Table, state: str = None):
         # Columns name
         self._bridge_id_col = 'BRIDGE_ID'
+        self._bridge_num_col = 'BRIDGE_NUM'
         self._inv_year_col = 'INV_YEAR'
         self._linkid_col = 'LINKID'
         self._length_col = 'BRIDGE_LENGTH'
@@ -265,6 +266,13 @@ class BridgeInventory(object):
         Return the span type from inventory profile/header.
         """
         return str(self.artable[self._span_col][0].as_py())
+    
+    @property
+    def number(self)->str:
+        """
+        Return the bridge number.
+        """
+        return str(self.artable[self._bridge_num_col][0].as_py())
     
     @property
     def pl_df(self):
