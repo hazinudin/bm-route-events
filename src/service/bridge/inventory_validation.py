@@ -164,7 +164,9 @@ class BridgeInventoryValidation(object):
         # Check if DETAIL inventory has substructure
         if self._inv.inventory_state == 'DETAIL':
             self.has_subs_check()
-
+            self.compare_total_span_length_to_inv_length_check()
+            self.master_data_distance_check()
+    
         if self.get_status() == 'error':
             return
         
@@ -173,7 +175,6 @@ class BridgeInventoryValidation(object):
         self.other_span_num_exist_in_main_span_check()
         self.span_seq_check()
         self.compare_length_to_master_data_check()
-        self.compare_total_span_length_to_inv_length_check()
 
         # Only execute if input data has substructure
         if self._inv.subs is not None:
@@ -181,7 +182,6 @@ class BridgeInventoryValidation(object):
             self.span_subs_count_check()
         
         self.lrs_distance_check()
-        self.master_data_distance_check()
 
         return
     
@@ -434,6 +434,17 @@ class BridgeInventoryValidation(object):
 
         if current_length < prev_length:
             msg = f"Panjang total bentang utama mengalami penurunan."
+            self._result.add_message(msg, 'error')
+
+        return self
+    
+    def main_span_structure_type_check(self):
+        """
+        Compare the main span structure type with the structure type from profile/header data. At least a single span in the
+        main spans has the same structure as the profile/header data.
+        """
+        if not self._inv.span_type in self._inv.get_main_span_structure():
+            msg = f"Tipe bentang {self._inv.span_type} tidak cocok dengan tipe bentang utama {self._inv.get_main_span_structure()}"
             self._result.add_message(msg, 'error')
 
         return self
