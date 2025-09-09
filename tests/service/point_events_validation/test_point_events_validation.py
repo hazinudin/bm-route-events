@@ -84,31 +84,34 @@ class TestRouteDefectsValidation(unittest.TestCase):
         """
         Test survey photo object conversion.
         """
-        excel_path = "tests/domain/route_points/defect_010362.xlsx"
+        excel_path = "C:/Users/hazin/Downloads/defect_21_08-09-2025_021224_9367.xlsx"
+        linkid = '56027'
 
         events = RouteDefects.from_excel(
             excel_path,
-            '010362',
-            data_year=2024
+            linkid,
+            data_year=2025
         )
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
-        results = ValidationResult('010362')
+        lrs = LRSRoute.from_feature_service('localhost:50052', linkid)
+        results = ValidationResult(linkid)
 
         client = storage.Client()
         sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
 
         check = RouteDefectsValidation(
-            route='010362',
+            route=linkid,
             events=events,
             lrs=lrs,
             sql_engine=engine,
             results = results,
-            survey_year=2024,
+            survey_year=2025,
             photo_storage=sp
         )
 
+        check.sta_not_in_rni_check()
         check.survey_photos
+        check.survey_photo_url_check()
 
         self.assertTrue(True)
 

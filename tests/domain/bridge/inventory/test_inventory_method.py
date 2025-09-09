@@ -1,7 +1,7 @@
 import unittest
 import json
 import numpy.testing as np_test
-from route_events.bridge.inventory import BridgeInventory
+from src.route_events.bridge.inventory import BridgeInventory
 
 with open('tests/domain/bridge/inventory/test_inventory_invij.json') as jf:
     input_dict = json.load(jf)
@@ -57,3 +57,17 @@ class TestBridgeInventoryMethod(unittest.TestCase):
 
         self.assertTrue(result[('UTAMA', 1)]['SPAN_NUMBER'] == 2)
         self.assertTrue(result[('UTAMA', 1)]['SUBS_NUMBER'] == 3)
+
+    def test_span_type(self):
+        inv = BridgeInventory.from_invij(input_dict)
+        span = inv.span_type
+
+        self.assertTrue(type(span) is str)
+
+    def test_get_main_span_structure(self):
+        inv = BridgeInventory.from_invij(input_dict)
+        types = inv.get_main_span_structure()
+
+        self.assertTrue(type(types) is list)
+        self.assertTrue(len(types) > 0)
+        self.assertTrue(type(types[0]) is str)
