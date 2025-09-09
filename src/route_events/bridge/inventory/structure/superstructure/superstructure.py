@@ -291,7 +291,7 @@ class Superstructure(object):
             self, 
             span_type: Literal['utama', 'kanan', 'kiri'],
             seq: int = 1            
-            ) -> float:
+    ) -> float:
         """
         Total span length from the specified span type.
         """
@@ -303,6 +303,23 @@ class Superstructure(object):
         )[0, 0]
 
         return float(length)
+    
+    def get_span_structure_type(
+            self,
+            span_type: Literal['utama', 'kanan', 'kiri'],
+            seq: int = 1,
+    ) -> List[str]:
+        """
+        Return all span structure types from a span ('utama', 'kanan' or 'kiri')
+        """
+        types = self.pl_df.filter(
+            pl.col(self._span_type_col).eq(span_type.upper()) &
+            pl.col(self._span_seq_col).eq(seq)
+        ).select(
+            SPAN=pl.col(self._span_struct_col)
+        )['SPAN'].unique().to_list()
+        
+        return types
     
     def get_span_numbers(
             self, 
