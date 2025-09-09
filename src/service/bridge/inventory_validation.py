@@ -166,6 +166,7 @@ class BridgeInventoryValidation(object):
             self.has_subs_check()
             self.compare_total_span_length_to_inv_length_check()
             self.master_data_distance_check()
+            self.lrs_distance_check()
     
         if self.get_status() == 'error':
             return
@@ -175,14 +176,13 @@ class BridgeInventoryValidation(object):
         self.other_span_num_exist_in_main_span_check()
         self.span_seq_check()
         self.compare_length_to_master_data_check()
+        self.master_data_bridge_number_comparison()
 
         # Only execute if input data has substructure
         if self._inv.subs is not None:
             self.subs_num_unique_check()
             self.span_subs_count_check()
         
-        self.lrs_distance_check()
-
         return
     
     def update_check(self):
@@ -470,6 +470,16 @@ class BridgeInventoryValidation(object):
         if distance > threshold:
             msg = f"Jembatan berjarak {distance}m dari data pokok jembatan."
             self._result.add_message(msg, status='error', ignore_in='force')
+
+        return self
+    
+    def master_data_bridge_number_comparison(self):
+        """
+        Check if the bridge number between inventory data and master data is different.
+        """
+        if self._bm.number != self._inv.number:
+            msg = f"Jembatan memiliki nomor {self._inv.number} yang berbeda dengan nomor data pokok, yaitu {self._bm.number}."
+            self._result.add_message(msg)
 
         return self
     
