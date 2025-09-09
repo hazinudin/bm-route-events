@@ -146,6 +146,7 @@ class BridgeInventory(object):
         self._length_col = 'BRIDGE_LENGTH'
         self._lat_col = 'LATITUDE'
         self._lon_col = 'LONGITUDE'
+        self._span_col = 'MAIN_SPAN_TYPE'
 
         self.artable = inv_data
         self._sups = None
@@ -257,6 +258,13 @@ class BridgeInventory(object):
         Return bridge inventory data length
         """
         return float(self.artable[self._length_col][0].as_py())
+    
+    @property
+    def span_type(self)->str:
+        """
+        Return the span type from inventory profile/header.
+        """
+        return str(self.artable[self._span_col][0].as_py())
     
     @property
     def pl_df(self):
