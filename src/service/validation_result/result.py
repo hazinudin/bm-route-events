@@ -54,8 +54,12 @@ class ValidationResult(object):
     def all_ignorables(self) -> List[str]:
         """
         All available ignorable tags.
+        Rejected status mean there wil no ignorables.
+        Any message that cannot be ignored will disable all ignorables.
         """
         if self.status == 'rejected':
+            return []
+        elif self._msg.df[self._msg._ignore_in_col].is_null().any():
             return []
         else:
             return self._msg.df.filter(
