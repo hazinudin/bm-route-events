@@ -479,7 +479,7 @@ class BridgeInventoryValidation(object):
         """
         if self._bm.number != self._inv.number:
             msg = f"Jembatan memiliki nomor {self._inv.number} yang berbeda dengan nomor data pokok, yaitu {self._bm.number}."
-            self._result.add_message(msg)
+            self._result.add_message(msg, 'error', 'force')
 
         return self
     
