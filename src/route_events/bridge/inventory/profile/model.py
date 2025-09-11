@@ -15,6 +15,10 @@ import json
 import duckdb
 
 
+POPUP_STATE = 'POPUP'
+DETAILED_STATE = 'DETAIL'
+
+
 class BridgeInventory(object):
     @classmethod
     def from_invij_popup(cls, data:dict, sups_key='BANGUNAN_ATAS', ignore_review_err=False):
@@ -35,7 +39,7 @@ class BridgeInventory(object):
             BANGUNAN_ATAS: List[SupsModel] = Field(
                 validation_alias=AliasChoices('BANGUNAN_ATAS', 'bangunan_atas')
             )
-            INVENTORY_STATE: str = 'POPUP'  # The data state
+            INVENTORY_STATE: str = POPUP_STATE  # The data state
         
         # Pydantic validation start
         invij_model = InvModel.model_validate(data)
@@ -110,7 +114,7 @@ class BridgeInventory(object):
                 validation_alias=AliasChoices('BANGUNAN_BAWAH', 'bangunan_bawah')
             )
             MODE: Literal["INSERT", "UPDATE", "RETIRE", 'insert', 'update', 'retire']
-            INVENTORY_STATE: str = 'DETAIL' # The data state
+            INVENTORY_STATE: str = DETAILED_STATE # The data state
             VAL_HISTORY: List
 
         data = json.loads(json.dumps(data).upper().replace("NULL", "null"))  # Upper case model
@@ -157,7 +161,7 @@ class BridgeInventory(object):
         # DuckDB Session
         self.ddb = duckdb.connect()
 
-        if len(self.artable) != 0:
+        if len(self.artable) != 0 and (self._state == DETAILED_STATE):
             # Geometry
             self._point_4326 = Point(
                 long=self.artable[self._lon_col][0],
