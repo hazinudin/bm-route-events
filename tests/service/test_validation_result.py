@@ -71,7 +71,7 @@ class TestValidationResult(unittest.TestCase):
         result = ValidationResult('1234')
 
         result.add_message('test', 'error', 'force')
-        result.add_message('test', 'error')
+        result.add_message('test', 'error', 'force')
         result.add_message('test', 'review', 'review')
 
         self.assertListEqual(
@@ -79,7 +79,17 @@ class TestValidationResult(unittest.TestCase):
             sorted(result.all_ignorables)
         )
 
+        result = ValidationResult('1234')
+        result.add_message('test', 'error', 'force')
+        result.add_message('test', 'review', 'review')
         result.add_message('test', 'rejected')
+
+        self.assertListEqual([], result.all_ignorables)
+
+        result = ValidationResult('1234')
+        result.add_message('test', 'error', 'force')
+        result.add_message('test', 'review', 'review')
+        result.add_message('test', 'error')
 
         self.assertListEqual([], result.all_ignorables)
 
