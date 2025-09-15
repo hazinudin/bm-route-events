@@ -7,11 +7,14 @@ import (
 type JobEventType string
 
 const (
-	JOB_CREATED   JobEventType = "created"
-	JOB_SUBMITTED JobEventType = "submitted"
-	JOB_SUCCEEDED JobEventType = "succeeded"
-	JOB_EXECUTED  JobEventType = "executed"
-	JOB_FAILED    JobEventType = "failed"
+	JOB_CREATED           JobEventType = "created"
+	JOB_SUBMITTED         JobEventType = "submitted"
+	JOB_SUCCEEDED         JobEventType = "succeeded"
+	JOB_EXECUTED          JobEventType = "executed"
+	JOB_FAILED            JobEventType = "failed"
+	DISPUTED_MSG_ACCEPTED JobEventType = "disputed_msg_accepted"
+	REVIEWED_MSG_ACCEPTED JobEventType = "reviewed_msg_accepted"
+	ALL_MSG_ACCEPTED      JobEventType = "all_msg_accepted"
 )
 
 type EventEnvelope struct {
@@ -185,5 +188,86 @@ func (e *JobExecuted) GetJobID() string {
 }
 
 func (e *JobExecuted) GetOccurredAt() int64 {
+	return e.OccuredAt
+}
+
+// DisputedMessagesAccepted event
+type DisputedMessagesAccepted struct {
+	JobEvent
+}
+
+func (e *DisputedMessagesAccepted) SerializeToEnvelope() ([]byte, error) {
+	bytes, err := serialize(DISPUTED_MSG_ACCEPTED, e)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func (e *DisputedMessagesAccepted) GetEventType() JobEventType {
+	return DISPUTED_MSG_ACCEPTED
+}
+
+func (e *DisputedMessagesAccepted) GetJobID() string {
+	return e.JobID
+}
+
+func (e *DisputedMessagesAccepted) GetOccurredAt() int64 {
+	return e.OccuredAt
+}
+
+// ReviewedMessagesAccepted event
+type ReviewedMessagesAccepted struct {
+	JobEvent
+}
+
+func (e *ReviewedMessagesAccepted) SerializeToEnvelope() ([]byte, error) {
+	bytes, err := serialize(REVIEWED_MSG_ACCEPTED, e)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func (e *ReviewedMessagesAccepted) GetEventType() JobEventType {
+	return REVIEWED_MSG_ACCEPTED
+}
+
+func (e *ReviewedMessagesAccepted) GetJobID() string {
+	return e.JobID
+}
+
+func (e *ReviewedMessagesAccepted) GetOccurredAt() int64 {
+	return e.OccuredAt
+}
+
+// AllMessagesAccepted event
+type AllMessagesAccepted struct {
+	JobEvent
+}
+
+func (e *AllMessagesAccepted) SerializeToEnvelope() ([]byte, error) {
+	bytes, err := serialize(ALL_MSG_ACCEPTED, e)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func (e *AllMessagesAccepted) GetEventType() JobEventType {
+	return ALL_MSG_ACCEPTED
+}
+
+func (e *AllMessagesAccepted) GetJobID() string {
+	return e.JobID
+}
+
+func (e *AllMessagesAccepted) GetOccurredAt() int64 {
 	return e.OccuredAt
 }
