@@ -49,8 +49,8 @@ func NewJobQueueClient(url string) *JobQueue {
 	}
 }
 
-func (jq *JobQueue) PublishJob(job *job.ValidationJob) error {
-	body, err := job.AsJobMessage()
+func (jq *JobQueue) PublishJob(job *job.ValidationJob, validate bool) error {
+	body, err := job.AsJobMessage(validate)
 
 	if err != nil {
 		return fmt.Errorf("failed to marshal json: %w", err)
