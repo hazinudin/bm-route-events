@@ -101,29 +101,39 @@ func (r *ValidationJobRepository) GetJobStatus(job_id string, data_type string) 
 }
 
 // Get job result
-func (r *ValidationJobRepository) GetJobResult(job_id string, data_type string) (*job.ValidationJobResult, error) {
+func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJobResult, error) {
 	var out job.ValidationJobResult
+	var ignored_tags []job.MessageTag
 
-	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables from %s WHERE job_id = $1 AND split_part(job_id, '_', 1) = $2", r.result_table)
+	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tag from %s WHERE job_id = $1 AND split_part(job_id, '_', 1) = $2", r.result_table)
 
 	err := r.db.Pool.QueryRow(
 		context.Background(),
 		query,
 		job_id,
-		data_type,
 	).Scan(
 		&out.JobID,
 		&out.Status,
 		&out.MessageCount,
 		&out.AllMessageStatus,
 		&out.Ignorables,
+		&ignored_tags,
 	)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &out, nil
+	new := job.NewJobResult(
+		out.JobID,
+		out.Status,
+		out.MessageCount,
+		out.AllMessageStatus,
+		out.Ignorables,
+		ignored_tags,
+	)
+
+	return new, nil
 }
 
 func (r *ValidationJobRepository) GetJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
