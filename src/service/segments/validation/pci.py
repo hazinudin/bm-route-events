@@ -528,7 +528,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             rdd_col = f"VOL_RDD_{dmg}"
 
             if (
-                pivot[pci_col].is_not_null().any() and pivot[pci_col].ne(pl.lit(0))
+                pivot[pci_col].is_not_null().any() and pivot[pci_col].gt(pl.lit(0)).any()
             ) and (rdd_col not in pivot.columns):
                 
                 msg = f"Data PCI memiliki kerusakan {dmg} namun tidak pada data defects."
