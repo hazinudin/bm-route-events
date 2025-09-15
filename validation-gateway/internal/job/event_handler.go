@@ -68,7 +68,7 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 		return err
 	}
 
-	err = j.job_queue.PublishJob(event.Job)
+	err = j.job_queue.PublishJob(event.Job, true)
 
 	if err != nil {
 		return err
