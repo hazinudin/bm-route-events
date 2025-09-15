@@ -249,6 +249,7 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 		result.MessageCount,
 		result.AllMessageStatus,
 		result.Ignorables,
+		result.GetIgnoredTags(),
 	)
 
 	if err != nil {
