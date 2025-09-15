@@ -188,7 +188,7 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := s.job_service.GetJobResult(job_id, data_type)
+	resp, err := s.job_service.GetJobResult(job_id)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
