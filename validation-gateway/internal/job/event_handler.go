@@ -175,6 +175,54 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
 	return nil
 }
 
+func (j *JobEventHandler) DisputeAcceptedHandler(event *job.DisputedMessagesAccepted) error {
+	result, err := j.repo.GetJobResult(event.JobID)
+
+	if err != nil {
+		return err
+	}
+
+	err = result.IgnoreDisputed()
+
+	// This should reply back to the HTTP handler goroutine via a temporary channel
+	if err != nil {
+		return err
+	}
+
+	if result.Status == job.VERIFIED_STATUS {
+		return nil
+	}
+
+	err = j.repo.AppendEvents(event)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (j *JobEventHandler) ReviewAcceptedHandler(event *job.ReviewedMessagesAccepted) error {
+	result, err := j.repo.GetJobResult(event.JobID)
+
+	if err != nil {
+		return err
+	}
+
+	err = result.IgnoreReviewed()
+
+	// This should reply back to the HTTP handler goroutine via a temporary channel
+	if err != nil {
+		return err
+	}
+
+	if result.Status == job.VERIFIED_STATUS {
+		return nil
+	}
+
+	return nil
+}
+
 func (j *JobEventHandler) Listening() {
 	messages, err := j.rabbitmqCh.Consume(
 		j.dispatcher.EventQueueName,
