@@ -134,7 +134,7 @@ class RoutePointEventsValidation(object):
         
         return self
     
-    def lrs_sta_check(self, tolerance: int = 10):
+    def lrs_sta_check(self, tolerance: int = 30):
         """
         Compare survey point M-Value with its STA
         """
