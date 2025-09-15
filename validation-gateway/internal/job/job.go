@@ -40,8 +40,8 @@ func (s *JobService) GetJobStatus(job_id string, data_type string) (map[string]a
 }
 
 // Get job result
-func (s *JobService) GetJobResult(job_id string, data_type string) (*job.ValidationJobResult, error) {
-	status, err := s.repo.GetJobResult(job_id, data_type)
+func (s *JobService) GetJobResult(job_id string) (*job.ValidationJobResult, error) {
+	status, err := s.repo.GetJobResult(job_id)
 
 	if err != nil {
 		return nil, err
