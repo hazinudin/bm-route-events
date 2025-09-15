@@ -239,7 +239,7 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 	}
 	defer tx.Rollback(ctx)
 
-	query := fmt.Sprintf("INSERT INTO %s (job_id, status, message_count, all_msg_status, ignorables) VALUES ($1, $2, $3, $4, $5)", r.result_table)
+	query := fmt.Sprintf("INSERT INTO %s (job_id, status, message_count, all_msg_status, ignorables, ignored_tag) VALUES ($1, $2, $3, $4, $5)", r.result_table)
 
 	_, err = tx.Exec(
 		ctx,
