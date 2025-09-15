@@ -40,12 +40,13 @@ func (job *ValidationJob) AsJobResponse() any {
 	return out
 }
 
-func (job *ValidationJob) AsJobMessage() ([]byte, error) {
+func (job *ValidationJob) AsJobMessage(validate bool) ([]byte, error) {
 	msg := make(map[string]any)
 
 	msg["job_id"] = job.JobID
 	msg["data_type"] = job.DataType
 	msg["details"] = job.Details
+	msg["validate"] = validate
 
 	msg_string, err := json.Marshal(msg)
 
