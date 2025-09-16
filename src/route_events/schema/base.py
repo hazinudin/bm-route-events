@@ -37,6 +37,12 @@ CUSTOM_ERROR_MSG = {
     "string_too_long": "{0} memiliki isi dengan jumlah karakter melebihi 255"
 }
 
+def truncate_str(v:str):
+    """
+    Truncate string to match the 255 limitation.
+    """
+    return v[:255]
+
 def serialize_date_str(v:any):
     """
     Serialize date string to timestamp float. Before validator.
@@ -249,6 +255,7 @@ class RouteEventsSchema(object):
             if dtype == 'string':
                 pa_type = pa.string()  # Pyarrow string
                 pyd_type = Annotated[str, StringConstraints(to_upper=upper_case)]  # Pydantic type
+                self.validators[truncate_str.__name__+'_'+col] = field_validator(col, mode='before')(truncate_str)
                 field_kwargs['coerce_number_to_str'] = True
                 field_kwargs['max_length'] = 255
                 self.pl_schema[col] = String
