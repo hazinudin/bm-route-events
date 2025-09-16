@@ -21,7 +21,13 @@ class ValidationResult(object):
             allowed_ignored_status = ['review', 'force']
         )
         
-        self._ignore_in = ignore_in
+        if type(ignore_in) is list:
+            if len(ignore_in) == 0:
+                self._ignore_in = None
+            else:
+                self._ignore_in = ignore_in
+        elif ignore_in is not None:
+            raise TypeError(f"ignore_in should be None or a list")
 
     @classmethod
     def from_validation_process(cls, id: str):
@@ -126,6 +132,8 @@ class ValidationResult(object):
         Example:
         {
             "status": "Succeeded",
+            "validation_status": "error",
+            "ignorables": [],
             "messages": [
                 {"linkid": "01001", "status": "error_sanggah", "msg": "Koordinat melenceng."},
                 {"linkid": "01001", "status": "error_sanggah", "msg": "STA melenceng."}
