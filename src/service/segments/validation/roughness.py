@@ -37,12 +37,15 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
         """
         Validate RNI data in excel file.
         """
+        ignored_tag = []
+
         if force_write:
-            result = ValidationResult(route, ignore_in=['force'])
-        elif force_write and ignore_review:
-            result = ValidationResult(route, ignore_in=['force', 'review'])
-        else:
-            result = ValidationResult(route)
+            ignored_tag.append('force')
+        
+        if ignore_review:
+            ignored_tag.append('review')
+
+        result = ValidationResult(route, ignore_in=ignored_tag)
 
         obj = None
         try:
