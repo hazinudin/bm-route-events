@@ -1,0 +1,2 @@
+alter table validation_job_results
+drop column ignored_tags

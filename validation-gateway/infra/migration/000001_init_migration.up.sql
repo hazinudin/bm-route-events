@@ -45,8 +45,7 @@ create table if not exists validation_job_results (
     status varchar(50) not null,
     message_count bigint,
     all_msg_status text[],
-    ignorables text[],
-    ignored_tag text[]
+    ignorables text[]
 );
 
 create index if not exists validation_job_results_idx on validation_job_results (
