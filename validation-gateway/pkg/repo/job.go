@@ -136,6 +136,28 @@ func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJo
 	return new, nil
 }
 
+// Get job attempt numbers
+func (r *ValidationJobRepository) GetJobAttemptNumber(job_id string) (int, error) {
+	var attempt_count int
+
+	query := fmt.Sprintf("SELECT count(*) FROM %s WHERE job_id = $1 and event_name = $2", r.event_store_table)
+
+	err := r.db.Pool.QueryRow(
+		context.Background(),
+		query,
+		job_id,
+		job.JOB_SUBMITTED,
+	).Scan(
+		&attempt_count,
+	)
+
+	if err != nil {
+		return -1, err
+	}
+
+	return attempt_count, err
+}
+
 // Update job result status and ignored tags
 func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResult) error {
 	ctx := context.Background()
