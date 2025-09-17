@@ -27,6 +27,7 @@ type ValidationJobResult struct {
 	MessageCount     int          `json:"msg_count"`
 	AllMessageStatus []string     `json:"all_msg_status"`
 	Ignorables       []string     `json:"ignorables"`
+	AttemptID        int          `json:"attempt_id"`
 	ignored_tag      []MessageTag
 }
 
@@ -37,6 +38,7 @@ func NewJobResult(
 	all_msg_status []string,
 	ignorables []string,
 	ignored_tag []MessageTag,
+	attempt_id int,
 ) *ValidationJobResult {
 	return &ValidationJobResult{
 		JobID:            job_id,
@@ -45,6 +47,7 @@ func NewJobResult(
 		AllMessageStatus: all_msg_status,
 		Ignorables:       ignorables,
 		ignored_tag:      ignored_tag,
+		AttemptID:        attempt_id,
 	}
 }
 
