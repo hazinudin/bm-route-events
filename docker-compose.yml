@@ -85,8 +85,8 @@ services:
 
   workers:
     build:
-      context: worker
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: worker/Dockerfile
     volumes:
       - "${EXCEL_FILES_DIRECTORY}:/data"
     container_name: validation_worker
