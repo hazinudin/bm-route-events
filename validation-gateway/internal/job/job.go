@@ -40,8 +40,14 @@ func (s *JobService) GetJobStatus(job_id string, data_type string) (map[string]a
 }
 
 // Get job result
-func (s *JobService) GetJobResult(job_id string) (*job.ValidationJobResult, error) {
-	status, err := s.repo.GetJobResult(job_id)
+func (s *JobService) GetLatestJobResult(job_id string) (*job.ValidationJobResult, error) {
+	attempt_id, err := s.repo.GetJobAttemptNumber(job_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := s.repo.GetJobResult(job_id, attempt_id)
 
 	if err != nil {
 		return nil, err
@@ -51,8 +57,14 @@ func (s *JobService) GetJobResult(job_id string) (*job.ValidationJobResult, erro
 }
 
 // Get job messsages
-func (s *JobService) GetJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
-	messages, err := s.repo.GetJobResultMessages(job_id)
+func (s *JobService) GetLatestJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
+	attempt_id, err := s.repo.GetJobAttemptNumber(job_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	messages, err := s.repo.GetJobResultMessages(job_id, attempt_id)
 
 	if err != nil {
 		return nil, err
