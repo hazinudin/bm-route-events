@@ -13,10 +13,10 @@ COPY ../requirements.txt .
 RUN pip install -r requirements.txt
 
 ARG CACHE_BUST=1
-RUN git clone --depth 1 --branch master https://github.com/hazinudin/bm-route-events.git .
+RUN git clone --depth 1 --branch master https://github.com/hazinudin/bm-route-events.git ./source
 
-RUN pip install .
+RUN pip install ./source
 
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app/source/src
 
-CMD ["python", "worker/worker.py"]
+CMD ["python", "source/worker/worker.py"]
