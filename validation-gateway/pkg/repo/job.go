@@ -105,7 +105,7 @@ func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJo
 	var out job.ValidationJobResult
 	var ignored_tags []job.MessageTag
 
-	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tag from %s WHERE job_id = $1 AND split_part(job_id, '_', 1) = $2", r.result_table)
+	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tags from %s WHERE job_id = $1 AND split_part(job_id, '_', 1) = $2", r.result_table)
 
 	err := r.db.Pool.QueryRow(
 		context.Background(),
