@@ -101,16 +101,17 @@ func (r *ValidationJobRepository) GetJobStatus(job_id string, data_type string) 
 }
 
 // Get job result
-func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJobResult, error) {
+func (r *ValidationJobRepository) GetJobResult(job_id string, attempt_id int) (*job.ValidationJobResult, error) {
 	var out job.ValidationJobResult
 	var ignored_tags []job.MessageTag
 
-	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tags from %s WHERE job_id = $1 AND split_part(job_id, '_', 1) = $2", r.result_table)
+	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tags, attempt_id from %s WHERE job_id = $1 AND attempt_id = $2", r.result_table)
 
 	err := r.db.Pool.QueryRow(
 		context.Background(),
 		query,
 		job_id,
+		attempt_id,
 	).Scan(
 		&out.JobID,
 		&out.Status,
@@ -118,6 +119,7 @@ func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJo
 		&out.AllMessageStatus,
 		&out.Ignorables,
 		&ignored_tags,
+		&out.AttemptID,
 	)
 
 	if err != nil {
@@ -131,6 +133,7 @@ func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJo
 		out.AllMessageStatus,
 		out.Ignorables,
 		ignored_tags,
+		out.AttemptID,
 	)
 
 	return new, nil
@@ -188,12 +191,12 @@ func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResul
 	return nil
 }
 
-func (r *ValidationJobRepository) GetJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
+func (r *ValidationJobRepository) GetJobResultMessages(job_id string, attempt_id int) ([]job.ValidationJobResultMessage, error) {
 	var messages []job.ValidationJobResultMessage
 
-	query := fmt.Sprintf("SELECT msg, msg_status, content_id as id FROM %s WHERE job_id = $1", r.result_msg_table)
+	query := fmt.Sprintf("SELECT msg, msg_status, content_id as id FROM %s WHERE job_id = $1 and attempt_id = $2", r.result_msg_table)
 
-	rows, err := r.db.Pool.Query(context.Background(), query, job_id)
+	rows, err := r.db.Pool.Query(context.Background(), query, job_id, attempt_id)
 
 	if err != nil {
 		return nil, err
@@ -267,7 +270,7 @@ func (r *ValidationJobRepository) InsertJobResultMessages(rows [][]any) error {
 	_, err := r.db.Pool.CopyFrom(
 		ctx,
 		pgx.Identifier{r.result_msg_table},
-		[]string{"job_id", "msg", "msg_status", "msg_status_idx", "ignore_in", "content_id"},
+		[]string{"job_id", "attempt_id", "msg", "msg_status", "msg_status_idx", "ignore_in", "content_id"},
 		pgx.CopyFromSlice(len(rows), func(i int) ([]any, error) {
 			return rows[i], nil
 		}),
@@ -291,7 +294,7 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 	}
 	defer tx.Rollback(ctx)
 
-	query := fmt.Sprintf("INSERT INTO %s (job_id, status, message_count, all_msg_status, ignorables, ignored_tag) VALUES ($1, $2, $3, $4, $5)", r.result_table)
+	query := fmt.Sprintf("INSERT INTO %s (job_id, status, message_count, all_msg_status, ignorables, ignored_tags, attempt_id) VALUES ($1, $2, $3, $4, $5, $6, $7)", r.result_table)
 
 	_, err = tx.Exec(
 		ctx,
@@ -302,6 +305,7 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 		result.AllMessageStatus,
 		result.Ignorables,
 		result.GetIgnoredTags(),
+		result.AttemptID,
 	)
 
 	if err != nil {
