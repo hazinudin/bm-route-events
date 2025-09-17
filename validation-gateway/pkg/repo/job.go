@@ -169,7 +169,7 @@ func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResul
 	}
 	defer tx.Rollback(ctx)
 
-	query := fmt.Sprintf("UPDATE %s SET status = $1, ignored_tag = $2 WHERE job_id = $3", r.result_table)
+	query := fmt.Sprintf("UPDATE %s SET status = $1, ignored_tags = $2 WHERE job_id = $3", r.result_table)
 
 	_, err = tx.Exec(
 		ctx,
