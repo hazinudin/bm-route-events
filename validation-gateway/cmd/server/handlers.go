@@ -188,7 +188,7 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := s.job_service.GetJobResult(job_id)
+	resp, err := s.job_service.GetLatestJobResult(job_id)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -224,7 +224,7 @@ func (s *Server) GetJobResultMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages, err := s.job_service.GetJobResultMessages(job_id)
+	messages, err := s.job_service.GetLatestJobResultMessages(job_id)
 
 	if err != nil {
 		http.Error(w, "Error when submitting query", http.StatusInternalServerError)
