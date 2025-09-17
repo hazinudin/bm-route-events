@@ -136,6 +136,36 @@ func (r *ValidationJobRepository) GetJobResult(job_id string) (*job.ValidationJo
 	return new, nil
 }
 
+// Update job result status and ignored tags
+func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResult) error {
+	ctx := context.Background()
+
+	tx, err := r.db.Pool.Begin(ctx)
+
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	query := fmt.Sprintf("UPDATE %s SET status = $1, ignored_tag = $2 WHERE job_id = $3", r.result_table)
+
+	_, err = tx.Exec(
+		ctx,
+		query,
+		result.Status,
+		result.Ignorables,
+		result.JobID,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to update result for job %s: %w", result.JobID, err)
+	}
+
+	tx.Commit(ctx)
+
+	return nil
+}
+
 func (r *ValidationJobRepository) GetJobResultMessages(job_id string) ([]job.ValidationJobResultMessage, error) {
 	var messages []job.ValidationJobResultMessage
 
