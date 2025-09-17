@@ -41,7 +41,10 @@ def truncate_str(v:str):
     """
     Truncate string to match the 255 limitation.
     """
-    return v[:255]
+    try:
+        return v[:255]
+    except:
+        return v
 
 def serialize_date_str(v:any):
     """
