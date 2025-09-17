@@ -100,6 +100,17 @@ func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 		return err
 	}
 
+	// Get the attempt number/attempt ID
+	attempt_id, err := j.repo.GetJobAttemptNumber(event.JobID)
+
+	if err != nil {
+		log.Printf("failed to fetch the attempt ID for %s: %v", event.JobID, err)
+		return err
+	}
+
+	// Set the attempt ID
+	event.Result.AttemptID = attempt_id
+
 	err = j.repo.InsertJobResult(event.Result)
 
 	if err != nil {
@@ -126,8 +137,9 @@ func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 		num_cols := int(rec.NumCols())
 
 		for i := range num_rows {
-			row := make([]any, num_cols+1)
+			row := make([]any, num_cols+2)
 			row[0] = event.JobID
+			row[1] = attempt_id
 
 			// Extract values from each column
 			for colIdx := range num_cols {
@@ -135,12 +147,12 @@ func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 
 				switch arr := col.(type) {
 				case *array.Int16:
-					row[colIdx+1] = arr.Value(i)
+					row[colIdx+2] = arr.Value(i)
 				case *array.LargeString:
-					row[colIdx+1] = arr.Value(i)
+					row[colIdx+2] = arr.Value(i)
 				default:
 					log.Printf("Uhandled Arrow Array type: %T", arr)
-					row[colIdx+1] = nil // Handle unknown types
+					row[colIdx+2] = nil // Handle unknown types
 				}
 			}
 
@@ -176,7 +188,13 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
 }
 
 func (j *JobEventHandler) DisputeAcceptedHandler(event *job.DisputedMessagesAccepted) error {
-	result, err := j.repo.GetJobResult(event.JobID)
+	attempt_id, err := j.repo.GetJobAttemptNumber(event.JobID)
+
+	if err != nil {
+		return err
+	}
+
+	result, err := j.repo.GetJobResult(event.JobID, attempt_id)
 
 	if err != nil {
 		return err
@@ -203,7 +221,13 @@ func (j *JobEventHandler) DisputeAcceptedHandler(event *job.DisputedMessagesAcce
 }
 
 func (j *JobEventHandler) ReviewAcceptedHandler(event *job.ReviewedMessagesAccepted) error {
-	result, err := j.repo.GetJobResult(event.JobID)
+	attempt_id, err := j.repo.GetJobAttemptNumber(event.JobID)
+
+	if err != nil {
+		return err
+	}
+
+	result, err := j.repo.GetJobResult(event.JobID, attempt_id)
 
 	if err != nil {
 		return err
