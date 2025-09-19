@@ -13,6 +13,7 @@ services:
       retries: 5
     env_file:
       - docker.env
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=10
 
   rabbitmq:
     image: rabbitmq:management
