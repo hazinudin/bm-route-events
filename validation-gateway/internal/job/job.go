@@ -2,7 +2,6 @@ package job
 
 import (
 	"strings"
-	"time"
 	"validation-gateway/pkg/job"
 
 	"github.com/google/uuid"
@@ -84,21 +83,7 @@ func (s *JobService) CreateValidationJob(data_type string, details any) (*job.Va
 		return nil, err
 	}
 
-	event := job.JobCreated{
-		JobEvent: job.JobEvent{
-			JobID:     job_.JobID,
-			OccuredAt: time.Now().UnixMilli(),
-		},
-		Job: job_,
-	}
-
 	err = s.repo.InsertJob(job_)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.dispatcher.PublishEvent(&event)
 
 	if err != nil {
 		return nil, err
