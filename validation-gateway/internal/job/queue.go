@@ -49,6 +49,10 @@ func NewJobQueueClient(url string) *JobQueue {
 	}
 }
 
+// Publish the job to validation job queue
+//
+// 'validate' parameter will determine whether the job will be execute all validation function or simply ran through basic check and written if verified.
+// 'validate' false should be used for job which has all error messages accepted (disputed or reviewed)
 func (jq *JobQueue) PublishJob(job *job.ValidationJob, validate bool) error {
 	body, err := job.AsJobMessage(validate)
 
