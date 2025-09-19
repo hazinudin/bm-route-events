@@ -33,6 +33,8 @@ SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
 SMD_ENGINE = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{DB_HOST}:1521/geodbbm")
 MISC_ENGINE = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{DB_HOST}:1521/geodbbm")
 
+WRITE_VERIFIED_DATA = os.getenv('WRITE_VERIFIED_DATA')
+
 
 def validate_rni(
         payload: PayloadSMD, 
@@ -70,7 +72,7 @@ def validate_rni(
     if validate:
         check.base_validation()
 
-    if (check.get_status() == 'verified'):
+    if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA or (WRITE_VERIFIED_DATA is None)):
         check.put_data(semester=payload.semester)
 
     return check._result.to_job_event(job_id)
