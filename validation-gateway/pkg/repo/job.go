@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 	"validation-gateway/infra"
 	"validation-gateway/pkg/job"
 
@@ -16,6 +17,7 @@ type ValidationJobRepository struct {
 	result_table      string
 	result_msg_table  string
 	event_store_table string
+	outbox_table      string
 }
 
 func NewValidationJobRepository(db *infra.Database) *ValidationJobRepository {
@@ -25,12 +27,28 @@ func NewValidationJobRepository(db *infra.Database) *ValidationJobRepository {
 		result_table:      "validation_job_results",
 		result_msg_table:  "validation_job_results_msg",
 		event_store_table: "validation_jobs_event_store",
+		outbox_table:      "validation_job_outbox",
 	}
 }
 
 // Insert a new ValidationJob into database
-func (r *ValidationJobRepository) InsertJob(job *job.ValidationJob) error {
+func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob) error {
 	ctx := context.Background()
+
+	// Create JobCreated event for outbox table
+	event := job.JobCreated{
+		JobEvent: job.JobEvent{
+			JobID:     job_.JobID,
+			OccuredAt: time.Now().UnixMilli(),
+		},
+		Job: job_,
+	}
+
+	event_json, err := json.Marshal(event)
+
+	if err != nil {
+		return fmt.Errorf("failed to serialize event: %w", err)
+	}
 
 	tx, err := r.db.Pool.Begin(ctx)
 
@@ -39,19 +57,33 @@ func (r *ValidationJobRepository) InsertJob(job *job.ValidationJob) error {
 	}
 	defer tx.Rollback(ctx)
 
-	query := fmt.Sprintf("INSERT INTO %s (job_id, data_type, submitted_at, payload) VALUES ($1, $2, $3, $4)", r.job_table)
+	job_insert_query := fmt.Sprintf("INSERT INTO %s (job_id, data_type, submitted_at, payload) VALUES ($1, $2, $3, $4);", r.job_table)
 
 	_, err = tx.Exec(
 		ctx,
-		query,
-		job.JobID,
-		job.DataType,
-		job.CreatedAt,
-		job.Details,
+		job_insert_query,
+		job_.JobID,
+		job_.DataType,
+		job_.CreatedAt,
+		job_.Details,
 	)
 
 	if err != nil {
 		return fmt.Errorf("failed to insert job data to database: %w", err)
+	}
+
+	outbox_query := fmt.Sprintf("INSERT INTO %s (job_id, event_name, payload) VALUES ($1, $2, $3);", r.outbox_table)
+
+	_, err = tx.Exec(
+		ctx,
+		outbox_query,
+		event.GetJobID(),
+		event.GetEventType(),
+		event_json,
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to insert events to outbox: %w", err)
 	}
 
 	tx.Commit(ctx)
