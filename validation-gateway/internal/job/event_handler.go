@@ -68,6 +68,7 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 		return err
 	}
 
+	//validate = true, meaning validation will be executed
 	err = j.job_queue.PublishJob(event.Job, true)
 
 	if err != nil {
@@ -187,27 +188,33 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
 	return nil
 }
 
-func (j *JobEventHandler) DisputeAcceptedHandler(event *job.DisputedMessagesAccepted) error {
-	attempt_id, err := j.repo.GetJobAttemptNumber(event.JobID)
+func (j *JobEventHandler) MessageAcceptedHandler(event job.JobEventInterface) error {
+	attempt_id, err := j.repo.GetJobAttemptNumber(event.GetJobID())
 
 	if err != nil {
 		return err
 	}
 
-	result, err := j.repo.GetJobResult(event.JobID, attempt_id)
+	result, err := j.repo.GetJobResult(event.GetJobID(), attempt_id)
 
-	if err != nil {
-		return err
-	}
-
-	err = result.IgnoreDisputed()
-
-	// This should reply back to the HTTP handler goroutine via a temporary channel
 	if err != nil {
 		return err
 	}
 
 	if result.Status == job.VERIFIED_STATUS {
+		new_event := job.AllMessagesAccepted{
+			JobEvent: job.JobEvent{
+				JobID:     event.GetJobID(),
+				OccuredAt: time.Now().UnixMilli(),
+			},
+		}
+
+		err := j.dispatcher.PublishEvent(&new_event)
+
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}
 
@@ -215,33 +222,6 @@ func (j *JobEventHandler) DisputeAcceptedHandler(event *job.DisputedMessagesAcce
 
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (j *JobEventHandler) ReviewAcceptedHandler(event *job.ReviewedMessagesAccepted) error {
-	attempt_id, err := j.repo.GetJobAttemptNumber(event.JobID)
-
-	if err != nil {
-		return err
-	}
-
-	result, err := j.repo.GetJobResult(event.JobID, attempt_id)
-
-	if err != nil {
-		return err
-	}
-
-	err = result.IgnoreReviewed()
-
-	// This should reply back to the HTTP handler goroutine via a temporary channel
-	if err != nil {
-		return err
-	}
-
-	if result.Status == job.VERIFIED_STATUS {
-		return nil
 	}
 
 	return nil
@@ -306,6 +286,29 @@ func (j *JobEventHandler) Listening() {
 			}
 
 			err := j.GenericHandler(event)
+
+			if err != nil {
+				log.Printf("Failed to handle event: %v", err)
+				continue
+			}
+
+		// Dispute message and review message accepted handler
+		case job.DISPUTED_MSG_ACCEPTED, job.REVIEWED_MSG_ACCEPTED:
+			var event job.JobEventInterface
+
+			switch envelope.Type {
+			case job.DISPUTED_MSG_ACCEPTED:
+				event = &job.DisputedMessagesAccepted{}
+			case job.REVIEWED_MSG_ACCEPTED:
+				event = &job.ReviewedMessagesAccepted{}
+			}
+
+			if err := json.Unmarshal(envelope.Payload, event); err != nil {
+				log.Printf("Failed to unmarshal into event: %v", err)
+				continue
+			}
+
+			err := j.MessageAcceptedHandler(event)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
