@@ -27,6 +27,7 @@ RMQ_HOST = os.getenv('RMQ_HOST')
 RMQ_PORT = os.getenv('RMQ_PORT')
 
 SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
+WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
 
 def generate_generic_event(job_id: str, event_type: Literal['executed', 'failed']) -> str:
     """
@@ -46,6 +47,11 @@ def generate_generic_event(job_id: str, event_type: Literal['executed', 'failed'
 
 
 worker_logger = setup_logger("system")
+
+if WRITE_VERIFIED_DATA:
+    worker_logger.warning("verified data will be written to GeoDatabase.")
+else:
+    worker_logger.warning("verified data will NOT be written to GeoDatabase.")
 
 class ValidationWorker:
     def __init__(self):

@@ -33,7 +33,7 @@ SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
 SMD_ENGINE = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{DB_HOST}:1521/geodbbm")
 MISC_ENGINE = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{DB_HOST}:1521/geodbbm")
 
-WRITE_VERIFIED_DATA = os.getenv('WRITE_VERIFIED_DATA')
+WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
 
 
 def validate_rni(
@@ -44,7 +44,7 @@ def validate_rni(
     """
     RNI validation handler function.
     """
-    if validate or (validate is None):
+    if validate:
         ignore_review=False
         force_write=False
     else:
