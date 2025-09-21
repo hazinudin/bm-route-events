@@ -54,6 +54,19 @@ func (c *OutboxConnector) insertHandler(
 	}
 
 	switch event_type {
+	case string(job_pkg.ALL_MSG_ACCEPTED):
+		var event job_pkg.AllMessagesAccepted
+
+		if err := json.Unmarshal(event_json, &event); err != nil {
+			log.Fatalln("failed to unmarshal event: %w", err)
+		}
+
+		err := c.dispatcher.PublishEvent(&event)
+
+		if err != nil {
+			log.Fatalln("failed to publish event: %w", err)
+		}
+		log.Printf("job %s event %s published.", event.JobID, event_type)
 	case string(job_pkg.JOB_CREATED):
 		var event job_pkg.JobCreated
 
