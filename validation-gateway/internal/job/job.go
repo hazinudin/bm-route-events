@@ -72,6 +72,78 @@ func (s *JobService) GetLatestJobResultMessages(job_id string) ([]job.Validation
 	return messages, nil
 }
 
+// Ignore disputed messages
+func (s *JobService) AcceptDisputedMessages(job_id string) error {
+	attempt_id, err := s.repo.GetJobAttemptNumber(job_id)
+
+	if err != nil {
+		return err
+	}
+
+	tx, err := s.repo.BeginTransaction()
+
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	result, err := s.repo.GetJobResult(job_id, attempt_id, tx)
+
+	if err != nil {
+		return err
+	}
+
+	err = result.IgnoreDisputed()
+
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdateJobResult(result, tx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Ignore reviewed messages
+func (s *JobService) AcceptReviewedMessages(job_id string) error {
+	attempt_id, err := s.repo.GetJobAttemptNumber(job_id)
+
+	if err != nil {
+		return err
+	}
+
+	tx, err := s.repo.BeginTransaction()
+
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(context.Background())
+
+	result, err := s.repo.GetJobResult(job_id, attempt_id, tx)
+
+	if err != nil {
+		return err
+	}
+
+	err = result.IgnoreReviewed()
+
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.UpdateJobResult(result, tx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // CreateValidationJob will return a ValidationJob struct
 // This function will also store the new ValidationJob to database
 func (s *JobService) CreateValidationJob(data_type string, details any) (*job.ValidationJob, error) {
