@@ -2,6 +2,7 @@ package job
 
 import (
 	"encoding/json"
+	"reflect"
 	"slices"
 	"testing"
 )
@@ -89,6 +90,20 @@ func TestValidationJobResult(t *testing.T) {
 		"status set to review", func(t *testing.T) {
 			if input.Status != REVIEW_STATUS {
 				t.Errorf("Status should be equal to %s, not %s", REVIEW_STATUS, input.Status)
+			}
+		},
+	)
+
+	t.Run(
+		"events is not empty", func(t *testing.T) {
+			if len(input.GetAllEvents()) == 0 {
+				t.Error("Events should not be empty, disputed message already ignored.")
+			}
+
+			event := DisputedMessagesAccepted{}
+
+			if reflect.TypeOf(input.GetAllEvents()[0]) != reflect.TypeOf(&event) {
+				t.Errorf("First event should be %T, not %T", event, input.GetAllEvents()[0])
 			}
 		},
 	)
