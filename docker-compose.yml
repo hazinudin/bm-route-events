@@ -65,6 +65,26 @@ services:
     env_file:
       - docker.env
 
+  outbox_connector:
+    build:
+      context: validation-gateway
+      dockerfile: cmd/outbox/Dockerfile
+    container_name: outbox_connector
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "eventlistener"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - docker.env
+
   server:
     build:
       context: validation-gateway
