@@ -31,6 +31,30 @@ func NewValidationJobRepository(db *infra.Database) *ValidationJobRepository {
 	}
 }
 
+// Get ValidationJob from database
+func (r *ValidationJobRepository) GetValidationJob(job_id string) (*job.ValidationJob, error) {
+	ctx := context.Background()
+	var job_ job.ValidationJob
+	query := fmt.Sprintf("SELECT job_id, data_type, submitted_at, payload FROM %s WHERE job_id = $1;", r.job_table)
+
+	err := r.db.Pool.QueryRow(
+		ctx,
+		query,
+		job_id,
+	).Scan(
+		&job_.JobID,
+		&job_.DataType,
+		&job_.CreatedAt,
+		&job_.Details,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &job_, nil
+}
+
 // Insert a new ValidationJob into database
 func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob) error {
 	ctx := context.Background()
