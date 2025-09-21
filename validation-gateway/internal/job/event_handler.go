@@ -225,45 +225,6 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
 	return nil
 }
 
-func (j *JobEventHandler) MessageAcceptedHandler(event job.JobEventInterface) error {
-	attempt_id, err := j.repo.GetJobAttemptNumber(event.GetJobID())
-
-	if err != nil {
-		return err
-	}
-
-	result, err := j.repo.GetJobResult(event.GetJobID(), attempt_id)
-
-	if err != nil {
-		return err
-	}
-
-	if result.Status == job.VERIFIED_STATUS {
-		new_event := job.AllMessagesAccepted{
-			JobEvent: job.JobEvent{
-				JobID:     event.GetJobID(),
-				OccuredAt: time.Now().UnixMilli(),
-			},
-		}
-
-		err := j.dispatcher.PublishEvent(&new_event)
-
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	err = j.repo.AppendEvents(event)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (j *JobEventHandler) Listening() {
 	messages, err := j.rabbitmqCh.Consume(
 		j.dispatcher.EventQueueName,
@@ -305,7 +266,7 @@ func (j *JobEventHandler) Listening() {
 			}
 
 		// Generic job handler, just append the events to event store
-		case job.JOB_SUBMITTED, job.JOB_EXECUTED, job.JOB_FAILED:
+		case job.JOB_SUBMITTED, job.JOB_EXECUTED, job.JOB_FAILED, job.DISPUTED_MSG_ACCEPTED, job.REVIEWED_MSG_ACCEPTED:
 			var event job.JobEventInterface
 
 			switch envelope.Type {
@@ -315,6 +276,10 @@ func (j *JobEventHandler) Listening() {
 				event = &job.JobExecuted{}
 			case job.JOB_FAILED:
 				event = &job.JobFailed{}
+			case job.DISPUTED_MSG_ACCEPTED:
+				event = &job.DisputedMessagesAccepted{}
+			case job.REVIEWED_MSG_ACCEPTED:
+				event = &job.ReviewedMessagesAccepted{}
 			}
 
 			if err := json.Unmarshal(envelope.Payload, event); err != nil {
@@ -329,23 +294,16 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
-		// Dispute message and review message accepted handler
-		case job.DISPUTED_MSG_ACCEPTED, job.REVIEWED_MSG_ACCEPTED:
-			var event job.JobEventInterface
+		// All messages accepted handler
+		case job.ALL_MSG_ACCEPTED:
+			var event job.AllMessagesAccepted
 
-			switch envelope.Type {
-			case job.DISPUTED_MSG_ACCEPTED:
-				event = &job.DisputedMessagesAccepted{}
-			case job.REVIEWED_MSG_ACCEPTED:
-				event = &job.ReviewedMessagesAccepted{}
-			}
-
-			if err := json.Unmarshal(envelope.Payload, event); err != nil {
+			if err := json.Unmarshal(envelope.Payload, &event); err != nil {
 				log.Printf("Failed to unmarshal into event: %v", err)
 				continue
 			}
 
-			err := j.MessageAcceptedHandler(event)
+			err := j.HandleAllMsgAccepted(&event)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
