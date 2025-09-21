@@ -392,3 +392,13 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 
 	return nil
 }
+
+func (r *ValidationJobRepository) BeginTransaction() (pgx.Tx, error) {
+	tx, err := r.db.Pool.Begin(context.Background())
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+
+	return tx, nil
+}
