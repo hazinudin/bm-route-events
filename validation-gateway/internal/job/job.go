@@ -46,7 +46,14 @@ func (s *JobService) GetLatestJobResult(job_id string) (*job.ValidationJobResult
 		return nil, err
 	}
 
-	status, err := s.repo.GetJobResult(job_id, attempt_id)
+	tx, err := s.repo.BeginTransaction()
+	defer tx.Rollback(context.Background())
+
+	if err != nil {
+		return nil, err
+	}
+
+	status, err := s.repo.GetJobResult(job_id, attempt_id, tx)
 
 	if err != nil {
 		return nil, err
