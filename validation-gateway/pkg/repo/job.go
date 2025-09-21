@@ -221,28 +221,45 @@ func (r *ValidationJobRepository) GetJobAttemptNumber(job_id string) (int, error
 }
 
 // Update job result status and ignored tags
-func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResult) error {
+func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResult, tx pgx.Tx) error {
 	ctx := context.Background()
 
-	tx, err := r.db.Pool.Begin(ctx)
+	query := fmt.Sprintf("UPDATE %s SET status = $1, ignorables = $2, ignored_tags = $3 WHERE job_id = $4", r.result_table)
 
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer tx.Rollback(ctx)
-
-	query := fmt.Sprintf("UPDATE %s SET status = $1, ignored_tags = $2 WHERE job_id = $3", r.result_table)
-
-	_, err = tx.Exec(
+	_, err := tx.Exec(
 		ctx,
 		query,
 		result.Status,
 		result.Ignorables,
+		result.GetIgnoredTags(),
 		result.JobID,
 	)
 
 	if err != nil {
 		return fmt.Errorf("failed to update result for job %s: %w", result.JobID, err)
+	}
+
+	outbox_query := fmt.Sprintf("INSERT INTO %s (job_id, event_name, payload) VALUES ($1, $2, $3);", r.outbox_table)
+
+	// Iterate through all events that might happen in the results.
+	for _, event := range result.GetAllEvents() {
+		event_json, err := json.Marshal(event)
+
+		if err != nil {
+			return fmt.Errorf("failed to marshal event: %w", err)
+		}
+
+		_, err = tx.Exec(
+			ctx,
+			outbox_query,
+			event.GetJobID(),
+			event.GetEventType(),
+			event_json,
+		)
+
+		if err != nil {
+			return fmt.Errorf("failed to insert events to outbox: %w", err)
+		}
 	}
 
 	tx.Commit(ctx)
