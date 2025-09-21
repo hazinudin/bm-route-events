@@ -157,13 +157,16 @@ func (r *ValidationJobRepository) GetJobStatus(job_id string, data_type string) 
 }
 
 // Get job result
-func (r *ValidationJobRepository) GetJobResult(job_id string, attempt_id int) (*job.ValidationJobResult, error) {
+func (r *ValidationJobRepository) GetJobResult(job_id string, attempt_id int, tx pgx.Tx) (*job.ValidationJobResult, error) {
 	var out job.ValidationJobResult
 	var ignored_tags []job.MessageTag
 
-	query := fmt.Sprintf("SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tags, attempt_id from %s WHERE job_id = $1 AND attempt_id = $2", r.result_table)
+	query := fmt.Sprintf(
+		"SELECT job_id, status, message_count, all_msg_status, ignorables, ignored_tags, attempt_id from %s WHERE job_id = $1 AND attempt_id = $2 FOR UPDATE",
+		r.result_table,
+	)
 
-	err := r.db.Pool.QueryRow(
+	err := tx.QueryRow(
 		context.Background(),
 		query,
 		job_id,
