@@ -3,6 +3,7 @@ package job
 import (
 	"fmt"
 	"slices"
+	"time"
 )
 
 type MessageTag string
@@ -29,6 +30,7 @@ type ValidationJobResult struct {
 	Ignorables       []string     `json:"ignorables"`
 	AttemptID        int          `json:"attempt_id"`
 	ignored_tag      []MessageTag
+	events           []JobEventInterface
 }
 
 func NewJobResult(
@@ -52,14 +54,8 @@ func NewJobResult(
 }
 
 // Get all the ignored tags
-func (j *ValidationJobResult) GetIgnoredTags() []string {
-	out := make([]string, len(j.ignored_tag))
-
-	for _, tag := range j.ignored_tag {
-		out = append(out, string(tag))
-	}
-
-	return out
+func (j *ValidationJobResult) GetIgnoredTags() []MessageTag {
+	return j.ignored_tag
 }
 
 // Internal ignore message tag which used by IgnoreReviewed and IgnoreDisputed
@@ -88,6 +84,15 @@ func (j *ValidationJobResult) ignore_msg_tag(tag MessageTag) error {
 		// If all ignorables all are ignored, then set the status to 'verified'
 		if len(j.Ignorables) == 0 {
 			j.Status = VERIFIED_STATUS
+
+			event := AllMessagesAccepted{
+				JobEvent: JobEvent{
+					JobID:     j.JobID,
+					OccuredAt: time.Now().UnixMilli() + 10, // Create offset for better logging
+				},
+			}
+
+			j.events = append(j.events, &event)
 			return nil
 		}
 
@@ -111,6 +116,15 @@ func (j *ValidationJobResult) IgnoreReviewed() error {
 		return err
 	}
 
+	event := ReviewedMessagesAccepted{
+		JobEvent: JobEvent{
+			JobID:     j.JobID,
+			OccuredAt: time.Now().UnixMilli(),
+		},
+	}
+
+	j.events = append(j.events, &event)
+
 	return nil
 }
 
@@ -122,7 +136,20 @@ func (j *ValidationJobResult) IgnoreDisputed() error {
 		return err
 	}
 
+	event := DisputedMessagesAccepted{
+		JobEvent: JobEvent{
+			JobID:     j.JobID,
+			OccuredAt: time.Now().UnixMilli(),
+		},
+	}
+
+	j.events = append(j.events, &event)
+
 	return nil
+}
+
+func (j *ValidationJobResult) GetAllEvents() []JobEventInterface {
+	return j.events
 }
 
 // All messages generated from the validation process.
