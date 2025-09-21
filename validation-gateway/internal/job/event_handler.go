@@ -92,6 +92,43 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 	return nil
 }
 
+func (j *JobEventHandler) HandleAllMsgAccepted(event *job.AllMessagesAccepted) error {
+	job_, err := j.repo.GetValidationJob(event.JobID)
+
+	if err != nil {
+		return err
+	}
+
+	// validate set to false
+	err = j.job_queue.PublishJob(job_, false)
+
+	if err != nil {
+		return err
+	}
+
+	// Create new submitted event
+	new_event := job.JobSubmitted{
+		JobEvent: job.JobEvent{
+			JobID:     event.GetJobID(),
+			OccuredAt: time.Now().UnixMilli(),
+		},
+	}
+
+	err = j.dispatcher.PublishEvent(&new_event)
+
+	if err != nil {
+		return err
+	}
+
+	err = j.repo.AppendEvents(event)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 	// Apache Arrow decoding and serialization
 	arrowBytes, err := base64.StdEncoding.DecodeString(event.ArrowBatches)
