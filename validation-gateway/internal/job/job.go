@@ -25,8 +25,8 @@ type JobRequest[T INVIJPayload | SMDPayload] struct {
 }
 
 // Get job latest status
-func (s *JobService) GetJobStatus(job_id string, data_type string) (map[string]any, error) {
-	status, err := s.repo.GetJobStatus(job_id, data_type)
+func (s *JobService) GetJobStatus(job_id string) (map[string]any, error) {
+	status, err := s.repo.GetJobStatus(job_id)
 	out := make(map[string]any)
 
 	if err != nil {
@@ -155,7 +155,7 @@ func (s *JobService) AcceptReviewedMessages(job_id string) error {
 // CreateValidationJob will return a ValidationJob struct
 // This function will also store the new ValidationJob to database
 func (s *JobService) CreateValidationJob(data_type string, details any) (*job.ValidationJob, error) {
-	job_id := data_type + "_" + uuid.New().String()
+	job_id, err := uuid.NewV7()
 
 	job_, err := job.NewValidationJob(job_id, data_type, details)
 
