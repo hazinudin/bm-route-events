@@ -33,11 +33,13 @@ func main() {
 
 	// Road data
 	http.HandleFunc("POST /road/{data_type}/validation/submit", middleware.Auth(server.PublishSMDValidationHandler, []byte(conf.TokenSecret)))
-	http.HandleFunc("GET /road/{data_type}/validation/{job_id}/status", middleware.Auth(server.GetJobStatusHandler, []byte(conf.TokenSecret)))
-	http.HandleFunc("GET /road/{data_type}/validation/{job_id}/result", middleware.Auth(server.GetJobResultHandler, []byte(conf.TokenSecret)))
-	http.HandleFunc("GET /road/{data_type}/validation/{job_id}/result/msg", middleware.Auth(server.GetJobResultMessages, []byte(conf.TokenSecret)))
-	http.HandleFunc("POST /road/{data_type}/validation/{job_id}/result/accept_disputed", middleware.Auth(server.AcceptDisputedMessages, []byte(conf.TokenSecret)))
-	http.HandleFunc("POST /road/{data_type}/validation/{job_id}/result/accept_reviewed", middleware.Auth(server.AcceptReviewedMessages, []byte(conf.TokenSecret)))
+
+	// Job actions
+	http.HandleFunc("GET /validation/{job_id}/status", middleware.Auth(server.GetJobStatusHandler, []byte(conf.TokenSecret)))
+	http.HandleFunc("GET /validation/{job_id}/result", middleware.Auth(server.GetJobResultHandler, []byte(conf.TokenSecret)))
+	http.HandleFunc("GET /validation/{job_id}/result/msg", middleware.Auth(server.GetJobResultMessages, []byte(conf.TokenSecret)))
+	http.HandleFunc("POST /validation/{job_id}/result/accept_disputed", middleware.Auth(server.AcceptDisputedMessages, []byte(conf.TokenSecret)))
+	http.HandleFunc("POST /validation/{job_id}/result/accept_reviewed", middleware.Auth(server.AcceptReviewedMessages, []byte(conf.TokenSecret)))
 
 	// Bridge data
 	http.HandleFunc("POST /bridge/{data_type}/validation/submit", middleware.Auth(server.PublishINVIJValidationHandler, []byte(conf.TokenSecret)))
