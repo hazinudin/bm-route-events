@@ -1,14 +1,6 @@
 import traceback
 import pika
 import json
-from route_events_service import (
-    BridgeMasterValidation,
-    BridgeInventoryValidation,
-    RouteRNIValidation,
-    RouteRoughnessValidation,
-    RouteDefectsValidation,
-    RoutePCIValidation,
-)
 from route_events import LRSRoute
 import base64
 import os
@@ -18,15 +10,21 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, Literal, List
 from logger import setup_logger, get_job_logger
-from handler import PayloadSMD, validate_rni
+from handler import (
+    PayloadSMD, 
+    RNIValidation, 
+    IRIValidation, 
+    SMDValidationHandler, 
+    PCIValidation,
+    DefectValidation
+)
+from typing import Dict
 
 
 load_dotenv(os.path.dirname(__file__) + '/.env')
 
 RMQ_HOST = os.getenv('RMQ_HOST')
 RMQ_PORT = os.getenv('RMQ_PORT')
-
-SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
 WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
 
 def generate_generic_event(job_id: str, event_type: Literal['executed', 'failed']) -> str:
@@ -60,6 +58,14 @@ class ValidationWorker:
         self._rmq_channel = None
         self.job_queue = "validation_queue"
         self.job_event_queue = "job_event_queue"
+        self._handler: Dict[str, SMDValidationHandler] = {}  # Empty dicitionary for handler class
+
+        # Create handler for SMD
+        self._smd_supported_data_type = ['IRI', 'RNI', 'PCI', 'DEFECTS']  # Please update if more handlers are added.
+        self._handler['RNI'] = RNIValidation
+        self._handler['IRI'] = IRIValidation
+        self._handler['PCI'] = PCIValidation
+        self._handler['DEFECTS'] = DefectValidation
 
     def connect(self):
         worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
@@ -118,6 +124,20 @@ class ValidationWorker:
         )
 
         return
+    
+    def smd_validate(self, data_type: str, payload: PayloadSMD, job_id: str, validate: bool=True)->str:
+        """
+        SMD validation handler
+        """
+        check = self._handler[data_type](
+            payload,
+            job_id,
+            validate
+        )
+
+        self.publish_executed_event(job_id)
+
+        return check.validate()
 
     def handle_job(self, ch, methods, properties, body):
         try:
@@ -133,15 +153,11 @@ class ValidationWorker:
             payload_str = base64.b64decode(job_data.get("details"))
             job_logger = get_job_logger(job_id)
 
-            if data_type == 'RNI':
+            if data_type in self._smd_supported_data_type:
                 payload = PayloadSMD(**json.loads(payload_str))
-
-                job_logger.info("processing RNI validation.")
-
-                self.publish_executed_event(job_id)
-                event = validate_rni(payload, job_id, validate)
-
-                job_logger.info("finished executing RNI validation.")
+                job_logger.info(f"processing {data_type} validation, validate: {validate}")
+                event = self.smd_validate(data_type, payload, job_id, validate)
+                job_logger.info(f"finished executing {data_type} validation.")
             else:
                 print("Unhandled data")  # Temporary, just for the lulz
                 return
