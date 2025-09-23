@@ -34,12 +34,15 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         """
         Validate Defects data in Excel file.
         """
+        ignored_tag = []
+
         if force_write:
-            result = ValidationResult(route, ignore_in=['force'])
-        elif force_write and ignore_review:
-            result = ValidationResult(route, ignore_in=['force', 'review'])
-        else:
-            result = ValidationResult(route)
+            ignored_tag.append('force')
+        
+        if ignore_review:
+            ignored_tag.append('review')
+
+        result = ValidationResult(route, ignore_in=ignored_tag)
 
         obj = None
 
@@ -294,3 +297,16 @@ class RouteDefectsValidation(RoutePointEventsValidation):
             photos=self.survey_photos,
             validate=False
         )
+
+    def base_validation(self):
+        """
+        Base validation function
+        """
+        self.lrs_distance_check()
+        self.lrs_sta_check()
+        self.route_has_rni_check()
+        self.sta_not_in_rni_check()
+        self.survey_photo_url_check
+
+        self.surface_type_check()
+        self.damage_surface_type_check()
