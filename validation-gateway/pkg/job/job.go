@@ -3,16 +3,18 @@ package job
 import (
 	"encoding/json"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ValidationJob struct {
-	JobID     string `json:"job_id"`
-	DataType  string `json:"data_type"`
-	CreatedAt int64  `json:"created_at"`
-	Details   []byte `json:"details"`
+	JobID     uuid.UUID `json:"job_id"`
+	DataType  string    `json:"data_type"`
+	CreatedAt int64     `json:"created_at"`
+	Details   []byte    `json:"details"`
 }
 
-func NewValidationJob(job_id string, data_type string, details any) (*ValidationJob, error) {
+func NewValidationJob(job_id uuid.UUID, data_type string, details any) (*ValidationJob, error) {
 	details_string, err := json.Marshal(details)
 
 	if err != nil {
@@ -33,7 +35,7 @@ func (job *ValidationJob) AsJobResponse() any {
 		JobID     string `json:"job_id"`
 		CreatedAt int64  `json:"created_at"`
 	}{
-		JobID:     job.JobID,
+		JobID:     job.JobID.String(),
 		CreatedAt: job.CreatedAt,
 	}
 
