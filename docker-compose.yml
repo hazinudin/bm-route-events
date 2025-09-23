@@ -12,7 +12,7 @@ services:
       timeout: 5s
       retries: 5
     env_file:
-      - docker.env
+      - .env
     command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=10
 
   rabbitmq:
@@ -63,7 +63,7 @@ services:
       timeout: 5s
       retries: 5
     env_file:
-      - docker.env
+      - validation-gateway/cmd/eventlistener/.env
 
   outbox_connector:
     build:
@@ -83,7 +83,7 @@ services:
       timeout: 5s
       retries: 5
     env_file:
-      - docker.env
+      - validation-gateway/cmd/outbox/.env
 
   server:
     build:
@@ -102,7 +102,7 @@ services:
     healthcheck:
       test: ["CMD", "pgrep", "-f", "server"]
     env_file:
-      - docker.env
+      - validation-gateway/cmd/server/.env
 
   workers:
     build:
@@ -133,7 +133,7 @@ services:
     networks:
       - backend
     env_file:
-      - docker.env
+      - .env
 
 networks:
   backend:
