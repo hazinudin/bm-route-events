@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
-	"strings"
 	"validation-gateway/internal"
 	"validation-gateway/internal/job"
 
@@ -140,19 +139,8 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 // Handler for fetching the job status.
 func (s *Server) GetJobStatusHandler(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
-	data_type := strings.ToUpper(r.PathValue("data_type"))
 
-	if strings.Split(job_id, "_")[0] != data_type {
-		out := make(map[string]string)
-		out["error"] = "Data type does not match Job ID"
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(out)
-		return
-	}
-
-	resp, err := s.job_service.GetJobStatus(job_id, data_type)
+	resp, err := s.job_service.GetJobStatus(job_id)
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
@@ -176,17 +164,6 @@ func (s *Server) GetJobStatusHandler(w http.ResponseWriter, r *http.Request) {
 // Handler for fetching the job result.
 func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
-	data_type := strings.ToUpper(r.PathValue("data_type"))
-
-	if strings.Split(job_id, "_")[0] != data_type {
-		out := make(map[string]string)
-		out["error"] = "Data type does not match Job ID"
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(out)
-		return
-	}
 
 	resp, err := s.job_service.GetLatestJobResult(job_id)
 
@@ -212,17 +189,6 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 // Handler for fetching the job result messages.
 func (s *Server) GetJobResultMessages(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
-	data_type := strings.ToUpper(r.PathValue("data_type"))
-
-	if strings.Split(job_id, "_")[0] != data_type {
-		out := make(map[string]string)
-		out["error"] = "Data type does not match Job ID"
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(out)
-		return
-	}
 
 	messages, err := s.job_service.GetLatestJobResultMessages(job_id)
 
@@ -238,17 +204,6 @@ func (s *Server) GetJobResultMessages(w http.ResponseWriter, r *http.Request) {
 // Handler for ignoring disputed message
 func (s *Server) AcceptDisputedMessages(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
-	data_type := strings.ToUpper(r.PathValue("data_type"))
-
-	if strings.Split(job_id, "_")[0] != data_type {
-		out := make(map[string]string)
-		out["error"] = "Data type does not match Job ID"
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(out)
-		return
-	}
 
 	err := s.job_service.AcceptDisputedMessages(job_id)
 
@@ -260,17 +215,6 @@ func (s *Server) AcceptDisputedMessages(w http.ResponseWriter, r *http.Request) 
 // Handler for ignoring disputed message
 func (s *Server) AcceptReviewedMessages(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
-	data_type := strings.ToUpper(r.PathValue("data_type"))
-
-	if strings.Split(job_id, "_")[0] != data_type {
-		out := make(map[string]string)
-		out["error"] = "Data type does not match Job ID"
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(out)
-		return
-	}
 
 	err := s.job_service.AcceptReviewedMessages(job_id)
 
