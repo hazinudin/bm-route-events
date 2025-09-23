@@ -62,7 +62,7 @@ func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob) error {
 	// Create JobCreated event for outbox table
 	event := job.JobCreated{
 		JobEvent: job.JobEvent{
-			JobID:     job_.JobID,
+			JobID:     job_.JobID.String(),
 			OccuredAt: time.Now().UnixMilli(),
 		},
 		Job: job_,
@@ -117,16 +117,15 @@ func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob) error {
 
 // Get Job latest status.
 // Query direct from event store table to determine the latest status.
-func (r *ValidationJobRepository) GetJobStatus(job_id string, data_type string) (*string, error) {
+func (r *ValidationJobRepository) GetJobStatus(job_id string) (*string, error) {
 	var status string
 
-	job_query := fmt.Sprintf("SELECT '%s' as status from %s where job_id = $1 AND data_type = $2", job.JOB_CREATED, r.job_table)
+	job_query := fmt.Sprintf("SELECT '%s' as status from %s where job_id = $1", job.JOB_CREATED, r.job_table)
 
 	err := r.db.Pool.QueryRow(
 		context.Background(),
 		job_query,
 		job_id,
-		data_type,
 	).Scan(
 		&status,
 	)
