@@ -187,4 +187,22 @@ type ValidationJobResultMessage struct {
 	Message       string `json:"msg"`
 	MessageStatus string `json:"msg_status"`
 	ContentID     string `json:"id"`
+	IgnoreIn      string `json:"ignore_in"`
+}
+
+func (m *ValidationJobResultMessage) ToSMDMessages() map[string]string {
+	out := make(map[string]string)
+
+	out["linkid"] = m.ContentID
+
+	// Overwrite the error with "force" tag to "error_sanggah"
+	if m.IgnoreIn == "force" {
+		out["status"] = "error_sanggah"
+	} else {
+		out["status"] = m.MessageStatus
+	}
+
+	out["msg"] = m.Message
+
+	return out
 }
