@@ -29,6 +29,7 @@ type ValidationJobResult struct {
 	AllMessageStatus []string     `json:"all_msg_status"`
 	Ignorables       []string     `json:"ignorables"`
 	AttemptID        int          `json:"attempt_id"`
+	messages         []ValidationJobResultMessage
 	ignored_tag      []MessageTag
 	events           []JobEventInterface
 }
@@ -51,6 +52,35 @@ func NewJobResult(
 		ignored_tag:      ignored_tag,
 		AttemptID:        attempt_id,
 	}
+}
+
+func (j *ValidationJobResult) AddMessages(messages []ValidationJobResultMessage) {
+	j.messages = messages
+}
+
+func (j *ValidationJobResult) ToSMDResponse() (map[string]any, error) {
+	var out map[string]any
+	var smd_messages []map[string]string
+
+	json_bytes, err := json.Marshal(j)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(json_bytes, &out)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, msg := range j.messages {
+		smd_messages = append(smd_messages, msg.ToSMDMessages())
+	}
+
+	out["messages"] = smd_messages
+
+	return out, nil
 }
 
 // Get all the ignored tags
