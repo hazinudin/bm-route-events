@@ -393,6 +393,47 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 	return nil
 }
 
+func (r *ValidationJobRepository) FindSMDJobID(file_name string, route_id string) ([]map[string]any, error) {
+	var jobs []map[string]any
+
+	cte_query := fmt.Sprintf("WITH jobs as (select job_id, data_type, submitted_at, payload from %s where (payload ->> 'file_name') = $1 and (payload -> 'routes' ->> 0) = $2) ", r.job_table)
+	id_query := "SELECT job_id, submitted_at payload from jobs order by submitted_at desc"
+
+	query := cte_query + id_query
+
+	rows, err := r.db.Pool.Query(context.Background(), query, file_name, route_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		job := make(map[string]any)
+		var job_id string
+		var submitted_at int
+
+		err := rows.Scan(
+			&job_id,
+			&submitted_at,
+		)
+
+		job["job_id"] = &job_id
+		job["submitted_at"] = &submitted_at
+
+		if err != nil {
+			return nil, err
+		}
+
+		jobs = append(jobs, job)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return jobs, nil
+}
+
 func (r *ValidationJobRepository) BeginTransaction() (pgx.Tx, error) {
 	tx, err := r.db.Pool.Begin(context.Background())
 
