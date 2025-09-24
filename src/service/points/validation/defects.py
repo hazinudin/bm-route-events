@@ -117,7 +117,8 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                 lrs=lrs,
                 sql_engine=sql_engine,
                 results=result,
-                survey_year=survey_year
+                survey_year=survey_year,
+                photo_storage=photo_storage
             )
 
             return obj
