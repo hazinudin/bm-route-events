@@ -269,7 +269,7 @@ func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResul
 func (r *ValidationJobRepository) GetJobResultMessages(job_id string, attempt_id int) ([]job.ValidationJobResultMessage, error) {
 	var messages []job.ValidationJobResultMessage
 
-	query := fmt.Sprintf("SELECT msg, msg_status, content_id as id FROM %s WHERE job_id = $1 and attempt_id = $2", r.result_msg_table)
+	query := fmt.Sprintf("SELECT msg, msg_status, content_id, ignore_in FROM %s WHERE job_id = $1 and attempt_id = $2", r.result_msg_table)
 
 	rows, err := r.db.Pool.Query(context.Background(), query, job_id, attempt_id)
 
@@ -283,6 +283,7 @@ func (r *ValidationJobRepository) GetJobResultMessages(job_id string, attempt_id
 			&msg_row.Message,
 			&msg_row.MessageStatus,
 			&msg_row.ContentID,
+			&msg_row.IgnoreIn,
 		)
 
 		if err != nil {
