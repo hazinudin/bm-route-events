@@ -164,6 +164,30 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(resp)
 }
 
+// Handler for fetching SMD Job ID from its file name and route
+func (s *Server) GetSMDJobIDHandler(w http.ResponseWriter, r *http.Request) {
+	var req SMDGetJobIDRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(400)
+		json.NewEncoder(w).Encode(ErrorResponse{Status: "Invalid JSON"})
+		return
+	}
+
+	ids, err := s.job_service.GetSMDJobID(req.FileName, req.RouteID)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(400)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ids)
+}
+
 // Handler for fetching the job status.
 func (s *Server) GetJobStatusHandler(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
