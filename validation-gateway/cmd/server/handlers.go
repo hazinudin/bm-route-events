@@ -85,6 +85,29 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(login_resp)
 }
 
+func (s *Server) RetryJobHandler(w http.ResponseWriter, r *http.Request) {
+	job_id := r.PathValue("job_id")
+	out := make(map[string]string)
+	out["job_id"] = job_id
+
+	job_, err := s.job_service.GetValidationJob(job_id)
+
+	if err != nil {
+		http.Error(w, "Failed to fetch job data", http.StatusBadRequest)
+		return
+	}
+
+	err = s.job_service.RetryJob(job_.JobID.String())
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(out)
+}
+
 func (s *Server) PublishSMDValidationHandler(w http.ResponseWriter, r *http.Request) {
 	data_type := r.PathValue("data_type")
 	valid_types := []string{"roughness", "rni", "pci", "defects"} // Supported end points
