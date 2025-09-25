@@ -179,6 +179,10 @@ func (s *JobService) GetSMDJobID(file_name string, route_id string) ([]map[strin
 func (s *JobService) CreateValidationJob(data_type string, details any) (*job.ValidationJob, error) {
 	job_id, err := uuid.NewV7()
 
+	if err != nil {
+		return nil, err
+	}
+
 	job_, err := job.NewValidationJob(job_id, data_type, details)
 
 	if err != nil {
