@@ -183,6 +183,13 @@ func (j *ValidationJobResult) GetAllEvents() []JobEventInterface {
 	return j.events
 }
 
+// Message in SMD format
+type ValidationJobResultMessageSMD struct {
+	Message       string `json:"msg"`
+	MessageStatus string `json:"status"`
+	ContentID     string `json:"linkid"`
+}
+
 // All messages generated from the validation process.
 type ValidationJobResultMessage struct {
 	Message       string `json:"msg"`
@@ -191,19 +198,19 @@ type ValidationJobResultMessage struct {
 	IgnoreIn      string `json:"ignore_in"`
 }
 
-func (m *ValidationJobResultMessage) ToSMDMessages() map[string]string {
-	out := make(map[string]string)
+func (m *ValidationJobResultMessage) ToSMDMessages() *ValidationJobResultMessageSMD {
+	var out ValidationJobResultMessageSMD
 
-	out["linkid"] = m.ContentID
+	out.ContentID = m.ContentID
 
 	// Overwrite the error with "force" tag to "error_sanggah"
 	if m.IgnoreIn == "force" {
-		out["status"] = "error_sanggah"
+		out.MessageStatus = "error_sanggah"
 	} else {
-		out["status"] = m.MessageStatus
+		out.MessageStatus = m.MessageStatus
 	}
 
-	out["msg"] = m.Message
+	out.Message = m.Message
 
-	return out
+	return &out
 }
