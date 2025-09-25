@@ -27,6 +27,11 @@ type LoginResponse struct {
 	Expiration int64  `json:"expiration"`
 }
 
+type SMDGetJobIDRequest struct {
+	FileName string `json:"file_name" validate:"required"`
+	RouteID  string `json:"route_id" validate:"required"`
+}
+
 func validateRequest[T any](r *http.Request) (*T, *ErrorResponse) {
 	var input T
 
