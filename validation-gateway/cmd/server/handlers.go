@@ -244,8 +244,25 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if get_msg {
+		messages, err := s.job_service.GetLatestJobResultMessages(job_id)
+
+		if err != nil {
+			http.Error(w, "Error when fetching job messages", http.StatusInternalServerError)
+			return
+		}
+
+		resp.AddMessages(messages)
+	}
+
+	smd_resp, err := resp.ToSMDResponse()
+
+	if err != nil {
+		http.Error(w, "Error when encoding result to SMD format", http.StatusInternalServerError)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(resp)
+	json.NewEncoder(w).Encode(smd_resp)
 }
 
 // Handler for fetching the job result messages.
