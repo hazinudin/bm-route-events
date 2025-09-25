@@ -61,7 +61,7 @@ class ValidationWorker:
         self._handler: Dict[str, SMDValidationHandler] = {}  # Empty dicitionary for handler class
 
         # Create handler for SMD
-        self._smd_supported_data_type = ['IRI', 'RNI', 'PCI', 'DEFECTS']  # Please update if more handlers are added.
+        self._smd_supported_data_type = ['ROUGHNESS', 'RNI', 'PCI', 'DEFECTS']  # Please update if more handlers are added.
         self._handler['RNI'] = RNIValidation
         self._handler['ROUGHNESS'] = IRIValidation
         self._handler['PCI'] = PCIValidation
