@@ -12,6 +12,7 @@ const (
 	JOB_SUCCEEDED         JobEventType = "succeeded"
 	JOB_EXECUTED          JobEventType = "executed"
 	JOB_FAILED            JobEventType = "failed"
+	JOB_RETRIED           JobEventType = "retried"
 	DISPUTED_MSG_ACCEPTED JobEventType = "disputed_msg_accepted"
 	REVIEWED_MSG_ACCEPTED JobEventType = "reviewed_msg_accepted"
 	ALL_MSG_ACCEPTED      JobEventType = "all_msg_accepted"
@@ -269,5 +270,32 @@ func (e *AllMessagesAccepted) GetJobID() string {
 }
 
 func (e *AllMessagesAccepted) GetOccurredAt() int64 {
+	return e.OccuredAt
+}
+
+// JobRetried event
+type JobRetried struct {
+	JobEvent
+}
+
+func (e *JobRetried) SerializeToEnvelope() ([]byte, error) {
+	bytes, err := serialize(JOB_RETRIED, e)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+func (e *JobRetried) GetEventType() JobEventType {
+	return JOB_RETRIED
+}
+
+func (e *JobRetried) GetJobID() string {
+	return e.JobID
+}
+
+func (e *JobRetried) GetOccurredAt() int64 {
 	return e.OccuredAt
 }
