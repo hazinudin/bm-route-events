@@ -342,6 +342,22 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
+		// Job retried handler
+		case job.JOB_RETRIED:
+			var event job.JobRetried
+
+			if err := json.Unmarshal(envelope.Payload, &event); err != nil {
+				log.Printf("Failed to unmarshal into event: %v", err)
+				continue
+			}
+
+			err := j.HandleJobRetried(&event)
+
+			if err != nil {
+				log.Printf("Failed to handle job retried event: %v", err)
+				continue
+			}
+
 		// Job succeeded event handler
 		case job.JOB_SUCCEEDED:
 			var event job.JobSuccedeed
