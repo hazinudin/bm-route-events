@@ -33,8 +33,10 @@ func main() {
 
 	// Road data
 	http.HandleFunc("POST /road/{data_type}/validation/submit", middleware.Auth(server.PublishSMDValidationHandler, []byte(conf.TokenSecret)))
+	http.HandleFunc("GET /road/get_job_id", middleware.Auth(server.GetSMDJobIDHandler, []byte(conf.TokenSecret)))
 
 	// Job actions
+	http.HandleFunc("POST /validation/{job_id}/retry", middleware.Auth(server.RetryJobHandler, []byte(conf.TokenSecret)))
 	http.HandleFunc("GET /validation/{job_id}/status", middleware.Auth(server.GetJobStatusHandler, []byte(conf.TokenSecret)))
 	http.HandleFunc("GET /validation/{job_id}/result", middleware.Auth(server.GetJobResultHandler, []byte(conf.TokenSecret)))
 	http.HandleFunc("GET /validation/{job_id}/result/msg", middleware.Auth(server.GetJobResultMessages, []byte(conf.TokenSecret)))
