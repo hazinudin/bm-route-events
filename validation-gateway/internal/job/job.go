@@ -163,6 +163,17 @@ func (s *JobService) AcceptReviewedMessages(job_id string) error {
 	return nil
 }
 
+// Fetch SMD validation job's Job ID from its submitted file name and route
+func (s *JobService) GetSMDJobID(file_name string, route_id string) ([]map[string]any, error) {
+	job_ids, err := s.repo.FindSMDJobID(file_name, route_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return job_ids, nil
+}
+
 // CreateValidationJob will return a ValidationJob struct
 // This function will also store the new ValidationJob to database
 func (s *JobService) CreateValidationJob(data_type string, details any) (*job.ValidationJob, error) {
