@@ -2,7 +2,9 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"strings"
+	"time"
 	"validation-gateway/pkg/job"
 
 	"github.com/google/uuid"
@@ -218,4 +220,31 @@ func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload]
 	}
 
 	return job.AsJobResponse(), nil
+}
+
+func (s *JobService) RetryJob(job_id string) error {
+	current_status, err := s.GetJobStatus(job_id)
+
+	if err != nil {
+		return fmt.Errorf("failed to fetch job status: %w", err)
+	}
+
+	if (*current_status["status"].(*string) != string(job.JOB_FAILED)) && (*current_status["status"].(*string) != string(job.JOB_SUCCEEDED)) {
+		return fmt.Errorf("cannot retry job when job status is %s", current_status["status"])
+	}
+
+	event := job.JobRetried{
+		JobEvent: job.JobEvent{
+			JobID:     job_id,
+			OccuredAt: time.Now().UnixMilli(),
+		},
+	}
+
+	err = s.dispatcher.PublishEvent(&event)
+
+	if err != nil {
+		return fmt.Errorf("failed to publish retried event: %w", err)
+	}
+
+	return nil
 }
