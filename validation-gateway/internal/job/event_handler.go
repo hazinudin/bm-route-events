@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 	"validation-gateway/infra"
@@ -220,6 +221,37 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (j *JobEventHandler) HandleJobRetried(event *job.JobRetried) error {
+	job_, err := j.repo.GetValidationJob(event.JobID)
+
+	if err != nil {
+		return fmt.Errorf("failed to fetch job data: %w", err)
+	}
+
+	err = j.job_queue.PublishJob(job_, true)
+
+	if err != nil {
+		return fmt.Errorf("failed to publish job to message queue: %w", err)
+	}
+
+	j.repo.AppendEvents(event)
+
+	new_event := job.JobSubmitted{
+		JobEvent: job.JobEvent{
+			JobID:     event.JobID,
+			OccuredAt: time.Now().UnixMilli(),
+		},
+	}
+
+	err = j.dispatcher.PublishEvent(&new_event)
+
+	if err != nil {
+		return fmt.Errorf("failed to publish submitted event: %w", err)
 	}
 
 	return nil
