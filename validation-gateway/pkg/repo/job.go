@@ -271,9 +271,11 @@ func (r *ValidationJobRepository) GetJobResultMessages(job_id string, attempt_id
 	var messages []job.ValidationJobResultMessage
 
 	// query := fmt.Sprintf("SELECT msg, msg_status, content_id, ignore_in FROM %s WHERE job_id = $1 and attempt_id = $2", r.result_msg_table)
-	cte := fmt.Sprintf("WITH result AS (SELECT job_id, ignored_tags, attempt_id FROM %s WHERE job_id = $1 and attempt_id = $2)", r.result_table)
-	query := fmt.Sprintf("SELECT msg, msg_status, content_id, ignore_in FROM %s AS a LEFT JOIN result AS b on a.job_id = b.job_id and a.attempt_id = b.attempt_id WHERE a.ignore_in <> all(b.ignored_tags);", r.result_msg_table)
-	query = cte + query
+	cte_result := fmt.Sprintf("WITH result AS (SELECT job_id, ignored_tags, attempt_id FROM %s WHERE job_id = $1 and attempt_id = $2)", r.result_table)
+	cte_msg := fmt.Sprintf(", messages AS (SELECT job_id, msg, ignore_in, content_id, msg_status FROM %s WHERE job_id = $1 and attempt_id = $2)", r.result_msg_table)
+	query := "SELECT msg, msg_status, content_id, ignore_in FROM messages AS a LEFT JOIN result AS b on a.job_id = b.job_id WHERE ignored_tags is null OR NOT (ignore_in = any(b.ignored_tags)) ;"
+
+	query = cte_result + cte_msg + query
 
 	rows, err := r.db.Pool.Query(context.Background(), query, job_id, attempt_id)
 
