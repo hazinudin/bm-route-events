@@ -111,7 +111,7 @@ services:
       context: .
       dockerfile: worker/Dockerfile
     volumes:
-      - "${EXCEL_FILES_DIRECTORY}:/data"
+      - "${EXCEL_FILES_DIRECTORY}:/app/data"
     container_name: validation_worker
     depends_on:
       postgres:
