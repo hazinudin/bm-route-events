@@ -24,6 +24,17 @@ type JobRequest[T INVIJPayload | SMDPayload] struct {
 	DataType  string `json:"data_type"`
 }
 
+// Get ValidationJob
+func (s *JobService) GetValidationJob(job_id string) (*job.ValidationJob, error) {
+	job, err := s.repo.GetValidationJob(job_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return job, nil
+}
+
 // Get job latest status
 func (s *JobService) GetJobStatus(job_id string) (map[string]any, error) {
 	status, err := s.repo.GetJobStatus(job_id)
