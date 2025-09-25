@@ -1,7 +1,6 @@
 package job
 
 import (
-	"encoding/json"
 	"fmt"
 	"slices"
 	"time"
@@ -21,6 +20,17 @@ const (
 	REVIEW_STATUS   ResultStatus = "review"
 	VERIFIED_STATUS ResultStatus = "verified"
 )
+
+// Validation job result, in SMD format
+type validationJobResultSMD struct {
+	JobID            string                           `json:"job_id"`
+	Status           ResultStatus                     `json:"status"`
+	MessageCount     int                              `json:"msg_count"`
+	AllMessageStatus []string                         `json:"all_msg_status"`
+	Ignorables       []string                         `json:"ignorables"`
+	AttemptID        int                              `json:"attempt_id"`
+	Messages         []*ValidationJobResultMessageSMD `json:"messages"`
+}
 
 // Validation job result, contains the results and final status of the finished job.
 type ValidationJobResult struct {
@@ -59,29 +69,28 @@ func (j *ValidationJobResult) AddMessages(messages []ValidationJobResultMessage)
 	j.messages = messages
 }
 
-func (j *ValidationJobResult) ToSMDResponse() (map[string]any, error) {
-	var out map[string]any
-	var smd_messages []map[string]string
-
-	json_bytes, err := json.Marshal(j)
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = json.Unmarshal(json_bytes, &out)
-
-	if err != nil {
-		return nil, err
-	}
+func (j *ValidationJobResult) ToSMDResponse() (*validationJobResultSMD, error) {
+	var smd_messages []*ValidationJobResultMessageSMD
 
 	for _, msg := range j.messages {
 		smd_messages = append(smd_messages, msg.ToSMDMessages())
 	}
 
-	out["messages"] = smd_messages
+	out := validationJobResultSMD{
+		JobID:            j.JobID,
+		Status:           j.Status,
+		MessageCount:     j.MessageCount,
+		AllMessageStatus: j.AllMessageStatus,
+		Ignorables:       j.Ignorables,
+		AttemptID:        j.AttemptID,
+		Messages:         []*ValidationJobResultMessageSMD{},
+	}
 
-	return out, nil
+	if smd_messages != nil {
+		out.Messages = smd_messages
+	}
+
+	return &out, nil
 }
 
 // Get all the ignored tags
