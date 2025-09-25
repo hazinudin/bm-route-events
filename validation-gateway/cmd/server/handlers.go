@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strconv"
 	"validation-gateway/internal"
 	"validation-gateway/internal/job"
 
@@ -216,6 +217,15 @@ func (s *Server) GetJobStatusHandler(w http.ResponseWriter, r *http.Request) {
 // Handler for fetching the job result.
 func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
+	query_param := r.URL.Query()
+
+	get_msg_str := query_param.Get("get_msg")
+	get_msg, err := strconv.ParseBool(get_msg_str)
+
+	// Failed to parse the get_msg, revert to the default value
+	if err != nil {
+		get_msg = false
+	}
 
 	resp, err := s.job_service.GetLatestJobResult(job_id)
 
