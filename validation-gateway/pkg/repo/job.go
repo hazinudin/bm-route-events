@@ -223,7 +223,7 @@ func (r *ValidationJobRepository) GetJobAttemptNumber(job_id string) (int, error
 func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResult, tx pgx.Tx) error {
 	ctx := context.Background()
 
-	query := fmt.Sprintf("UPDATE %s SET status = $1, ignorables = $2, ignored_tags = $3 WHERE job_id = $4", r.result_table)
+	query := fmt.Sprintf("UPDATE %s SET status = $1, ignorables = $2, ignored_tags = $3 WHERE job_id = $4 and attemp_id = $5", r.result_table)
 
 	_, err := tx.Exec(
 		ctx,
@@ -232,6 +232,7 @@ func (r *ValidationJobRepository) UpdateJobResult(result *job.ValidationJobResul
 		result.Ignorables,
 		result.GetIgnoredTags(),
 		result.JobID,
+		result.AttemptID,
 	)
 
 	if err != nil {
