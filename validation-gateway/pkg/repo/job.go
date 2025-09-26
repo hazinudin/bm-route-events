@@ -134,12 +134,17 @@ func (r *ValidationJobRepository) GetJobStatus(job_id string) (*string, error) {
 		return nil, err
 	}
 
-	status_query := fmt.Sprintf("SELECT event_name from %s WHERE job_id = $1 ORDER BY occurred_at desc LIMIT 1", r.event_store_table)
+	status_query := fmt.Sprintf("SELECT event_name from %s WHERE job_id = $1 AND event_name in ($2, $3, $4, $5, $6) ORDER BY occurred_at desc LIMIT 1", r.event_store_table)
 
 	err = r.db.Pool.QueryRow(
 		context.Background(),
 		status_query,
 		job_id,
+		job.JOB_CREATED,
+		job.JOB_SUBMITTED,
+		job.JOB_SUCCEEDED,
+		job.JOB_EXECUTED,
+		job.JOB_FAILED,
 	).Scan(
 		&status,
 	)
