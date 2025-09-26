@@ -12,7 +12,10 @@ COPY ../setup.py .
 COPY ../worker ./worker
 
 RUN pip install .
+# For finding memory leak
+RUN pip install memray
 
 ENV PYTHONPATH=/app/source/src
 
-CMD ["python", "worker/worker.py"]
+CMD ["memray", "run -o", "output.bin", "python", "worker/worker.py"]
+# CMD ["python", "worker/worker.py"]
