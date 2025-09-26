@@ -159,7 +159,7 @@ class ValidationWorker:
                 event = self.smd_validate(data_type, payload, job_id, validate)
                 job_logger.info(f"finished executing {data_type} validation.")
             else:
-                print("Unhandled data")  # Temporary, just for the lulz
+                job_logger.warning(f"{data_type} is unhandled")  # Temporary, just for the lulz
                 return
 
             ch.basic_ack(methods.delivery_tag)
