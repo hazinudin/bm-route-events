@@ -121,6 +121,20 @@ func (j *ValidationJobResult) ignore_msg_tag(tag MessageTag) error {
 			func(_tag string) bool { return _tag == string(tag) },
 		)
 
+		// Remove 'error' if 'force' tag is ignored, if 'review' then remove 'review' in AllMessageStatus
+		switch tag {
+		case DISPUTE_MSG_TAG:
+			j.AllMessageStatus = slices.DeleteFunc(
+				j.AllMessageStatus,
+				func(_status string) bool { return _status == string(ERROR_STATUS) },
+			)
+		case REVIEW_MSG_TAG:
+			j.AllMessageStatus = slices.DeleteFunc(
+				j.AllMessageStatus,
+				func(_status string) bool { return _status == string(REVIEW_STATUS) },
+			)
+		}
+
 		// If all ignorables all are ignored, then set the status to 'verified'
 		if len(j.Ignorables) == 0 {
 			j.Status = VERIFIED_STATUS
