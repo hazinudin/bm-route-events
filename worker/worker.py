@@ -160,6 +160,7 @@ class ValidationWorker:
                 job_logger.info(f"finished executing {data_type} validation.")
             else:
                 job_logger.warning(f"{data_type} is unhandled")  # Temporary, just for the lulz
+                ch.basic_ack(methods.delivery_tag)  # Acknowledged to clear the queue
                 return
 
             ch.basic_ack(methods.delivery_tag)
