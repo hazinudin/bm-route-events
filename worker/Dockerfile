@@ -16,6 +16,7 @@ RUN pip install .
 RUN pip install memray
 
 ENV PYTHONPATH=/app/source/src
+ENV PYTHONMALLOC=malloc
 
-CMD ["memray", "run",  "-o", "output.bin", "python", "worker/worker.py"]
+CMD ["memray", "run",  "-o", "output.bin", "worker/worker.py"]
 # CMD ["python", "worker/worker.py"]
