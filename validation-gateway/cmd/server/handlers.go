@@ -143,6 +143,7 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 
 	if !slices.Contains(valid_types, data_type) {
 		http.Error(w, "Invalid data type", http.StatusNotFound)
+		return
 	}
 
 	input, error_resp := validateRequest[job.JobRequest[job.INVIJPayload]](r)
