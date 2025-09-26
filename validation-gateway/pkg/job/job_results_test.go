@@ -71,6 +71,14 @@ func TestValidationJobResult(t *testing.T) {
 	)
 
 	t.Run(
+		"all message status does not contain 'error'", func(t *testing.T) {
+			if slices.Contains(input.AllMessageStatus, string(ERROR_STATUS)) {
+				t.Errorf("Results still contains %s", input.AllMessageStatus)
+			}
+		},
+	)
+
+	t.Run(
 		"ignorables is not empty", func(t *testing.T) {
 			if len(input.Ignorables) == 0 {
 				t.Error("Ignorables should not be empty after disputed message is ignored.")
