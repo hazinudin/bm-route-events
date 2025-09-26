@@ -115,6 +115,7 @@ func (s *Server) PublishSMDValidationHandler(w http.ResponseWriter, r *http.Requ
 
 	if !slices.Contains(valid_types, data_type) {
 		http.Error(w, "Invalid data type", http.StatusNotFound)
+		return
 	}
 
 	input, error_resp := validateRequest[job.JobRequest[job.SMDPayload]](r)
