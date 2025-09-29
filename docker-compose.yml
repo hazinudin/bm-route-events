@@ -143,7 +143,7 @@ services:
     image: jaegertracing/all-in-one:latest
     container_name: jaeger
     ports:
-      - "16686:16686"  # Jaeger UI
+      - "8081:16686"  # Jaeger UI
       - "4318:4317"  # Jaeger gRPC Collector port (used by OTel Collector)
     networks:
       - backend
