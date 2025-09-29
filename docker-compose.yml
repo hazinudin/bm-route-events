@@ -112,7 +112,6 @@ services:
       dockerfile: worker/Dockerfile
     volumes:
       - "${EXCEL_FILES_DIRECTORY}:/app/data"
-    container_name: validation_worker
     depends_on:
       postgres:
         condition: service_healthy
@@ -126,6 +125,9 @@ services:
       - backend
     env_file:
       - worker/docker.env
+    deploy:
+      mode: replicated
+      replicas: 2
 
   lrs_service:
     image: hazinuddin/lrs_service:1.0
@@ -136,6 +138,28 @@ services:
       - backend
     env_file:
       - .env
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4318:4317"  # Jaeger gRPC Collector port (used by OTel Collector)
+    networks:
+      - backend
+
+  otel-collector:
+      image: otel/opentelemetry-collector-contrib:latest
+      container_name: otel-collector
+      command: ["--config=/etc/otelcol/config.yaml"]
+      volumes:
+        - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
+      ports:
+        - "4317:4317"  # OTLP gRPC endpoint (Worker sends data here)
+      depends_on:
+        - jaeger
+      networks:
+        - backend
 
 networks:
   backend:
