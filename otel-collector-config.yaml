@@ -1,0 +1,25 @@
+receivers:
+  # OTLP Receiver: Listens for data from the Python application
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317 # Listens on the same port the Python OTLP Exporter targets
+
+exporters:
+  # Jaeger Exporter: Sends the received trace data to the Jaeger backend
+  otlp:
+    endpoint: jaeger:4317 # The service name 'jaeger' and its gRPC collector port
+    tls:
+      insecure: true
+
+processors:
+  # Batch Processor: Buffers and batches spans for efficient export (recommended for all traces)
+  batch:
+
+service:
+  pipelines:
+    traces:
+      # Use the OTLP receiver to get data
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
