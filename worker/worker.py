@@ -51,7 +51,7 @@ otlp_exporter = OTLPSpanExporter(
 )
 
 # Create span processor
-processor = BatchSpanProcessor(otlp_exporter)
+processor = BatchSpanProcessor(otlp_exporter, schedule_delay_millis=1000)
 provider.add_span_processor(processor)
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
