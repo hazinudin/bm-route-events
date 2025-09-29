@@ -127,7 +127,7 @@ services:
       - worker/docker.env
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: ${VALIDATION_WORKER_REPLICA}
 
   lrs_service:
     image: hazinuddin/lrs_service:1.0
