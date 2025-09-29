@@ -20,12 +20,42 @@ from handler import (
 )
 from typing import Dict
 
+from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider, StatusCode, Status
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+
 
 load_dotenv(os.path.dirname(__file__) + '/.env')
 
 RMQ_HOST = os.getenv('RMQ_HOST')
 RMQ_PORT = os.getenv('RMQ_PORT')
+OTLP_EXPORTER_HOST = os.getenv('OTLP_EXPORTER_HOST')
+OTLP_EXPORTER_PORT = os.getenv('OTLP_EXPORTER_PORT')
 WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
+
+# Opentelemetry resource
+resource = Resource.create({
+    "service.name": "validation-worker",
+    "environment": "production"
+})
+
+# Set the tracer
+provider = TracerProvider(resource=resource)
+
+# Configure exporter
+otlp_exporter = OTLPSpanExporter(
+    endpoint=f"{OTLP_EXPORTER_HOST}:{OTLP_EXPORTER_PORT}",
+    insecure=True
+)
+
+# Create span processor
+processor = BatchSpanProcessor(otlp_exporter)
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer(__name__)
+
 
 def generate_generic_event(job_id: str, event_type: Literal['executed', 'failed']) -> str:
     """
@@ -140,45 +170,56 @@ class ValidationWorker:
         return check.validate()
 
     def handle_job(self, ch, methods, properties, body):
-        try:
-            job_data = json.loads(body.decode('utf-8'))
+        with tracer.start_as_current_span("handle_validation_job") as span:
+            try:
+                job_data = json.loads(body.decode('utf-8'))
 
-            if type(job_data) is str:
-                job_data = json.loads(job_data)
-            
-            job_id = job_data.get("job_id")
-            data_type = job_data.get("data_type")
-            validate = job_data.get("validate")
+                if type(job_data) is str:
+                    job_data = json.loads(job_data)
+                
+                job_id = job_data.get("job_id")
+                data_type = job_data.get("data_type")
+                validate = job_data.get("validate")
 
-            payload_str = base64.b64decode(job_data.get("details"))
-            job_logger = get_job_logger(job_id)
+                payload_str = base64.b64decode(job_data.get("details"))
+                job_logger = get_job_logger(job_id)
 
-            if data_type in self._smd_supported_data_type:
-                payload = PayloadSMD(**json.loads(payload_str))
-                job_logger.info(f"processing {data_type} validation, validate: {validate}")
-                event = self.smd_validate(data_type, payload, job_id, validate)
-                job_logger.info(f"finished executing {data_type} validation.")
-            else:
-                job_logger.warning(f"{data_type} is unhandled")  # Temporary, just for the lulz
-                ch.basic_ack(methods.delivery_tag)  # Acknowledged to clear the queue
-                return
+                # Set span attribute
+                span.set_attribute("job_id", job_id)
+                span.set_attribute("payload", payload_str)
+                span.set_attribute("data_type", data_type)
+                span.set_attribute("validate", validate)
 
-            ch.basic_ack(methods.delivery_tag)
+                if data_type in self._smd_supported_data_type:
+                    payload = PayloadSMD(**json.loads(payload_str))
+                    job_logger.info(f"processing {data_type} validation, validate: {validate}")
+                    event = self.smd_validate(data_type, payload, job_id, validate)
+                    job_logger.info(f"finished executing {data_type} validation.")
+                else:
+                    job_logger.warning(f"{data_type} is unhandled")  # Temporary, just for the lulz
+                    ch.basic_ack(methods.delivery_tag)  # Acknowledged to clear the queue
+                    return
 
-            self._rmq_channel.basic_publish(
-                "",
-                routing_key=self.job_event_queue,
-                body=event,
-                properties=pika.BasicProperties(delivery_mode=2)
-            )
+                ch.basic_ack(methods.delivery_tag)
 
-            job_logger.info("job succeeded event published.")
- 
-        except Exception:
-            trace = traceback.format_exc()
-            job_logger.error(trace)
-            self.publish_failed_event(job_id)
-            ch.basic_ack(methods.delivery_tag)
+                self._rmq_channel.basic_publish(
+                    "",
+                    routing_key=self.job_event_queue,
+                    body=event,
+                    properties=pika.BasicProperties(delivery_mode=2)
+                )
+
+                span.set_status(Status(StatusCode.OK))
+                job_logger.info("job succeeded event published.")
+    
+            except Exception as e:
+                trace = traceback.format_exc()
+                job_logger.error(trace)
+                self.publish_failed_event(job_id)
+                ch.basic_ack(methods.delivery_tag)
+
+                span.record_exception(e)
+                span.set_status(Status(StatusCode.ERROR), str(e))
 
 
 if __name__ == '__main__':
