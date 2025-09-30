@@ -171,6 +171,7 @@ class BridgeInventoryValidation(object):
         if self.get_status() == 'error':
             return
         
+        self.main_span_structure_type_check()
         self.main_span_num_check()
         self.span_num_unique_check()
         self.other_span_num_exist_in_main_span_check()
