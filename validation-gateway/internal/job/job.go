@@ -178,7 +178,7 @@ func (s *JobService) GetSMDJobID(file_name string, route_id string) ([]map[strin
 
 // CreateValidationJob will return a ValidationJob struct
 // This function will also store the new ValidationJob to database
-func (s *JobService) CreateValidationJob(data_type string, details any) (*job.ValidationJob, error) {
+func (s *JobService) CreateValidationJob(data_type string, details any, ctx context.Context) (*job.ValidationJob, error) {
 	job_id, err := uuid.NewV7()
 
 	if err != nil {
@@ -191,7 +191,7 @@ func (s *JobService) CreateValidationJob(data_type string, details any) (*job.Va
 		return nil, err
 	}
 
-	err = s.repo.InsertJob(job_)
+	err = s.repo.InsertJob(job_, ctx)
 
 	if err != nil {
 		return nil, err
@@ -201,8 +201,8 @@ func (s *JobService) CreateValidationJob(data_type string, details any) (*job.Va
 }
 
 // PublishSMDValidationJob accepts a validation request, create a new ValidationJob and publish it to message broker
-func (s *JobService) PublishSMDValidationJob(request *JobRequest[SMDPayload], data_type string) (any, error) {
-	job, err := s.CreateValidationJob(strings.ToUpper(data_type), request.InputJSON)
+func (s *JobService) PublishSMDValidationJob(request *JobRequest[SMDPayload], data_type string, ctx context.Context) (any, error) {
+	job, err := s.CreateValidationJob(strings.ToUpper(data_type), request.InputJSON, ctx)
 
 	if err != nil {
 		return nil, err
@@ -212,8 +212,8 @@ func (s *JobService) PublishSMDValidationJob(request *JobRequest[SMDPayload], da
 }
 
 // PublishSMDValidationJob accepts a validation request, create a new ValidationJob and publish it to message broker
-func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload], data_type string) (any, error) {
-	job, err := s.CreateValidationJob(strings.ToUpper(data_type), request.InputJSON)
+func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload], data_type string, ctx context.Context) (any, error) {
+	job, err := s.CreateValidationJob(strings.ToUpper(data_type), request.InputJSON, ctx)
 
 	if err != nil {
 		return nil, err
