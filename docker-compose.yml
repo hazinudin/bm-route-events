@@ -48,6 +48,7 @@ services:
       context: validation-gateway
       dockerfile: cmd/eventlistener/Dockerfile
     container_name: eventlistener_service
+    restart: always
     depends_on:
       server:
         condition: service_healthy
@@ -70,6 +71,7 @@ services:
       context: validation-gateway
       dockerfile: cmd/outbox/Dockerfile
     container_name: outbox_connector
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -91,6 +93,7 @@ services:
     build:
       context: validation-gateway
       dockerfile: cmd/server/Dockerfile
+    restart: always
     container_name: server_service
     depends_on:
       postgres:
@@ -132,6 +135,7 @@ services:
   lrs_service:
     image: hazinuddin/lrs_service:1.0
     container_name: lrs_service
+    restart: always
     ports:
       - "50052:50052"
     networks:
