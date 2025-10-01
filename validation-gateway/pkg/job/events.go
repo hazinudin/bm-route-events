@@ -48,6 +48,7 @@ type JobEventInterface interface {
 type JobEvent struct {
 	JobID     string `json:"job_id"`
 	OccuredAt int64  `json:"occurred_at"`
+	TraceID   string `json:"trace_id"` //For OpenTelemetry tracing purposes
 }
 
 // Actual Job Events
