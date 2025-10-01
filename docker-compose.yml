@@ -107,7 +107,7 @@ services:
     healthcheck:
       test: ["CMD", "pgrep", "-f", "server"]
     env_file:
-      - validation-gateway/cmd/server/.env
+      - validation-gateway/cmd/server/docker.env
 
   workers:
     build:
