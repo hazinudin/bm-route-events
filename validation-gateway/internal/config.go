@@ -8,14 +8,16 @@ import (
 )
 
 type Config struct {
-	DBHost      string
-	DBPort      string
-	DBName      string
-	DBUsername  string
-	DBPassword  string
-	TokenSecret string
-	RMQHost     string
-	RMQPort     string
+	DBHost           string
+	DBPort           string
+	DBName           string
+	DBUsername       string
+	DBPassword       string
+	TokenSecret      string
+	RMQHost          string
+	RMQPort          string
+	OtelExporterHost string
+	OtelExporterPort string
 }
 
 func LoadConfig() *Config {
@@ -26,13 +28,15 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DBHost:      os.Getenv("DB_HOST"),
-		DBPort:      os.Getenv("DB_PORT"),
-		DBName:      os.Getenv("DB_NAME"),
-		DBUsername:  os.Getenv("DB_USERNAME"),
-		DBPassword:  os.Getenv("DB_PASSWORD"),
-		TokenSecret: os.Getenv("TOKEN_SECRET_KEY"),
-		RMQHost:     os.Getenv("RMQ_HOST"),
-		RMQPort:     os.Getenv("RMQ_PORT"),
+		DBHost:           os.Getenv("DB_HOST"),
+		DBPort:           os.Getenv("DB_PORT"),
+		DBName:           os.Getenv("DB_NAME"),
+		DBUsername:       os.Getenv("DB_USERNAME"),
+		DBPassword:       os.Getenv("DB_PASSWORD"),
+		TokenSecret:      os.Getenv("TOKEN_SECRET_KEY"),
+		RMQHost:          os.Getenv("RMQ_HOST"),
+		RMQPort:          os.Getenv("RMQ_PORT"),
+		OtelExporterHost: os.Getenv("OTLP_EXPORTER_HOST"),
+		OtelExporterPort: os.Getenv("OTLP_EXPORTER_PORT"),
 	}
 }
