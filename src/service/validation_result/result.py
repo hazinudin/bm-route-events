@@ -28,6 +28,8 @@ class ValidationResult(object):
                 self._ignore_in = ignore_in
         elif ignore_in is not None:
             raise TypeError(f"ignore_in should be None or a list")
+        else:
+            self._ignore_in = None
 
     @classmethod
     def from_validation_process(cls, id: str):
