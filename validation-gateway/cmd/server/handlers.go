@@ -11,6 +11,9 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type ErrorResponse struct {
@@ -110,7 +113,15 @@ func (s *Server) RetryJobHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) PublishSMDValidationHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tracer := otel.Tracer("http-request-handling")
+	ctx, span := tracer.Start(ctx, "publish-smd-job-handler")
+	defer span.End()
+
 	data_type := r.PathValue("data_type")
+	span.SetAttributes(attribute.String("data_type", data_type))
+
 	valid_types := []string{"roughness", "rni", "pci", "defects"} // Supported end points
 
 	if !slices.Contains(valid_types, data_type) {
@@ -127,7 +138,7 @@ func (s *Server) PublishSMDValidationHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	resp, err := s.job_service.PublishSMDValidationJob(input, data_type)
+	resp, err := s.job_service.PublishSMDValidationJob(input, data_type, ctx)
 
 	if err != nil {
 		http.Error(w, "Error when publishing job to queue", http.StatusInternalServerError)
@@ -139,7 +150,15 @@ func (s *Server) PublishSMDValidationHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tracer := otel.Tracer("http-handling")
+	ctx, span := tracer.Start(ctx, "publish-invij-job-handler")
+	defer span.End()
+
 	data_type := r.PathValue("data_type")
+	span.SetAttributes(attribute.String("data_type", data_type))
+
 	valid_types := []string{"master", "inventory", "popup_inventory"}
 
 	if !slices.Contains(valid_types, data_type) {
@@ -156,7 +175,7 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	resp, err := s.job_service.PublishINVIJValidationJob(input, data_type)
+	resp, err := s.job_service.PublishINVIJValidationJob(input, data_type, ctx)
 
 	if err != nil {
 		http.Error(w, "Error when publishing job to queue", http.StatusInternalServerError)
@@ -286,10 +305,18 @@ func (s *Server) GetJobResultMessages(w http.ResponseWriter, r *http.Request) {
 func (s *Server) AcceptDisputedMessages(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
 
+	ctx := r.Context()
+
+	tracer := otel.Tracer("http-handling")
+	_, span := tracer.Start(ctx, "accept-disputed-message")
+	span.SetAttributes(attribute.String("job_id", job_id))
+	defer span.End()
+
 	err := s.job_service.AcceptDisputedMessages(job_id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		span.SetStatus(codes.Error, err.Error())
 	}
 }
 
@@ -297,9 +324,17 @@ func (s *Server) AcceptDisputedMessages(w http.ResponseWriter, r *http.Request) 
 func (s *Server) AcceptReviewedMessages(w http.ResponseWriter, r *http.Request) {
 	job_id := r.PathValue("job_id")
 
+	ctx := r.Context()
+
+	tracer := otel.Tracer("http-handling")
+	_, span := tracer.Start(ctx, "accept-reviewed-message")
+	span.SetAttributes(attribute.String("job_id", job_id))
+	defer span.End()
+
 	err := s.job_service.AcceptReviewedMessages(job_id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		span.SetStatus(codes.Error, err.Error())
 	}
 }
