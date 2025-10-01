@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"time"
 	"validation-gateway/infra"
+	tracer "validation-gateway/infra/tracing"
 	"validation-gateway/pkg/job"
 
 	"github.com/jackc/pgx/v5"
+	"go.opentelemetry.io/otel"
 )
 
 type ValidationJobRepository struct {
@@ -56,14 +58,17 @@ func (r *ValidationJobRepository) GetValidationJob(job_id string) (*job.Validati
 }
 
 // Insert a new ValidationJob into database
-func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob) error {
-	ctx := context.Background()
+func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob, ctx context.Context) error {
+	tracer_ := otel.Tracer("database-insert")
+	_, span := tracer_.Start(ctx, "insert-validation-job")
+	defer span.End()
 
 	// Create JobCreated event for outbox table
 	event := job.JobCreated{
 		JobEvent: job.JobEvent{
 			JobID:     job_.JobID.String(),
 			OccuredAt: time.Now().UnixMilli(),
+			TraceID:   tracer.GetTraceID(ctx),
 		},
 		Job: job_,
 	}
