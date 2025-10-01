@@ -180,7 +180,7 @@ func (c *OutboxConnector) StartReplication() {
 			err = c.sendStandbyUpdateToPrimary(XLogPos)
 
 			if err != nil {
-				log.Fatalln("SendStandbyStatusUpdate failed: ", err)
+				log.Println("SendStandbyStatusUpdate failed: ", err)
 			}
 			log.Printf("sent standby status message at %s + 1\n", XLogPos.String())
 
