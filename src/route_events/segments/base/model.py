@@ -388,18 +388,18 @@ class RouteSegmentEvents(object):
                 pl.col('sta_diff').gt(
                     pl.col(self._seg_len_col).mul(self.seg_len_conversion).add(tolerance)
                 ).and_(
-                    pl.col(self._from_sta_col).ne(self.last_segment.from_sta)
+                    pl.col(self._from_sta_col).ne(self.max_from_sta)
                 )
             ) |
             (
                 pl.col('sta_diff').lt(
                     pl.col(self._seg_len_col).mul(self.seg_len_conversion).sub(tolerance)
                 ).and_(
-                    pl.col(self._from_sta_col).ne(self.last_segment.from_sta)
+                    pl.col(self._from_sta_col).ne(self.max_from_sta)
                 )
             ) |
             (
-                pl.col(self._from_sta_col).eq(self.last_segment.from_sta).and_(
+                pl.col(self._from_sta_col).eq(self.max_from_sta).and_(
                     pl.col('sta_diff').lt(
                         pl.col(self._seg_len_col).mul(self.seg_len_conversion)
                     ).or_(
