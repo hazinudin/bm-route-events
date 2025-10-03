@@ -67,11 +67,30 @@ class SurveyPhotoRepo(object):
         """
         Delete photo in the table.
         """
-        stmt = delete(SurveyPhotoORM).where(SurveyPhotoORM.url.in_(
-            [photo.url for photo in photos]
-        ))
+        # Check if the photos count is less than 500
+        if len(photos) <= 500:
+            stmt = delete(SurveyPhotoORM).where(SurveyPhotoORM.url.in_(
+                [photo.url for photo in photos]
+            ))
 
-        session.execute(stmt)
+            session.execute(stmt)
+        
+        # If greater than 500, then delete by chunks
+        else:
+            for i in range(len(photos)//500):
+                stmt = delete(SurveyPhotoORM).where(SurveyPhotoORM.url.in_(
+                    [photo.url for photo in photos[(i*500):((i+1)*500)]]
+                ))
+
+                session.execute(stmt)
+
+            # Check if there are remaining photos in the photos list
+            if (i+1)*500 < len(photos):
+                stmt = delete(SurveyPhotoORM).where(SurveyPhotoORM.url.in_(
+                    [photo.url for photo in photos[((i+1)*500):len(photos)]]
+                ))
+
+                session.execute(stmt)
 
         if commit:
             session.commit()
