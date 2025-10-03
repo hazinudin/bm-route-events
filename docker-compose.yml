@@ -89,7 +89,7 @@ services:
       timeout: 5s
       retries: 5
     env_file:
-      - validation-gateway/cmd/outbox/.env
+      - validation-gateway/cmd/outbox/docker.env
 
   server:
     build:
