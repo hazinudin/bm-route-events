@@ -2,6 +2,7 @@ package job
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -15,6 +16,8 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/ipc"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 )
 
 type JobEventHandler struct {
@@ -62,17 +65,23 @@ func NewJobEventHandler(url string, db *infra.Database) *JobEventHandler {
 	}
 }
 
-func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
+func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated, ctx context.Context) error {
+	tracer := otel.Tracer("event-handling")
+	_, span := tracer.Start(ctx, "job-created-handling")
+	defer span.End()
+
 	err := j.repo.AppendEvents(event)
 
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
 	//validate = true, meaning validation will be executed
-	err = j.job_queue.PublishJob(event.Job, true)
+	err = j.job_queue.PublishJob(event.Job, true, ctx)
 
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
@@ -84,16 +93,22 @@ func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated) error {
 		},
 	}
 
-	err = j.dispatcher.PublishEvent(&new_event)
+	err = j.dispatcher.PublishEvent(&new_event, ctx)
 
 	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 
+	span.SetStatus(codes.Ok, "event handling finished")
 	return nil
 }
 
-func (j *JobEventHandler) HandleAllMsgAccepted(event *job.AllMessagesAccepted) error {
+func (j *JobEventHandler) HandleAllMsgAccepted(event *job.AllMessagesAccepted, ctx context.Context) error {
+	tracer := otel.Tracer("event-handling")
+	_, span := tracer.Start(ctx, "all-msg-accepted-handling")
+	defer span.End()
+
 	job_, err := j.repo.GetValidationJob(event.JobID)
 
 	if err != nil {
@@ -101,7 +116,7 @@ func (j *JobEventHandler) HandleAllMsgAccepted(event *job.AllMessagesAccepted) e
 	}
 
 	// validate set to false
-	err = j.job_queue.PublishJob(job_, false)
+	err = j.job_queue.PublishJob(job_, false, ctx)
 
 	if err != nil {
 		return err
@@ -115,7 +130,7 @@ func (j *JobEventHandler) HandleAllMsgAccepted(event *job.AllMessagesAccepted) e
 		},
 	}
 
-	err = j.dispatcher.PublishEvent(&new_event)
+	err = j.dispatcher.PublishEvent(&new_event, ctx)
 
 	if err != nil {
 		return err
@@ -130,7 +145,11 @@ func (j *JobEventHandler) HandleAllMsgAccepted(event *job.AllMessagesAccepted) e
 	return nil
 }
 
-func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
+func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed, ctx context.Context) error {
+	tracer := otel.Tracer("event-handling")
+	_, span := tracer.Start(ctx, "job-succeded-handling")
+	defer span.End()
+
 	// Apache Arrow decoding and serialization
 	arrowBytes, err := base64.StdEncoding.DecodeString(event.ArrowBatches)
 
@@ -216,7 +235,11 @@ func (j *JobEventHandler) HandleSucceededEvent(event *job.JobSuccedeed) error {
 	return nil
 }
 
-func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
+func (j *JobEventHandler) GenericHandler(event job.JobEventInterface, ctx context.Context) error {
+	tracer := otel.Tracer("event-handling")
+	_, span := tracer.Start(ctx, "job-generic-handling")
+	defer span.End()
+
 	err := j.repo.AppendEvents(event)
 
 	if err != nil {
@@ -226,14 +249,18 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface) error {
 	return nil
 }
 
-func (j *JobEventHandler) HandleJobRetried(event *job.JobRetried) error {
+func (j *JobEventHandler) HandleJobRetried(event *job.JobRetried, ctx context.Context) error {
+	tracer := otel.Tracer("event-handling")
+	_, span := tracer.Start(ctx, "job-retried-handling")
+	defer span.End()
+
 	job_, err := j.repo.GetValidationJob(event.JobID)
 
 	if err != nil {
 		return fmt.Errorf("failed to fetch job data: %w", err)
 	}
 
-	err = j.job_queue.PublishJob(job_, true)
+	err = j.job_queue.PublishJob(job_, true, ctx)
 
 	if err != nil {
 		return fmt.Errorf("failed to publish job to message queue: %w", err)
@@ -248,7 +275,7 @@ func (j *JobEventHandler) HandleJobRetried(event *job.JobRetried) error {
 		},
 	}
 
-	err = j.dispatcher.PublishEvent(&new_event)
+	err = j.dispatcher.PublishEvent(&new_event, ctx)
 
 	if err != nil {
 		return fmt.Errorf("failed to publish submitted event: %w", err)
@@ -274,6 +301,11 @@ func (j *JobEventHandler) Listening() {
 
 	for msg := range messages {
 		var envelope job.EventEnvelope
+		ctx := context.Background()
+
+		headers := AmqpHeadersCarrier{}
+		propagator := otel.GetTextMapPropagator()
+		parentCtx := propagator.Extract(ctx, &headers)
 
 		if err := json.Unmarshal(msg.Body, &envelope); err != nil {
 			log.Printf("Failed to unmarshal message: %v", err)
@@ -290,7 +322,7 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
-			err := j.HandleCreatedEvent(&event)
+			err := j.HandleCreatedEvent(&event, parentCtx)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
@@ -319,7 +351,7 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
-			err := j.GenericHandler(event)
+			err := j.GenericHandler(event, parentCtx)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
@@ -335,7 +367,7 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
-			err := j.HandleAllMsgAccepted(&event)
+			err := j.HandleAllMsgAccepted(&event, parentCtx)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
@@ -351,7 +383,7 @@ func (j *JobEventHandler) Listening() {
 				continue
 			}
 
-			err := j.HandleJobRetried(&event)
+			err := j.HandleJobRetried(&event, parentCtx)
 
 			if err != nil {
 				log.Printf("Failed to handle job retried event: %v", err)
@@ -375,7 +407,7 @@ func (j *JobEventHandler) Listening() {
 
 			event.ArrowBatches = payload["arrow_batches"].(string)
 
-			err := j.HandleSucceededEvent(&event)
+			err := j.HandleSucceededEvent(&event, parentCtx)
 
 			if err != nil {
 				log.Printf("Failed to handle event: %v", err)
