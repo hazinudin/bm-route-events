@@ -25,6 +25,7 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider, StatusCode, Status
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 
 load_dotenv(os.path.dirname(__file__) + '/.env')
@@ -170,8 +171,16 @@ class ValidationWorker:
         return check.validate()
 
     def handle_job(self, ch, methods, properties, body):
-        with tracer.start_as_current_span("handle_validation_job") as span:
+        # The headers, check if it contains the OpenTelemetry Trace ID
+        if properties.headers:
+            ctx = TraceContextTextMapPropagator().extract(carrier=properties.headers)
+        else:
+            properties.headers = {}
+            ctx = None
+        
+        with tracer.start_as_current_span("handle_validation_job", context=ctx) as span:
             try:
+                # The message body
                 job_data = json.loads(body.decode('utf-8'))
 
                 if type(job_data) is str:
@@ -198,6 +207,7 @@ class ValidationWorker:
                 else:
                     job_logger.warning(f"{data_type} is unhandled")  # Temporary, just for the lulz
                     ch.basic_ack(methods.delivery_tag)  # Acknowledged to clear the queue
+                    span.set_status(StatusCode.ERROR)
                     return
 
                 ch.basic_ack(methods.delivery_tag)
@@ -206,7 +216,7 @@ class ValidationWorker:
                     "",
                     routing_key=self.job_event_queue,
                     body=event,
-                    properties=pika.BasicProperties(delivery_mode=2)
+                    properties=pika.BasicProperties(delivery_mode=2, headers=properties.headers)
                 )
 
                 span.set_status(Status(StatusCode.OK))
