@@ -222,7 +222,7 @@ func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload]
 	return job.AsJobResponse(), nil
 }
 
-func (s *JobService) RetryJob(job_id string) error {
+func (s *JobService) RetryJob(job_id string, ctx context.Context) error {
 	current_status, err := s.GetJobStatus(job_id)
 
 	if err != nil {
