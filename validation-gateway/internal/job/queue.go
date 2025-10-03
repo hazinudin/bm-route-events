@@ -81,7 +81,13 @@ func NewJobQueueClient(url string) *JobQueue {
 //
 // 'validate' parameter will determine whether the job will be execute all validation function or simply ran through basic check and written if verified.
 // 'validate' false should be used for job which has all error messages accepted (disputed or reviewed)
-func (jq *JobQueue) PublishJob(job *job.ValidationJob, validate bool) error {
+func (jq *JobQueue) PublishJob(job *job.ValidationJob, validate bool, ctx context.Context) error {
+	headers := make(AmqpHeadersCarrier)
+
+	propagator := otel.GetTextMapPropagator()
+
+	propagator.Inject(ctx, headers)
+
 	body, err := job.AsJobMessage(validate)
 
 	if err != nil {
@@ -97,6 +103,7 @@ func (jq *JobQueue) PublishJob(job *job.ValidationJob, validate bool) error {
 			DeliveryMode: amqp.Persistent,
 			ContentType:  "application/json",
 			Body:         body,
+			Headers:      amqp.Table(headers),
 		},
 	)
 
