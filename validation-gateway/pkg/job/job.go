@@ -42,6 +42,7 @@ func (job *ValidationJob) AsJobResponse() any {
 	return out
 }
 
+// Convert the ValidationJob to validation job message to be processed by the validation worker.
 func (job *ValidationJob) AsJobMessage(validate bool) ([]byte, error) {
 	msg := make(map[string]any)
 
