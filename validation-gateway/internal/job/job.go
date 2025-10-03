@@ -240,7 +240,7 @@ func (s *JobService) RetryJob(job_id string, ctx context.Context) error {
 		},
 	}
 
-	err = s.dispatcher.PublishEvent(&event)
+	err = s.dispatcher.PublishEvent(&event, ctx)
 
 	if err != nil {
 		return fmt.Errorf("failed to publish retried event: %w", err)
