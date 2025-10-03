@@ -82,7 +82,13 @@ func (c *OutboxConnector) insertHandler(
 			log.Fatalln("failed to unmarshal event: %w", err)
 		}
 
-		err := c.dispatcher.PublishEvent(&event)
+		ctx := c.GenerateTraceContext(event.TraceID)
+		tracer := otel.Tracer("outbox-msg-handling")
+		ctx, span := tracer.Start(ctx, "all-msg-accepted-handling")
+		err := c.dispatcher.PublishEvent(&event, ctx)
+		defer span.End()
+
+		span.SetAttributes(attribute.String("job_id", event.JobID))
 
 		if err != nil {
 			log.Fatalln("failed to publish event: %w", err)
@@ -95,7 +101,13 @@ func (c *OutboxConnector) insertHandler(
 			log.Fatalln("failed to unmarshal event: %w", err)
 		}
 
-		err := c.dispatcher.PublishEvent(&event)
+		ctx := c.GenerateTraceContext(event.TraceID)
+		tracer := otel.Tracer("outbox-msg-handling")
+		ctx, span := tracer.Start(ctx, "job-created-handling")
+		err := c.dispatcher.PublishEvent(&event, ctx)
+		defer span.End()
+
+		span.SetAttributes(attribute.String("job_id", event.JobID))
 
 		if err != nil {
 			log.Fatalln("failed to publish event: %w", err)
@@ -108,7 +120,13 @@ func (c *OutboxConnector) insertHandler(
 			log.Fatalln("failed to unmarshal event: %w", err)
 		}
 
-		err := c.dispatcher.PublishEvent(&event)
+		ctx := c.GenerateTraceContext(event.TraceID)
+		tracer := otel.Tracer("outbox-msg-handling")
+		ctx, span := tracer.Start(ctx, "disputed-msg-accepted-handling")
+		err := c.dispatcher.PublishEvent(&event, ctx)
+		defer span.End()
+
+		span.SetAttributes(attribute.String("job_id", event.JobID))
 
 		if err != nil {
 			log.Fatalln("failed to publish event: %w", err)
@@ -121,7 +139,13 @@ func (c *OutboxConnector) insertHandler(
 			log.Fatalln("failed to unmarshal event: %w", err)
 		}
 
-		err := c.dispatcher.PublishEvent(&event)
+		ctx := c.GenerateTraceContext(event.TraceID)
+		tracer := otel.Tracer("outbox-msg-handling")
+		ctx, span := tracer.Start(ctx, "review-msg-accepted-handling")
+		err := c.dispatcher.PublishEvent(&event, ctx)
+		defer span.End()
+
+		span.SetAttributes(attribute.String("job_id", event.JobID))
 
 		if err != nil {
 			log.Fatalln("failed to publish event: %w", err)
