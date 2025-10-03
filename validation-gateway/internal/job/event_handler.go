@@ -306,6 +306,7 @@ func (j *JobEventHandler) Listening() {
 		headers := AmqpHeadersCarrier{}
 		propagator := otel.GetTextMapPropagator()
 		parentCtx := propagator.Extract(ctx, &headers)
+		log.Printf("headers %+v", &headers)
 
 		if err := json.Unmarshal(msg.Body, &envelope); err != nil {
 			log.Printf("Failed to unmarshal message: %v", err)
