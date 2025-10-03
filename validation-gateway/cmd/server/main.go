@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +21,10 @@ type Server struct {
 	job_service  *job.JobService
 	user_service *user.UserService
 	conf         *internal.Config
+}
+
+func httpSpanName(operation string, req *http.Request) string {
+	return fmt.Sprintf("%s %s", req.Method, req.URL.Path)
 }
 
 func main() {
@@ -75,7 +80,7 @@ func main() {
 	// Login
 	mux.HandleFunc("POST /login", server.LoginHandler)
 
-	otel_handler := otelhttp.NewHandler(mux, "api-request-handling")
+	otel_handler := otelhttp.NewHandler(mux, "", otelhttp.WithSpanNameFormatter(httpSpanName))
 
 	log.Printf("Server starting on port %s", ":8080")
 	log.Fatal(http.ListenAndServe(":8080", otel_handler))
