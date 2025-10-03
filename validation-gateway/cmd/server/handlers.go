@@ -90,6 +90,12 @@ func (s *Server) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) RetryJobHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tracer := otel.Tracer("http-request-handling")
+	ctx, span := tracer.Start(ctx, "retry-job")
+	defer span.End()
+
 	job_id := r.PathValue("job_id")
 	out := make(map[string]string)
 	out["job_id"] = job_id
@@ -101,7 +107,7 @@ func (s *Server) RetryJobHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = s.job_service.RetryJob(job_.JobID.String())
+	err = s.job_service.RetryJob(job_.JobID.String(), ctx)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
