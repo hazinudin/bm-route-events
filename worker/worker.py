@@ -104,7 +104,7 @@ class ValidationWorker:
         params = pika.ConnectionParameters(
             host=RMQ_HOST,
             port=int(RMQ_PORT),
-            heartbeat=30,
+            heartbeat=1200,
             blocked_connection_timeout=1200,
         )
 
