@@ -101,12 +101,15 @@ class ValidationWorker:
     def connect(self):
         worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
 
+        params = pika.ConnectionParameters(
+            host=RMQ_HOST,
+            port=int(RMQ_PORT),
+            heartbeat=30,
+            blocked_connection_timeout=1200,
+        )
+
         self._rmq_conn = pika.BlockingConnection(
-            pika.URLParameters(
-                self._rmq_url,
-                heartbeat=30,
-                blocked_connection_timeout=600
-            )
+            params,
         )
         
         worker_logger.info(f"connected to RabbitMQ")
