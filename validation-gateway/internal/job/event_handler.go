@@ -303,7 +303,7 @@ func (j *JobEventHandler) Listening() {
 		var envelope job.EventEnvelope
 		ctx := context.Background()
 
-		headers := AmqpHeadersCarrier{}
+		headers := AmqpHeadersCarrier(msg.Headers)
 		propagator := otel.GetTextMapPropagator()
 		parentCtx := propagator.Extract(ctx, &headers)
 		log.Printf("headers %+v", &headers)
