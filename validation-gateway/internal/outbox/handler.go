@@ -9,7 +9,28 @@ import (
 
 	"github.com/jackc/pglogrepl"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 )
+
+// Generate Trace context from known Trace ID
+func (c *OutboxConnector) GenerateTraceContext(trace_id string) context.Context {
+	traceID, err := trace.TraceIDFromHex(trace_id)
+	spanCtx := trace.NewSpanContext(trace.SpanContextConfig{
+		TraceID:    traceID,
+		TraceFlags: trace.FlagsSampled,
+		Remote:     true,
+	})
+
+	remoteSpan := trace.ContextWithRemoteSpanContext(context.Background(), spanCtx)
+
+	if err != nil {
+		log.Printf("Invalid trace ID(%s): %v", trace_id, err)
+	}
+
+	return remoteSpan
+}
 
 func (c *OutboxConnector) insertHandler(
 	logicalMsg *pglogrepl.InsertMessageV2,
