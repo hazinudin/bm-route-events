@@ -178,6 +178,7 @@ class ValidationWorker:
             properties.headers = {}
             ctx = None
         
+        worker_logger.info(f"received headers: {properties.headers}")
         with tracer.start_as_current_span("handle_validation_job", context=ctx) as span:
             try:
                 # The message body
