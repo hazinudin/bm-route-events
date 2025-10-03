@@ -104,7 +104,7 @@ class ValidationWorker:
         self._rmq_conn = pika.BlockingConnection(
             pika.URLParameters(
                 self._rmq_url,
-                heartbeat=60,
+                heartbeat=30,
                 blocked_connection_timeout=600
             )
         )
