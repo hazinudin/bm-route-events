@@ -1,11 +1,14 @@
 package job
 
 import (
+	"context"
 	"fmt"
 	"log"
+	tracer "validation-gateway/infra/tracing"
 	"validation-gateway/pkg/job"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 )
 
 type JobEventDispatcher struct {
@@ -52,7 +55,20 @@ func NewJobEventDispatcher(url string) *JobEventDispatcher {
 	}
 }
 
-func (je *JobEventDispatcher) PublishEvent(event job.JobEventInterface) error {
+func (je *JobEventDispatcher) PublishEvent(event job.JobEventInterface, ctx context.Context) error {
+	headers := make(AmqpHeadersCarrier)
+
+	propagator := otel.GetTextMapPropagator()
+
+	tracer_ := otel.Tracer("event-publishing")
+	ctx, span := tracer_.Start(ctx, "event-publishing")
+	defer span.End()
+
+	propagator.Inject(ctx, headers)
+	log.Printf("trace ID: %s", tracer.GetTraceID(ctx))
+	log.Printf("headers %+v", &headers)
+	log.Printf("traceparent injected: %v", headers["traceparent"])
+
 	body, err := event.SerializeToEnvelope()
 
 	if err != nil {
@@ -68,6 +84,7 @@ func (je *JobEventDispatcher) PublishEvent(event job.JobEventInterface) error {
 			DeliveryMode: amqp.Persistent,
 			ContentType:  "application/json",
 			Body:         body,
+			Headers:      amqp.Table(headers),
 		},
 	)
 
