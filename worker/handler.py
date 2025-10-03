@@ -15,6 +15,9 @@ from abc import ABC, abstractmethod
 from google.cloud import storage
 from google.oauth2 import service_account
 
+from opentelemetry import trace
+from opentelemetry.sdk.trace import StatusCode, Status
+
 
 # Pydantic model
 class PayloadSMD(BaseModel):
@@ -43,6 +46,8 @@ SMD_ENGINE = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{DB_HOST}:15
 MISC_ENGINE = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{DB_HOST}:1521/geodbbm")
 
 WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
+
+tracer = trace.get_tracer(__name__)
 
 
 class SMDValidationHandler(ABC):
@@ -90,26 +95,37 @@ class RNIValidation(SMDValidationHandler):
         """
         Start validation
         """
-        check = RouteRNIValidation.validate_excel(
-            excel_path=self.payload.file_name,
-            route=self.payload.routes[0],
-            survey_year=self.payload.year,
-            sql_engine=SMD_ENGINE,
-            lrs=self.get_lrs(),
-            ignore_review=self.ignore_review,
-            force_write=self.force_write
-        )
+        with tracer.start_as_current_span('rni-validation-process') as span:
+            check = RouteRNIValidation.validate_excel(
+                excel_path=self.payload.file_name,
+                route=self.payload.routes[0],
+                survey_year=self.payload.year,
+                sql_engine=SMD_ENGINE,
+                lrs=self.get_lrs(),
+                ignore_review=self.ignore_review,
+                force_write=self.force_write
+            )
 
-        if check.get_status() == 'rejected':
+            if check.get_status() == 'rejected':
+                return check._result.to_job_event(self.job_id)
+
+            if self._validate:
+                check.base_validation()
+
+            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                check.put_data(semester=self.payload.semester)
+
+            # Set span attribute and status
+            span.set_attribute("file_name", self.payload.file_name)
+            span.set_attribute("route", self.payload.routes[0])
+            span.set_attribute("validation.status", check.get_status())
+
+            if check.get_status() == 'rejected':
+                span.set_status(StatusCode.ERROR)
+            else:
+                span.set_status(StatusCode.OK)
+            
             return check._result.to_job_event(self.job_id)
-
-        if self._validate:
-            check.base_validation()
-
-        if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
-            check.put_data(semester=self.payload.semester)
-
-        return check._result.to_job_event(self.job_id)
     
 
 class IRIValidation(SMDValidationHandler):
@@ -125,27 +141,38 @@ class IRIValidation(SMDValidationHandler):
         """
         Start validation
         """
-        check = RouteRoughnessValidation.validate_excel(
-            excel_path=self.payload.file_name,
-            route=self.payload.routes[0],
-            survey_year=self.payload.year,
-            survey_semester=self.payload.semester,
-            sql_engine=SMD_ENGINE,
-            lrs=self.get_lrs(),
-            ignore_review=self.ignore_review,
-            force_write=self.force_write
-        )
+        with tracer.start_as_current_span('iri-validation-process') as span:        
+            check = RouteRoughnessValidation.validate_excel(
+                excel_path=self.payload.file_name,
+                route=self.payload.routes[0],
+                survey_year=self.payload.year,
+                survey_semester=self.payload.semester,
+                sql_engine=SMD_ENGINE,
+                lrs=self.get_lrs(),
+                ignore_review=self.ignore_review,
+                force_write=self.force_write
+            )
 
-        if check.get_status() == 'rejected':
+            if check.get_status() == 'rejected':
+                return check._result.to_job_event(self.job_id)
+
+            if self._validate:
+                check.base_validation()
+
+            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                check.put_data(semester=self.payload.semester)
+
+            # Set span attribute and status
+            span.set_attribute("file_name", self.payload.file_name)
+            span.set_attribute("route", self.payload.routes[0])
+            span.set_attribute("validation.status", check.get_status())
+
+            if check.get_status() == 'rejected':
+                span.set_status(StatusCode.ERROR)
+            else:
+                span.set_status(StatusCode.OK)
+
             return check._result.to_job_event(self.job_id)
-
-        if self._validate:
-            check.base_validation()
-
-        if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
-            check.put_data(semester=self.payload.semester)
-
-        return check._result.to_job_event(self.job_id)
     
 
 class PCIValidation(SMDValidationHandler):
@@ -161,26 +188,37 @@ class PCIValidation(SMDValidationHandler):
         """
         Start validation
         """
-        check = RoutePCIValidation.validate_excel(
-            excel_path=self.payload.file_name,
-            route=self.payload.routes[0],
-            survey_year=self.payload.year,
-            sql_engine=SMD_ENGINE,
-            lrs=self.get_lrs(),
-            ignore_review=self.ignore_review,
-            force_write=self.force_write
-        )
+        with tracer.start_as_current_span('pci-validation-process') as span:        
+            check = RoutePCIValidation.validate_excel(
+                excel_path=self.payload.file_name,
+                route=self.payload.routes[0],
+                survey_year=self.payload.year,
+                sql_engine=SMD_ENGINE,
+                lrs=self.get_lrs(),
+                ignore_review=self.ignore_review,
+                force_write=self.force_write
+            )
 
-        if check.get_status() == 'rejected':
+            if check.get_status() == 'rejected':
+                return check._result.to_job_event(self.job_id)
+
+            if self._validate:
+                check.base_validation()
+
+            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                check.put_data(semester=self.payload.semester)
+
+            # Set span attribute and status
+            span.set_attribute("file_name", self.payload.file_name)
+            span.set_attribute("route", self.payload.routes[0])
+            span.set_attribute("validation.status", check.get_status())
+
+            if check.get_status() == 'rejected':
+                span.set_status(StatusCode.ERROR)
+            else:
+                span.set_status(StatusCode.OK)
+
             return check._result.to_job_event(self.job_id)
-
-        if self._validate:
-            check.base_validation()
-
-        if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
-            check.put_data(semester=self.payload.semester)
-
-        return check._result.to_job_event(self.job_id)
 
 
 class DefectValidation(SMDValidationHandler):
@@ -199,32 +237,43 @@ class DefectValidation(SMDValidationHandler):
         """
         Start validation
         """
-        gs_client = storage.Client(credentials=self.cred)
-        
-        sp = gs.SurveyPhotoStorage(
-            gs_client=gs_client,
-            bucket_name='sidako-bucket',
-            sql_engine=SMD_ENGINE
-        )
-        check = RouteDefectsValidation.validate_excel(
-            excel_path=self.payload.file_name,
-            route=self.payload.routes[0],
-            survey_year=self.payload.year,
-            sql_engine=SMD_ENGINE,
-            lrs=self.get_lrs(),
-            ignore_review=self.ignore_review,
-            force_write=self.force_write,
-            photo_storage=sp
-        )
+        with tracer.start_as_current_span('defect-validation-process') as span:        
+            gs_client = storage.Client(credentials=self.cred)
+            
+            sp = gs.SurveyPhotoStorage(
+                gs_client=gs_client,
+                bucket_name='sidako-bucket',
+                sql_engine=SMD_ENGINE
+            )
+            check = RouteDefectsValidation.validate_excel(
+                excel_path=self.payload.file_name,
+                route=self.payload.routes[0],
+                survey_year=self.payload.year,
+                sql_engine=SMD_ENGINE,
+                lrs=self.get_lrs(),
+                ignore_review=self.ignore_review,
+                force_write=self.force_write,
+                photo_storage=sp
+            )
 
-        if check.get_status() == 'rejected':
+            if check.get_status() == 'rejected':
+                return check._result.to_job_event(self.job_id)
+
+            if self._validate:
+                check.base_validation()
+
+            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                check.put_data()
+                check.put_photos()
+
+            # Set span attribute and status
+            span.set_attribute("file_name", self.payload.file_name)
+            span.set_attribute("route", self.payload.routes[0])
+            span.set_attribute("validation.status", check.get_status())
+
+            if check.get_status() == 'rejected':
+                span.set_status(StatusCode.ERROR)
+            else:
+                span.set_status(StatusCode.OK)
+
             return check._result.to_job_event(self.job_id)
-
-        if self._validate:
-            check.base_validation()
-
-        if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
-            check.put_data()
-            check.put_photos()
-
-        return check._result.to_job_event(self.job_id)
