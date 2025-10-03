@@ -62,7 +62,7 @@ func GetTraceID(ctx context.Context) string {
 	spanCtx := trace.SpanContextFromContext(ctx)
 
 	if spanCtx.HasTraceID() {
-		return spanCtx.SpanID().String()
+		return spanCtx.TraceID().String()
 	}
 
 	return ""
