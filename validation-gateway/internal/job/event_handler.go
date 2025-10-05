@@ -67,7 +67,7 @@ func NewJobEventHandler(url string, db *infra.Database) *JobEventHandler {
 
 func (j *JobEventHandler) HandleCreatedEvent(event *job.JobCreated, ctx context.Context) error {
 	tracer := otel.Tracer("event-handling")
-	_, span := tracer.Start(ctx, "job-created-handling")
+	ctx, span := tracer.Start(ctx, "job-created-handling")
 	defer span.End()
 
 	err := j.repo.AppendEvents(event)
@@ -251,7 +251,7 @@ func (j *JobEventHandler) GenericHandler(event job.JobEventInterface, ctx contex
 
 func (j *JobEventHandler) HandleJobRetried(event *job.JobRetried, ctx context.Context) error {
 	tracer := otel.Tracer("event-handling")
-	_, span := tracer.Start(ctx, "job-retried-handling")
+	ctx, span := tracer.Start(ctx, "job-retried-handling")
 	defer span.End()
 
 	job_, err := j.repo.GetValidationJob(event.JobID)
