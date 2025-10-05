@@ -58,11 +58,16 @@ func NewTracerProvider(service_name string, ctx context.Context, conf *internal.
 }
 
 // Extract Trace ID from the trace context.
-func GetTraceID(ctx context.Context) string {
+func GetTraceParent(ctx context.Context) string {
 	spanCtx := trace.SpanContextFromContext(ctx)
 
 	if spanCtx.HasTraceID() {
-		return spanCtx.TraceID().String()
+		return fmt.Sprintf(
+			"00-%s-%s-%s",
+			spanCtx.TraceID().String(),
+			spanCtx.SpanID().String(),
+			spanCtx.TraceFlags().String(),
+		)
 	}
 
 	return ""
