@@ -11,25 +11,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/propagation"
 )
 
 // Generate Trace context from known Trace ID
-func (c *OutboxConnector) GenerateTraceContext(trace_id string) context.Context {
-	traceID, err := trace.TraceIDFromHex(trace_id)
-	spanCtx := trace.NewSpanContext(trace.SpanContextConfig{
-		TraceID:    traceID,
-		TraceFlags: trace.FlagsSampled,
-		Remote:     true,
-	})
+func (c *OutboxConnector) GenerateTraceContext(traceparent string) context.Context {
+	carrier := propagation.MapCarrier{}
+	carrier.Set("traceparent", traceparent)
 
-	remoteSpan := trace.ContextWithRemoteSpanContext(context.Background(), spanCtx)
+	propagator := propagation.TraceContext{}
+	ctx := propagator.Extract(context.Background(), carrier)
 
-	if err != nil {
-		log.Printf("Invalid trace ID(%s): %v", trace_id, err)
-	}
-
-	return remoteSpan
+	return ctx
 }
 
 func (c *OutboxConnector) insertHandler(
