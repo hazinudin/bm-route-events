@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	tracer "validation-gateway/infra/tracing"
 	"validation-gateway/pkg/job"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -65,9 +64,9 @@ func (je *JobEventDispatcher) PublishEvent(event job.JobEventInterface, ctx cont
 	defer span.End()
 
 	propagator.Inject(ctx, headers)
-	log.Printf("trace ID: %s", tracer.GetTraceID(ctx))
-	log.Printf("headers %+v", &headers)
-	log.Printf("traceparent injected: %v", headers["traceparent"])
+	// log.Printf("trace ID: %s", tracer.GetTraceParent(ctx))
+	// log.Printf("headers %+v", &headers)
+	// log.Printf("traceparent injected: %v", headers["traceparent"])
 
 	body, err := event.SerializeToEnvelope()
 
