@@ -68,7 +68,7 @@ func (r *ValidationJobRepository) InsertJob(job_ *job.ValidationJob, ctx context
 		JobEvent: job.JobEvent{
 			JobID:     job_.JobID.String(),
 			OccuredAt: time.Now().UnixMilli(),
-			TraceID:   tracer.GetTraceID(ctx),
+			TraceID:   tracer.GetTraceParent(ctx),
 		},
 		Job: job_,
 	}
