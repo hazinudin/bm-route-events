@@ -100,14 +100,25 @@ func (s *Server) RetryJobHandler(w http.ResponseWriter, r *http.Request) {
 	out := make(map[string]string)
 	out["job_id"] = job_id
 
-	job_, err := s.job_service.GetValidationJob(job_id)
+	// Otel span attribute
+	span.SetAttributes(
+		attribute.String("job_id", job_id),
+	)
+
+	// Fetch the job data just to make sure the job exists.
+	_, err := s.job_service.GetValidationJob(job_id)
 
 	if err != nil {
 		http.Error(w, "Failed to fetch job data", http.StatusBadRequest)
+		span.SetAttributes(attribute.Bool("job_exists", false))
 		return
 	}
 
-	err = s.job_service.RetryJob(job_.JobID.String(), ctx)
+	span.SetAttributes(
+		attribute.Bool("job_exists", true),
+	)
+
+	err = s.job_service.RetryJob(job_id, ctx)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
