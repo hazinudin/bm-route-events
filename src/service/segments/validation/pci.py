@@ -567,7 +567,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         if len(ldf) > 0:
             self._result.add_messages(
                 pl.concat(ldf, parallel=True).collect(),
-                'error'
+                'error',
+                'force'
             )
 
         return 
