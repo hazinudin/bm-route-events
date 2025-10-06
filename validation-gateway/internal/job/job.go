@@ -8,6 +8,7 @@ import (
 	"validation-gateway/pkg/job"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel"
 )
 
 type SMDPayload struct {
@@ -223,15 +224,19 @@ func (s *JobService) PublishINVIJValidationJob(request *JobRequest[INVIJPayload]
 }
 
 func (s *JobService) RetryJob(job_id string, ctx context.Context) error {
-	current_status, err := s.GetJobStatus(job_id)
+	tracer := otel.Tracer("service-layer")
+	ctx, span := tracer.Start(ctx, "retry-job")
+	defer span.End()
 
-	if err != nil {
-		return fmt.Errorf("failed to fetch job status: %w", err)
-	}
+	// current_status, err := s.GetJobStatus(job_id)
 
-	if (*current_status["status"].(*string) != string(job.JOB_FAILED)) && (*current_status["status"].(*string) != string(job.JOB_SUCCEEDED)) {
-		return fmt.Errorf("cannot retry job when job status is %s", current_status["status"])
-	}
+	// if err != nil {
+	// 	return fmt.Errorf("failed to fetch job status: %w", err)
+	// }
+
+	// if (*current_status["status"].(*string) != string(job.JOB_FAILED)) && (*current_status["status"].(*string) != string(job.JOB_SUCCEEDED)) {
+	// 	return fmt.Errorf("cannot retry job when job status is %s", current_status["status"])
+	// }
 
 	event := job.JobRetried{
 		JobEvent: job.JobEvent{
@@ -240,7 +245,7 @@ func (s *JobService) RetryJob(job_id string, ctx context.Context) error {
 		},
 	}
 
-	err = s.dispatcher.PublishEvent(&event, ctx)
+	err := s.dispatcher.PublishEvent(&event, ctx)
 
 	if err != nil {
 		return fmt.Errorf("failed to publish retried event: %w", err)
