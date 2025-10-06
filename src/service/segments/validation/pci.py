@@ -552,8 +552,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 ).select(
                     msg=pl.format(
                         "Segmen {}-{} {} memiliki volume kerusakan {} sebesar {}, namun data Defect memiliki volume {}.",
-                        pl.col(self._events._from_sta_col),
-                        pl.col(self._events._to_sta_col),
+                        pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                        pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
                         pl.col(self._events._lane_code_col),
                         pl.lit(dmg),
                         pl.when(pl.col(pci_col).is_null()).then(pl.lit('null')).otherwise(pl.col(pci_col)),
