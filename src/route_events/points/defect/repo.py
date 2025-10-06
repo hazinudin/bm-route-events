@@ -5,6 +5,7 @@ from .model import RouteDefects
 from ...utils import ora_pl_dtype
 import polars as pl
 from pyarrow import Table
+from datetime import datetime
 
 
 class RouteDefectsRepo(object):
@@ -88,7 +89,10 @@ class RouteDefectsRepo(object):
         """
         try:
             if not self._inspect.has_table(f"{self.table}_{year}"):
-                events.pl_df.write_database(
+                events.pl_df.with_columns(
+                    pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
+                    pl.lit(0).alias('COPIED'),
+                ).write_database(
                     f"{self.table}_{year}",
                     connection=conn,
                     engine_options={
@@ -99,7 +103,10 @@ class RouteDefectsRepo(object):
                     }
                 )
             else:
-                events.pl_df.write_database(
+                events.pl_df.with_columns(
+                    pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
+                    pl.lit(0).alias('COPIED'),
+                ).write_database(
                     f"{self.table}_{year}",
                     connection=conn,
                     if_table_exists='append'
