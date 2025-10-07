@@ -34,11 +34,12 @@ class RoutePCI(RouteSegmentEvents):
         df_str = pl.read_excel(
             excel_path,
             engine='calamine',
-            infer_schema_length=None
+            infer_schema_length=None,
+            read_options={
+                "dtypes": "string"
+            }
         ).rename(
             str.upper
-        ).cast(
-            pl.String  # Cast all values into string for Pydantic validation.
         )
 
         # Pydantic validation
