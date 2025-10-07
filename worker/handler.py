@@ -120,7 +120,7 @@ class RNIValidation(ValidationHandler):
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)
             span.set_attribute("route", self.payload.routes[0])
-            span.set_attribute("validation.status", check.get_status())
+            span.set_attribute("validation.result.status", check.get_status())
 
             span.set_status(StatusCode.OK)
             
@@ -164,7 +164,7 @@ class IRIValidation(ValidationHandler):
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)
             span.set_attribute("route", self.payload.routes[0])
-            span.set_attribute("validation.status", check.get_status())
+            span.set_attribute("validation.result.status", check.get_status())
 
             span.set_status(StatusCode.OK)
 
@@ -207,7 +207,7 @@ class PCIValidation(ValidationHandler):
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)
             span.set_attribute("route", self.payload.routes[0])
-            span.set_attribute("validation.status", check.get_status())
+            span.set_attribute("validation.result.status", check.get_status())
 
             span.set_status(StatusCode.OK)
 
@@ -262,7 +262,7 @@ class DefectValidation(ValidationHandler):
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)
             span.set_attribute("route", self.payload.routes[0])
-            span.set_attribute("validation.status", check.get_status())
+            span.set_attribute("validation.result.status", check.get_status())
 
             span.set_status(StatusCode.OK)
 
@@ -316,7 +316,7 @@ class BridgeInventoryValidation_(ValidationHandler):
             if (check.get_status() == 'verified') and WRITE_VERIFIED_DATA:
                 check.put_data()
 
-            span.set_attribute("validation.status", check.get_status())
+            span.set_attribute("validation.result.status", check.get_status())
             span.set_status(StatusCode.OK)
 
         return check._result.to_job_event(self.job_id)
