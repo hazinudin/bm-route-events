@@ -122,10 +122,7 @@ class RNIValidation(ValidationHandler):
             span.set_attribute("route", self.payload.routes[0])
             span.set_attribute("validation.status", check.get_status())
 
-            if check.get_status() == 'rejected':
-                span.set_status(StatusCode.ERROR)
-            else:
-                span.set_status(StatusCode.OK)
+            span.set_status(StatusCode.OK)
             
             return check._result.to_job_event(self.job_id)
     
@@ -169,10 +166,7 @@ class IRIValidation(ValidationHandler):
             span.set_attribute("route", self.payload.routes[0])
             span.set_attribute("validation.status", check.get_status())
 
-            if check.get_status() == 'rejected':
-                span.set_status(StatusCode.ERROR)
-            else:
-                span.set_status(StatusCode.OK)
+            span.set_status(StatusCode.OK)
 
             return check._result.to_job_event(self.job_id)
     
@@ -215,10 +209,7 @@ class PCIValidation(ValidationHandler):
             span.set_attribute("route", self.payload.routes[0])
             span.set_attribute("validation.status", check.get_status())
 
-            if check.get_status() == 'rejected':
-                span.set_status(StatusCode.ERROR)
-            else:
-                span.set_status(StatusCode.OK)
+            span.set_status(StatusCode.OK)
 
             return check._result.to_job_event(self.job_id)
 
