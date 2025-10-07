@@ -50,10 +50,10 @@ WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
 tracer = trace.get_tracer(__name__)
 
 
-class SMDValidationHandler(ABC):
+class ValidationHandler(ABC):
     def __init__(
             self,
-            payload: PayloadSMD,
+            payload: PayloadSMD | dict,
             job_id: str,
             validate: bool = True
     ):
@@ -82,14 +82,14 @@ class SMDValidationHandler(ABC):
         pass
     
 
-class RNIValidation(SMDValidationHandler):
+class RNIValidation(ValidationHandler):
     def __init__(
             self,
             payload: PayloadSMD,
             job_id: str,
             validate: bool=True
     ):
-        SMDValidationHandler.__init__(self, payload, job_id, validate)
+        ValidationHandler.__init__(self, payload, job_id, validate)
 
     def validate(self)->str:
         """
@@ -128,14 +128,14 @@ class RNIValidation(SMDValidationHandler):
             return check._result.to_job_event(self.job_id)
     
 
-class IRIValidation(SMDValidationHandler):
+class IRIValidation(ValidationHandler):
     def __init__(
             self,
             payload: PayloadSMD,
             job_id: str,
             validate: bool=True
     ):
-        SMDValidationHandler.__init__(self, payload, job_id, validate)
+        ValidationHandler.__init__(self, payload, job_id, validate)
 
     def validate(self)->str:
         """
@@ -175,14 +175,14 @@ class IRIValidation(SMDValidationHandler):
             return check._result.to_job_event(self.job_id)
     
 
-class PCIValidation(SMDValidationHandler):
+class PCIValidation(ValidationHandler):
     def __init__(
             self,
             payload: PayloadSMD,
             job_id: str,
             validate: bool=True
     ):
-        SMDValidationHandler.__init__(self, payload, job_id, validate)
+        ValidationHandler.__init__(self, payload, job_id, validate)
 
     def validate(self)->str:
         """
@@ -221,14 +221,14 @@ class PCIValidation(SMDValidationHandler):
             return check._result.to_job_event(self.job_id)
 
 
-class DefectValidation(SMDValidationHandler):
+class DefectValidation(ValidationHandler):
     def __init__(
             self,
             payload: PayloadSMD,
             job_id: str,
             validate: bool=True
     ):
-        SMDValidationHandler.__init__(self, payload, job_id, validate)
+        ValidationHandler.__init__(self, payload, job_id, validate)
 
         # Google Cloud Storage client
         self.cred = service_account.Credentials.from_service_account_file(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)

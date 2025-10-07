@@ -14,7 +14,7 @@ from handler import (
     PayloadSMD, 
     RNIValidation, 
     IRIValidation, 
-    SMDValidationHandler, 
+    ValidationHandler, 
     PCIValidation,
     DefectValidation
 )
@@ -89,7 +89,7 @@ class ValidationWorker:
         self._rmq_channel = None
         self.job_queue = "validation_queue"
         self.job_event_queue = "job_event_queue"
-        self._handler: Dict[str, SMDValidationHandler] = {}  # Empty dicitionary for handler class
+        self._handler: Dict[str, ValidationHandler] = {}  # Empty dicitionary for handler class
 
         # Create handler for SMD
         self._smd_supported_data_type = ['ROUGHNESS', 'RNI', 'PCI', 'DEFECTS']  # Please update if more handlers are added.
