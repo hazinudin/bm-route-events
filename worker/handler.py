@@ -4,7 +4,9 @@ from route_events_service import (
     RouteRNIValidation, 
     RouteRoughnessValidation, 
     RoutePCIValidation,
-    RouteDefectsValidation
+    RouteDefectsValidation,
+    BridgeInventoryValidation,
+    BridgeMasterValidation
 )
 from route_events_service.photo import gs
 from typing import List, Optional, Literal
@@ -271,9 +273,59 @@ class DefectValidation(ValidationHandler):
             span.set_attribute("route", self.payload.routes[0])
             span.set_attribute("validation.status", check.get_status())
 
-            if check.get_status() == 'rejected':
-                span.set_status(StatusCode.ERROR)
-            else:
-                span.set_status(StatusCode.OK)
+            span.set_status(StatusCode.OK)
 
             return check._result.to_job_event(self.job_id)
+        
+
+class BridgeInventoryValidation_(ValidationHandler):
+    def __init__(
+            self,
+            payload: dict,
+            job_id: str,
+            validate: bool=True
+    ):
+        ValidationHandler.__init__(self, payload, job_id, validate)
+
+    def validate(self) -> str:
+        """
+        Start validation
+        """
+        with tracer.start_as_current_span('bridge.inventory-validation-process') as span:
+            val_mode = self.payload.get('mode')
+
+            if val_mode is None:
+                span.set_status(StatusCode.ERROR)
+                raise KeyError("Input JSON does not contain 'mode'.")
+            else:
+                span.set_attribute("validation.mode", val_mode)
+            
+            check = BridgeInventoryValidation(
+                data=self.payload,
+                validation_mode=str(val_mode).upper(),
+                lrs_grpc_host=LRS_HOST,
+                sql_engine=MISC_ENGINE,
+                dev=False,
+                popup=False,
+                ignore_review=self.ignore_review,
+                ignore_force=self.force_write,
+            )
+
+            if self.validate:
+                if check.get_status() == 'rejected':
+                    span.set_attribute("validation.final_status", check.get_status())
+                    return check._result.to_job_event(self.job_id)
+
+                if check.validation_mode == 'UPDATE':
+                    check.update_check()
+
+                if check.validation_mode == 'INSERT':
+                    check.insert_check()
+            
+            if (check.get_status() == 'verified') and WRITE_VERIFIED_DATA:
+                check.put_data()
+
+            span.set_attribute("validation.status", check.get_status())
+            span.set_status(StatusCode.OK)
+
+        return check._result.to_job_event(self.job_id)
