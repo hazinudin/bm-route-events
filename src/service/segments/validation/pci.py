@@ -417,18 +417,20 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 # 21 equals to rigid
                 pl.col(self._defects._surf_type_col).eq(21).and_(
                     pl.col(self._events._seg_len_col).lt(0.1 - tolerance) |
-                    pl.col(self._events._seg_len_col).gt(0.1 - tolerance)
+                    pl.col(self._events._seg_len_col).gt(0.1 + tolerance)
                 ) |
                 # Other than 21 or not a rigid surface
                 pl.col(self._defects._surf_type_col).ne(21).and_(
                     pl.col(self._events._seg_len_col).lt(0.05 - tolerance) |
-                    pl.col(self._events._seg_len_col).gt(0.05 - tolerance)
+                    pl.col(self._events._seg_len_col).gt(0.05 + tolerance)
                 )
+            ).filter(
+                pl.col(self._events._from_sta_col).ne(self._events.max_from_sta*self._events.sta_conversion)
             ).select(
                 msg = pl.format(
-                    "Segmen {}-{} memiliki tipe perkerasan {} namun memmiliki panjang segmen {}km.",
-                    pl.col(self._events._from_sta_col),
-                    pl.col(self._events._to_sta_col),
+                    "Segmen {}-{} memiliki tipe perkerasan (defect) {} namun memmiliki panjang segmen {}km.",
+                    pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
                     pl.col(self.defects._surf_type_col),
                     pl.col(self._events._seg_len_col)
                 )
