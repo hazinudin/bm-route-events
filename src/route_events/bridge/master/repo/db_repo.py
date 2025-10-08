@@ -1,4 +1,5 @@
 from ..model import BridgeMaster
+from ..events import BridgeEvents
 import oracledb
 from polars import read_database, col, from_arrow, lit, format, DataFrame, String
 from sqlalchemy import Engine, text
@@ -18,6 +19,7 @@ class BridgeMasterRepoDB(object):
 
         # Table name
         self._table = 'MISC.NATIONAL_BRIDGE'
+        self._event_table = 'MISC.NAT_BRIDGE_EVENT_STORE'
 
     @property
     def active_date_query(self):
@@ -137,6 +139,30 @@ class BridgeMasterRepoDB(object):
             cur.execute(text(update_statement))
             cur.commit()
 
+        return
+    
+    def append_events(self, bridge: BridgeMaster):
+        """
+        Append event to the event store table.
+        """
+        insert_statement = text(
+            f"""insert into {self._event_table} (bridge_id, event_name, event) 
+            values (:id, :event_name, :event)"""
+        )
+
+        rows = [
+            {
+                "id": event.id, 
+                "event_name": event.name, 
+                "event": event.serialize()
+            } for event in bridge.get_all_events()
+        ]
+
+        with self._engine.connect() as conn:
+            for row in rows:
+                conn.execute(insert_statement, **row)
+            conn.commit()
+            
         return
 
     def update(self, bridge: BridgeMaster):
