@@ -183,12 +183,13 @@ class BridgeMasterValidation(object):
         """
         Check if bridge number is different with bridge number in repository.
         """
-        other_bridges = self._repo.get_by_bridge_id(self._bm.id)
-        other_bridge = other_bridges  # Get the first one
-
-        if other_bridge.number != self._bm.number:
+        if self._current_bm.number != self._bm.number:
             msg = "Jembatan memiliki nomor yang berbeda dengan data eksisting."
             self._result.add_message(msg, status='review', ignore_in='review')
+            
+            # Generate bridge number updated event in the other bridge
+            self._current_bm.number = self._bm.number
+            self._bm.add_events(self._current_bm.get_latest_event())
 
         return self
     
@@ -273,6 +274,10 @@ class BridgeMasterValidation(object):
         if not isclose(self._bm.length, self._current_bm.length):
             msg = f"Jembatan mengalami perubahan panjang dari {self._bm.length} ke {self._current_bm.length}."
             self._result.add_message(msg, status='review', ignore_in='review')
+
+            # Generate the event
+            self._current_bm.length = self._bm.length
+            self._bm.add_events(self._current_bm.get_latest_event())
 
         return self
     
