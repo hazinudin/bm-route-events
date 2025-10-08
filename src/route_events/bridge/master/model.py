@@ -10,7 +10,13 @@ from .repo.bridge_master_pb2 import (
     Attributes as AttributesPB , 
     Point as PointPB, Bridge as BridgePB, 
     SpatialReference as SpatialReferencePB
-    )
+)
+from .events import (
+    BridgeMasterLengthUpdated,
+    BridgeMasterNumberUpdated, 
+    BridgeEvents
+)
+from numpy import isclose
 
 
 ARCGIS_STRFTIME = '%m/%d/%Y %H:%M:%S'
@@ -50,6 +56,7 @@ class BridgeMaster(object):
         """
         Initialization accept only Pyarrow Table.
         """
+        self._events = []
         self._schema = BridgeMasterSchema()
         self.input_schema = self._schema.input_schema
 
@@ -140,6 +147,26 @@ class BridgeMaster(object):
         """
         return self.artable[self._bridge_num_col][0].as_py()
     
+    @number.setter
+    def number(self, number: str):
+        """
+        Set the bridge number.
+        """
+        old_number = self.number
+
+        if old_number != number:
+            self.artable = pl.from_arrow(self.artable).with_columns(
+                **{self._bridge_len_col: number}
+            ).to_arrow()
+
+            event = BridgeMasterNumberUpdated(
+                bridge_id=self.id,
+                old_number=old_number,
+                new_number=number
+            )
+
+            self.add_events(event)
+    
     @property
     def name(self)->str:
         """
@@ -202,6 +229,45 @@ class BridgeMaster(object):
         Return bridge length.
         """
         return float(self.artable[self._bridge_len_col][0].as_py())
+    
+    @length.setter
+    def length(self, length: float):
+        """
+        Set new length value and store length updated event.
+        """
+        old_length = self.length
+
+        # If the length is different
+        if not isclose(old_length, length):
+            self.artable = pl.from_arrow(self.artable).with_columns(
+                **{self._bridge_len_col: length}
+            ).to_arrow()
+
+            event = BridgeMasterLengthUpdated(
+                bridge_id=self.id,
+                old_length=old_length,
+                new_length=length
+            )
+
+            self.add_events(event)
+
+    def get_all_events(self) -> list:
+        """
+        Get all the events.
+        """
+        return self._events
+    
+    def get_latest_event(self) -> BridgeEvents:
+        """
+        Get the latest event in the event list.
+        """
+        return self._events[-1]  # Get the last appended event.
+    
+    def add_events(self, event: BridgeEvents):
+        """
+        Add events to the object.
+        """
+        self._events.append(event) 
     
     def as_pb(self)->BridgePB:
         """
