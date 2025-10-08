@@ -13,8 +13,8 @@ class BridgeEvents(ABC):
         return self._name
     
     @property
-    def occurred_at(self):
-        return self._occurred_at
+    def occurred_at(self) -> str:
+        return self._occurred_at.strftime("%d/%b/%Y %I:%M:0%p")
     
     @property
     def id(self) -> str:
