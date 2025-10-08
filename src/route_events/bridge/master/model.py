@@ -156,7 +156,7 @@ class BridgeMaster(object):
 
         if old_number != number:
             self.artable = pl.from_arrow(self.artable).with_columns(
-                **{self._bridge_len_col: number}
+                **{self._bridge_num_col: pl.lit(number)}
             ).to_arrow()
 
             event = BridgeMasterNumberUpdated(
