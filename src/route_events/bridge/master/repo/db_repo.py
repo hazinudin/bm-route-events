@@ -146,8 +146,8 @@ class BridgeMasterRepoDB(object):
         Append event to the event store table.
         """
         insert_statement = text(
-            f"""insert into {self._event_table} (bridge_id, event_name, event) 
-            values (:id, :event_name, :event)"""
+            f"""insert into {self._event_table} (bridge_id, event_name, event, occurred_at) 
+            values (:id, :event_name, :event, current_timestamp)"""
         )
 
         rows = [
@@ -160,9 +160,9 @@ class BridgeMasterRepoDB(object):
 
         with self._engine.connect() as conn:
             for row in rows:
-                conn.execute(insert_statement, **row)
+                conn.execute(insert_statement, row)
             conn.commit()
-            
+
         return
 
     def update(self, bridge: BridgeMaster):
