@@ -87,10 +87,12 @@ class BridgeMaster(object):
         self.ddb = duckdb.connect()
 
         # Geometry
-        self._point_4326 = Point(long=self.artable[self._lon_col][0],
-                            lat=self.artable[self._lat_col][0],
-                            wkt='EPSG:4326',
-                            ddb=self.ddb)
+        self._point_4326 = Point(
+            long=self.artable[self._lon_col][0],
+            lat=self.artable[self._lat_col][0],
+            wkt='EPSG:4326',
+            ddb=self.ddb
+        )
         
         self._point_lambert = self._point_4326.transform(LAMBERT_WKT, invert=True)
 
