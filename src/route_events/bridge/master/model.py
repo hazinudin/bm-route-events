@@ -14,7 +14,8 @@ from .repo.bridge_master_pb2 import (
 from .events import (
     BridgeMasterLengthUpdated,
     BridgeMasterNumberUpdated, 
-    BridgeEvents
+    BridgeMasterCoordinateUpdated,
+    BridgeEvents,
 )
 from numpy import isclose
 
@@ -135,6 +136,41 @@ class BridgeMaster(object):
         """
         return LAMBERT_WKT
     
+    def update_coordinate(self, lon: float, lat: float):
+        """
+        Update the coordinate longitude and latitude (in 4326 CRS).
+        """
+        old_geom = self._point_lambert
+        self.artable = pl.from_arrow(self.artable).with_columns(
+            **{
+                self._lon_col: pl.lit(lon),
+                self._lat_col: pl.lit(lat),
+            }
+        ).to_arrow()
+
+        # Update the geometry attribute using the new coordinate
+        self._point_4326 = Point(
+            long=self.artable[self._lon_col][0],
+            lat=self.artable[self._lat_col][0],
+            wkt='EPSG:4326',
+            ddb=self.ddb
+        )
+        
+        self._point_lambert = self._point_4326.transform(LAMBERT_WKT, invert=True)
+
+        # Check if the distance is not 0
+        if isclose(old_geom.distance_to(self._point_lambert), 0):
+            return 
+        
+        # Generate event
+        event = BridgeMasterCoordinateUpdated(
+            bridge_id=self.id,
+            old_geom=old_geom,
+            new_geom=self._point_lambert
+        )
+
+        self.add_events(event)
+
     @property
     def id(self)->str:
         """
