@@ -154,6 +154,10 @@ class DataValidation:
         if write and (check.get_status() == 'verified'):
             check.put_data()
 
+            # Merge and update the data
+            check.merge_master_data()
+            check.update_master_data()
+
         return check.invij_json_result(as_dict=True)
 
     @app.post('/road/rni/validation')
