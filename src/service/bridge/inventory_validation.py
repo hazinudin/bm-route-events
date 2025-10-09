@@ -1,6 +1,5 @@
-from route_events.bridge import BridgeMasterRepoDB
-from route_events.bridge.inventory import BridgeInventory
-from route_events.bridge.inventory import BridgeInventoryRepo
+from route_events.bridge import BridgeMasterRepoDB, DETAILED_STATE, POPUP_STATE
+from route_events.bridge.inventory import BridgeInventory, BridgeInventoryRepo
 from route_events.route import LRSRoute
 from pydantic import ValidationError
 
@@ -162,7 +161,7 @@ class BridgeInventoryValidation(object):
         self.has_sups_check()
 
         # Check if DETAIL inventory has substructure
-        if self._inv.inventory_state == 'DETAIL':
+        if self._inv.inventory_state == DETAILED_STATE:
             self.has_subs_check()
             self.compare_total_span_length_to_inv_length_check()
             self.master_data_distance_check()
@@ -491,6 +490,29 @@ class BridgeInventoryValidation(object):
         self._repo.put(self._inv)
 
         return self
+    
+    def update_master_data(self):
+        """
+        Update master data in the database.
+        """
+        # If there is no event then dont update.
+        if len(self._bm.get_all_events()) > 0:
+            self._bm_repo.retire(self._bm)
+            self._bm_repo.insert(self._bm)
+            self._bm_repo.append_events(self._bm)
+    
+    def merge_master_data(self):
+        """
+        Update master data attribute using the inventory data profile. The attributes currently being updated is.
+        1. Length
+        2. Location 
+        """
+        if self._inv.inventory_state == DETAILED_STATE:
+            self._bm.length = self._inv.length
+            self._bm.update_coordinate(
+                lon=self._inv.longitude,
+                lat=self._inv.latitude
+            )
     
     def invij_json_result(self, as_dict=False):
         """
