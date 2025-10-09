@@ -244,6 +244,20 @@ class BridgeInventory(object):
         return self.artable[self._bridge_id_col][0].as_py()
     
     @property
+    def latitude(self) -> float:
+        """
+        Return bridge latitude.
+        """
+        return self.artable[self._lat_col][0].as_py()
+    
+    @property
+    def longitude(self) -> float:
+        """
+        Return bridge longitude.
+        """
+        return self.artable[self._lon_col][0].as_py()
+    
+    @property
     def linkid(self)->str:
         """
         Return LINKID of the bridge.
