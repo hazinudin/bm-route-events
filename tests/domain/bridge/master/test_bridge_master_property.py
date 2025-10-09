@@ -66,3 +66,16 @@ class BridgeMasterProperty(unittest.TestCase):
         self.assertTrue(bm.number == 'CHANGED NUMBER')
         self.assertTrue(len(bm.get_all_events()) > 0)
         self.assertTrue(bm.get_all_events()[0].name == 'master.number_updated')
+
+    def test_update_coordinate(self):
+        input_dict = {'ID_JBT': '5200296', 'NO_JBT': '52.012.002.0', 'NAMA_JBT': 'TAIPA', 'LATITUDE': 0.47160299987859844, 'LONGITUDE': 119.993136, 'LINKID': '52012', 'ID_PROV': '52', 'TAHUN_BANGUN': 1999, 'PJG_TOTAL': 31.2, 'TGL_UPDATE': '25/03/2024', 'STATUS_JBT': 'N', 'MODE': 'UPDATE', 'TIPE_JBT': 'S', 'JENIS_JBT': 'FO', "CONS_STATUS": ""}
+
+        bm = BridgeMaster.from_invij(input_dict) 
+        bm.update_coordinate(
+            lat=0.5,
+            lon=120,
+        )
+
+        self.assertTrue(len(bm.get_all_events()) > 0)
+        self.assertTrue(bm.get_latest_event().name == 'master.coordinate_updated')
+        self.assertTrue(bm.get_latest_event()._dist > 0)
