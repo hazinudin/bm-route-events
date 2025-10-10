@@ -20,27 +20,31 @@ engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
 class TestRouteDefectsValidation(unittest.TestCase):
     def test_init(self):
         excel_path = "tests/domain/route_points/defect_010362.xlsx"
+        route_id = '010362'
 
         events = RouteDefects.from_excel(
             excel_path,
-            '010362',
-            data_year=2024
+            route_id,
+            data_year=2025
         )
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
-        results = ValidationResult('010362')
+        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+        results = ValidationResult(route_id)
 
         client = storage.Client()
         sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
 
         check = RouteDefectsValidation(
-            route='010362',
+            route=route_id,
             events=events,
             lrs=lrs,
             sql_engine=engine,
             results = results,
-            photo_storage=sp
+            photo_storage=sp,
+            survey_year=2025,
         )
+
+        check.base_validation()
 
         self.assertFalse(check.df_lrs_mv.is_empty())
         self.assertTrue(True)
