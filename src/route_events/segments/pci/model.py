@@ -154,7 +154,8 @@ class RoutePCI(RouteSegmentEvents):
             *[ 
                 # OLD Damage volume columns is null or equal to zero.
                 # REVISION 1: No damage is when the VOLUME = 0.
-                pl.col(f"{self._dvol}{dcol}").fill_null(-1).eq(0).alias(f"{self._dvol}{dcol}_EQ0") for dcol in self.all_damages
+                # REVISION 2: For EQ0 set the null value to 0
+                pl.col(f"{self._dvol}{dcol}").fill_null(0).eq(0).alias(f"{self._dvol}{dcol}_EQ0") for dcol in self.all_damages
             ] + [
                 # Separate for detecting Null
                 pl.col(f"{self._dvol}{dcol}").is_null().alias(f"{self._dvol}{dcol}_ISNULL") for dcol in self.all_damages
