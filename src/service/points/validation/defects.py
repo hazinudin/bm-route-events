@@ -325,6 +325,7 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         """
         Base validation function
         """
+        self.damage_severity_check()
         self.lrs_distance_check()
         self.lrs_sta_check()
         self.route_has_rni_check()
