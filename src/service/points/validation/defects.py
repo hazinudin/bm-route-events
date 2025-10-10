@@ -143,6 +143,7 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         )
 
         self._repo = RouteDefectsRepo(self._engine)
+        self._events: RouteDefects
 
         # Survey photos
         self._photos = None
@@ -280,6 +281,27 @@ class RouteDefectsValidation(RoutePointEventsValidation):
             errors,
             'review',
             'review'
+        )
+
+        return
+    
+    def damage_severity_check(self):
+        """
+        Check severity for damages registered.
+        """
+        error = self._events.invalid_severity().select(
+            msg=pl.format(
+                "Titik {} {} memiliki kerusakan {} tanpa nilai severity.",
+                pl.col(self._events._linkid_col),
+                pl.col(self._events._sta_col),
+                pl.col(self._events._lane_code_col),
+                pl.col(self._events._defects_type_col)
+            )
+        )
+
+        self._result.add_messages(
+            error,
+            "error"
         )
 
         return
