@@ -527,8 +527,15 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             return
 
         ldf = []  # For errors LazyFrame
+        excluded_dmg = [
+            "AS_OTHER_CRACK"
+        ]
 
         for dmg in self._events.all_damages:
+            # Check if the damages are excluded
+            if dmg in excluded_dmg:
+                continue
+
             pci_col = f"{self._events._dvol}{dmg}"
             rdd_col = f"VOL_RDD_{dmg}"
 
