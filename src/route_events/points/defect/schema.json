@@ -107,7 +107,8 @@
                 "R",
                 "S", 
                 "T"
-            ]
+            ], 
+            "allow_null": true
         },
         "SURVEY_DATE": {
             "dtype": "date"
