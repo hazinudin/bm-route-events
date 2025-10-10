@@ -227,8 +227,8 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         ).select(
             msg=pl.format(
                 "Tipe perkerasan pada STA {} {} tidak sama dengan data RNI",
-                pl.col(self._events._sta_col),
-                pl.col(self._events._lane_code_col)
+                pl.col(self._events._sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._lane_code_col).truediv(self._events.sta_conversion)
             )
         )
 
