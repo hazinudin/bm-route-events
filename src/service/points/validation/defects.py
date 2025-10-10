@@ -228,7 +228,7 @@ class RouteDefectsValidation(RoutePointEventsValidation):
             msg=pl.format(
                 "Tipe perkerasan pada STA {} {} tidak sama dengan data RNI",
                 pl.col(self._events._sta_col).truediv(self._events.sta_conversion),
-                pl.col(self._events._lane_code_col).truediv(self._events.sta_conversion)
+                pl.col(self._events._lane_code_col)
             )
         )
 
@@ -292,7 +292,6 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         error = self._events.invalid_severity().select(
             msg=pl.format(
                 "Titik {} {} memiliki kerusakan {} tanpa nilai severity.",
-                pl.col(self._events._linkid_col),
                 pl.col(self._events._sta_col),
                 pl.col(self._events._lane_code_col),
                 pl.col(self._events._defects_type_col)
