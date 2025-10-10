@@ -73,5 +73,22 @@ class RouteDefects(RoutePointEvents):
         self._surf_type_col = 'SURF_TYPE'
         self._defects_type_col = 'DEFECTS_TYPE'
         self._defects_dimension_col = 'DEFECTS_DIMENSION'
+        self._defects_severity_col = 'DEFECTS_SEVERITY'
+
+        # Defects type which can/should have null severity
+        self._defect_no_severity = [
+            "AS_POLISHED_AGGREGATE"
+        ]
 
         self.lane_data = True
+
+    def invalid_severity(self) -> pl.DataFrame:
+        """
+        Check the severity value, there are damages type that can and should have null damage severity.
+        """
+        error = self.pl_df.filter(
+            pl.col(self._defects_type_col).is_in(self._defect_no_severity).not_() &
+            pl.col(self._defects_severity_col).is_null()
+        )
+
+        return error
