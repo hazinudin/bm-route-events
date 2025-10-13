@@ -16,7 +16,8 @@ from handler import (
     IRIValidation, 
     ValidationHandler, 
     PCIValidation,
-    DefectValidation
+    DefectValidation,
+    BridgeInventoryValidation_
 )
 from typing import Dict
 
@@ -92,11 +93,26 @@ class ValidationWorker:
         self._handler: Dict[str, ValidationHandler] = {}  # Empty dicitionary for handler class
 
         # Create handler for SMD
-        self._smd_supported_data_type = ['ROUGHNESS', 'RNI', 'PCI', 'DEFECTS']  # Please update if more handlers are added.
+        self._smd_supported_data_type = [
+            'ROUGHNESS', 
+            'RNI', 
+            'PCI', 
+            'DEFECTS', 
+        ]  # Please update if more handlers are added.
+
+        self._invij_supported_data_type = [
+            'INVENTORY',
+            'POPUP_INVENTORY',
+        ]  # Please update if more handlers are added.
+        
+        # Road
         self._handler['RNI'] = RNIValidation
         self._handler['ROUGHNESS'] = IRIValidation
         self._handler['PCI'] = PCIValidation
         self._handler['DEFECTS'] = DefectValidation
+        
+        # Bridge
+        self._handler['INVENTORY'] = BridgeInventoryValidation_
 
     def connect(self):
         worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
@@ -176,6 +192,20 @@ class ValidationWorker:
         self.publish_executed_event(job_id)
 
         return check.validate()
+    
+    def invij_validate(self, data_type: str, payload: dict, job_id: str, validate: bool=True)->str:
+        """
+        INVIJ validation handler
+        """
+        check = self._handler[data_type](
+            payload,
+            job_id,
+            validate
+        )
+
+        self.publish_executed_event(job_id)
+
+        return check.validate()
 
     def handle_job(self, ch, methods, properties, body):
         # The headers, check if it contains the OpenTelemetry Trace ID
@@ -212,6 +242,13 @@ class ValidationWorker:
                     job_logger.info(f"processing {data_type} validation, validate: {validate}")
                     event = self.smd_validate(data_type, payload, job_id, validate)
                     job_logger.info(f"finished executing {data_type} validation.")
+
+                elif data_type in self._invij_supported_data_type:
+                    payload = json.loads(payload_str)
+                    job_logger.info(f"processing {data_type} validation, validate: {validate}")
+                    event = self.invij_validate(data_type, payload, job_id, validate)
+                    job_logger.info(f"finished executing {data_type} validation.")
+                
                 else:
                     job_logger.warning(f"{data_type} is unhandled")  # Temporary, just for the lulz
                     ch.basic_ack(methods.delivery_tag)  # Acknowledged to clear the queue
