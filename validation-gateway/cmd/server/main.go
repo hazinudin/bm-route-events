@@ -24,7 +24,7 @@ type Server struct {
 }
 
 func httpSpanName(operation string, req *http.Request) string {
-	return fmt.Sprintf("%s %s", req.Method, req.URL.Path)
+	return fmt.Sprintf("%s %s", req.Method, req.Pattern)
 }
 
 func main() {
