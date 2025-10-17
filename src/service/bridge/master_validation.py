@@ -153,9 +153,9 @@ class BridgeMasterValidation(object):
         """
         Execute all check related to the bridge number.
         """
-        if self.validation_mode == 'INSERT':
-            self.bridge_num_already_exists(exclude_self=False)
-        elif self.validation_mode == 'UPDATE':
+        self.bridge_num_already_exists(exclude_self=False)
+ 
+        if self.validation_mode == 'UPDATE':
             self.bridge_num_already_exists(exclude_self=True)
             self.bridge_num_is_different()
 
