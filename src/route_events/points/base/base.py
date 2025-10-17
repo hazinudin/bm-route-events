@@ -23,6 +23,7 @@ class RoutePointEvents(object):
         self._long_col = 'STA_LONG'
         self._year_col = 'SURVEY_YEAR'
         self._semester_col = 'SEMESTER'
+        self._surv_date_col = 'SURVEY_DATE'
 
         # Units
         self._sta_unit = sta_unit
