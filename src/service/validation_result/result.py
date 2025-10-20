@@ -38,11 +38,14 @@ class ValidationResult(object):
         """
         return cls(bridge_id=id)
     
-    def get_all_messages(self)->pl.DataFrame:
+    def get_all_messages(self, drop_duplicate: bool=True)->pl.DataFrame:
         """
         Return all messages in Polars DataFrame.
         """
-        return self._msg.df
+        if drop_duplicate:
+            return self._msg.df.unique(subset=['id', 'status_idx', 'msg'])
+        else:
+            return self._msg.df
 
     @property
     def message_count(self) -> int:
