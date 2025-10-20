@@ -20,6 +20,16 @@ class TestValidationResult(unittest.TestCase):
 
         self.assertTrue(type(result.get_all_messages()) == pl.DataFrame)
         self.assertTrue(result.status == 'rejected')
+
+        # Test for duplicated messages
+        result = ValidationResult('1234')
+        msg = "Duplicated message"
+
+        for i in range(10):
+            result.add_message(msg, "error")
+
+        self.assertTrue(len(result.get_all_messages()) == 1)
+        self.assertTrue(len(result.get_all_messages(drop_duplicate=False)) == 10)
     
     def test_all_messages_empty(self):
         """
