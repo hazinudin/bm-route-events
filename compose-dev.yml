@@ -141,7 +141,7 @@ services:
     ports:
       - "50051:50052"
     networks:
-      - backend
+      - backend-dev
     env_file:
       - dev.env
 
