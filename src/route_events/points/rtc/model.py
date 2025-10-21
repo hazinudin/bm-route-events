@@ -84,8 +84,8 @@ class RouteRTC(RoutePointEvents):
         self._timestamp_col = '_timestamp'
 
         # Default columns
-        self._hour_col: str =''
-        self._min_col: str=''
+        self._hour_col: str = 'SURVEY_HOURS'
+        self._min_col: str= 'SURVEY_MINUTE'
 
     @property
     def df_with_timestamp(self) -> pl.DataFrame:
@@ -98,9 +98,10 @@ class RouteRTC(RoutePointEvents):
                     year=pl.col(self._surv_date_col).dt.year(),
                     month=pl.col(self._surv_date_col).dt.month(),
                     day=pl.col(self._surv_date_col).dt.day(),
-                    hour=pl.col(self._hour_col),
-                    minute=pl.col(self._min_col),
-                    second=pl.lit(0),
+                ).dt.offset_by(
+                    pl.format("{}h", pl.col(self._hour_col))
+                ).dt.offset_by(
+                    pl.format("{}m", pl.col(self._min_col))
                 )
             }
         )
