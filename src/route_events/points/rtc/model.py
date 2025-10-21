@@ -99,9 +99,9 @@ class RouteRTC(RoutePointEvents):
                     month=pl.col(self._surv_date_col).dt.month(),
                     day=pl.col(self._surv_date_col).dt.day(),
                 ).dt.offset_by(
-                    pl.format("{}h", pl.col(self._hour_col))
+                    pl.format("{}h", pl.col(self._hour_col)) # Add hours to offset
                 ).dt.offset_by(
-                    pl.format("{}m", pl.col(self._min_col))
+                    pl.format("{}m", pl.col(self._min_col)) # Add minutes to offset
                 )
             }
         )
