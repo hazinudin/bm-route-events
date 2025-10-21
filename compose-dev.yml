@@ -136,7 +136,7 @@ services:
 
   lrs_service:
     image: hazinuddin/lrs_service:1.0
-    container_name: lrs_service
+    container_name: lrs_service-dev
     restart: always
     ports:
       - "50051:50052"
