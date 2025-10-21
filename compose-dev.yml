@@ -1,0 +1,161 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-dev
+    ports:
+      - "5430:5432"
+    networks:
+      - backend-dev
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - dev.env
+    command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=10
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq-dev
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    ports:
+      - "5671:5672"
+      - "15671:15672"
+    networks:
+      - backend-dev
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  migrate:
+    build:
+      context: validation-gateway/infra/migration
+      dockerfile: Dockerfile
+    networks:
+      - backend-dev
+    command: >
+      -path /migrations
+      -database postgres://postgres:$POSTGRES_PASSWORD@postgres:5432/postgres?sslmode=disable
+      up
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  eventlistener:
+    build:
+      context: validation-gateway
+      dockerfile: cmd/eventlistener/Dockerfile
+    container_name: eventlistener_service-dev
+    restart: always
+    depends_on:
+      server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - backend-dev
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "eventlistener"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - validation-gateway/cmd/eventlistener/.env
+
+  outbox_connector:
+    build:
+      context: validation-gateway
+      dockerfile: cmd/outbox/Dockerfile
+    container_name: outbox_connector-dev
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks:
+      - backend-dev
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "eventlistener"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - validation-gateway/cmd/outbox/docker.env
+
+  server:
+    build:
+      context: validation-gateway
+      dockerfile: cmd/server/Dockerfile
+    restart: always
+    container_name: server_service-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    networks:
+      - backend-dev
+    healthcheck:
+      test: ["CMD", "pgrep", "-f", "server"]
+    env_file:
+      - validation-gateway/cmd/server/docker.env
+
+  workers:
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
+    volumes:
+      - "${EXCEL_FILES_DIRECTORY}:/app/data"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      eventlistener:
+        condition: service_healthy
+      server:
+        condition: service_healthy
+    networks:
+      - backend-dev
+    env_file:
+      - worker/docker_dev.env
+    deploy:
+      mode: replicated
+      replicas: ${VALIDATION_WORKER_REPLICA}
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-dev
+    ports:
+      - "16685:16686"  # Jaeger UI
+      - "4319:4317"  # Jaeger gRPC Collector port (used by OTel Collector)
+    networks:
+      - backend-dev
+
+  otel-collector:
+      image: otel/opentelemetry-collector-contrib:latest
+      container_name: otel-collector-dev
+      command: ["--config=/etc/otelcol/config.yaml"]
+      volumes:
+        - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
+      ports:
+        - "4315:4317"  # OTLP gRPC endpoint (Worker sends data here)
+      depends_on:
+        - jaeger
+      networks:
+        - backend-dev
+
+networks:
+  backend-dev:
+    driver: bridge
