@@ -160,20 +160,6 @@
         },
         "SURV_TOOL_ID": {
             "dtype": "integer"
-        },
-        "INTERVENSI": {
-            "dtype": "integer",
-            "domain": [
-                0,
-                1
-            ],
-            "optional": true,
-            "default": 0
-        },
-        "DETIL_IVR": {
-            "dtype": "string",
-            "optional": true,
-            "allow_null": true
         }
     }
 }
