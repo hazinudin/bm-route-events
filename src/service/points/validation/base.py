@@ -102,7 +102,7 @@ class RoutePointEventsValidation(object):
         Check every points nearest distance to LRS geometry, if the distance exceeds the threshold (in meters).
         Then an error message will be created.
         """
-        if self._events.lane_data:
+        if self._events.has_sta() and self._events.lane_data:
             format_args = [
                 "Titik {} {} pada ruas {} berjarak lebih dari {}m dari geometri LRS, yaitu {}m",
                 pl.col(self._events._sta_col),
@@ -111,13 +111,19 @@ class RoutePointEventsValidation(object):
                 pl.lit(threshold),
                 pl.col('dist')
             ]
-        else:
+        elif self._events.has_sta():
             format_args = [
                 "Titik {} pada ruas {} berjarak lebih dari {}m dari geometri LRS, yaitu {}m",
                 pl.col(self._events._sta_col),
                 pl.col(self._events._linkid_col),
                 pl.lit(threshold),
                 pl.col('dist')
+            ]
+        elif not self._events.has_sta():
+            format_args = [
+                "Titik pada ruas {} berjarak lebih dari {}m dari geometri LRS.",
+                pl.col(self._events._linkid_col),
+                pl.lit(threshold),
             ]
 
         errors = self.df_lrs_mv.filter(
