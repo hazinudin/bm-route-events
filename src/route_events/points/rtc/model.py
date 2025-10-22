@@ -140,13 +140,7 @@ class RouteRTC(RoutePointEvents):
             invalids.append(invalid)
 
         return pl.concat(invalids).collect()
-    
-    def invalid_timestamp(self):
-        """
-        Find rows with invalid timestamp.
-        """
-        return
-    
+        
     def survey_duration(self) -> int:
         """
         Get the duration of the surveys in minutes.
