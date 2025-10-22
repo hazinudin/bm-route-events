@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 
 
 load_dotenv('tests/dev.env')
-HOST = os.getenv('DB_HOST')
+HOST = os.getenv('GDB_HOST')
 USER = os.getenv('SMD_USER')
 PWD = os.getenv('SMD_PWD')
 
@@ -84,3 +84,17 @@ class TestRouteRTC(unittest.TestCase):
         duration = events.survey_duration()
 
         self.assertTrue(duration == 7)
+
+
+from src.route_events.points.rtc.repo import RouteRTCRepo
+
+class TestRouteRTCRepo(unittest.TestCase):
+    def test_get_by_linkid(self):
+        route_id = '01001'
+        year = 2024
+
+        repo = RouteRTCRepo(sql_engine=engine)
+        events = repo.get_by_linkid(linkid=route_id, year=year)
+
+        self.assertTrue(True)
+        self.assertFalse(events.pl_df.is_empty())
