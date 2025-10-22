@@ -13,7 +13,9 @@ from .segments import (
 from .points import(
     RoutePointEvents,
     RouteDefects,
-    RouteDefectsRepo
+    RouteDefectsRepo,
+    RouteRTC,
+    RouteRTCRepo,
 )
 from .route import LRSRoute
 from .photo import SurveyPhoto
