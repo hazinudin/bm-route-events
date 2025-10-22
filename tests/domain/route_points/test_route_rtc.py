@@ -85,6 +85,16 @@ class TestRouteRTC(unittest.TestCase):
 
         self.assertTrue(duration == 7)
 
+    def test_has_sta(self):
+        excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
+        route_id = "22040"
+
+        events = RouteRTC.from_excel(
+            excel_path=excel_path,
+            linkid=route_id,
+        )
+        
+        self.assertFalse(events.has_sta())
 
 from src.route_events.points.rtc.repo import RouteRTCRepo
 
