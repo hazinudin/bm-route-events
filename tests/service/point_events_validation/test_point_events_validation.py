@@ -4,6 +4,7 @@ import os
 from sqlalchemy import create_engine
 from route_events import RouteDefects, LRSRoute
 from src.service.points.validation.defects import RouteDefectsValidation
+from src.service.points.validation.rtc import RouteRTCValidation, RouteRTC
 from src.service.validation_result.result import ValidationResult
 from src.service.photo import gs
 from google.cloud import storage
@@ -18,6 +19,64 @@ SERVICE_ACCOUNT_JSON = os.getenv('SERVICE_ACCOUNT_JSON')
 
 engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
 cred = service_account.Credentials.from_service_account_file('tests/' + SERVICE_ACCOUNT_JSON)
+
+
+class TestRouteRTCValidation(unittest.TestCase):
+    def test_init(self):
+        excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
+        route_id = "22040"
+
+        events = RouteRTC.from_excel(
+            excel_path=excel_path,
+            linkid=route_id,
+        )
+        
+        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+        results = ValidationResult(route_id)
+
+        check = RouteRTCValidation(
+            route=route_id,
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results,
+            survey_year=2025,
+        )
+
+        self.assertTrue(True)
+
+    def test_read_excel(self):
+        excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
+        route_id = "22040"
+
+        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+
+        check = RouteRTCValidation.validate_excel(
+            excel_path=excel_path,
+            route=route_id,
+            survey_year=2025,
+            sql_engine=engine,
+            lrs=lrs,
+        )
+
+        self.assertTrue(True)
+
+    def test_base_validation(self):
+        excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
+        route_id = "22040"
+
+        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+
+        check = RouteRTCValidation.validate_excel(
+            excel_path=excel_path,
+            route=route_id,
+            survey_year=2025,
+            sql_engine=engine,
+            lrs=lrs,
+        )
+        check.base_validation()
+
+        self.assertTrue(True)
 
 
 class TestRouteDefectsValidation(unittest.TestCase):
