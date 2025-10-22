@@ -151,4 +151,8 @@ class RouteRTC(RoutePointEvents):
         """
         Get the duration of the surveys in minutes.
         """
-        return
+        start_timestamp = self.df_with_timestamp[self._timestamp_col].min().timestamp()
+        end_timestamp = self.df_with_timestamp[self._timestamp_col].max().timestamp()
+        duration_days = (end_timestamp-start_timestamp)/60/60/24
+
+        return round(duration_days)
