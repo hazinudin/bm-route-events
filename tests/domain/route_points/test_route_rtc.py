@@ -71,3 +71,16 @@ class TestRouteRTC(unittest.TestCase):
         
         self.assertTrue(len(dirs) == 2)
         self.assertTrue('O' in dirs)
+
+    def test_survey_duration(self):
+        excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
+        route_id = "22040"
+
+        events = RouteRTC.from_excel(
+            excel_path=excel_path,
+            linkid=route_id,
+        )
+
+        duration = events.survey_duration()
+
+        self.assertTrue(duration == 7)
