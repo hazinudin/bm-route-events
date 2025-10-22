@@ -7,6 +7,7 @@ from .segments import (
     RoutePCIValidation
 )
 from .points import (
-    RouteDefectsValidation
+    RouteDefectsValidation,
+    RouteRTCValidation
 )
 from .segments import Kemantapan
