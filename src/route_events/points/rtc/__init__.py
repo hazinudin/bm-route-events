@@ -12,3 +12,4 @@ from .model import (
     VEH7C_COL, 
     VEH8_COL,
 )
+from .repo import RouteRTCRepo
