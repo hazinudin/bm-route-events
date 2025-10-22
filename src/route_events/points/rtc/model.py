@@ -77,7 +77,7 @@ class RouteRTC(RoutePointEvents):
         )
     
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(sta_unit=None, *args, **kwargs)
 
         # Traffic data is not lane based data
         self.lane_data = False
@@ -87,6 +87,8 @@ class RouteRTC(RoutePointEvents):
         self._hour_col: str = 'SURVEY_HOURS'
         self._min_col: str= 'SURVEY_MINUTE'
         self._surv_dir_col: str = 'SURVEY_DIREC'
+        self._lat_col: str = 'RTC_LAT'
+        self._long_col: str = 'RTC_LONG'
 
     def get_all_survey_directions(self) -> list[str]:
         """
