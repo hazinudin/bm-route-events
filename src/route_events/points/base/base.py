@@ -110,6 +110,11 @@ class RoutePointEvents(object):
                 self._lane_code_col
             ]
 
+        # Check if the events has STA or not.
+        if not self.has_sta():
+            selection.remove(self._sta_col)
+            ids_column.remove(self._sta_col)
+
         if self._points_4326 is None:
             self._points_4326 = Points(
                 self.pl_df.select(selection),
