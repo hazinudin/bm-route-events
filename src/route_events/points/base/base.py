@@ -40,6 +40,15 @@ class RoutePointEvents(object):
         self._points_4326 = None
         self._points_lambert = None
 
+    def has_sta(self) -> bool:
+        """
+        Return True if the event data has STA, otherwise False.
+        """
+        if self._sta_unit is None:
+            return False
+        else:
+            return True
+
     @property
     def route_id(self) -> str:
         """
