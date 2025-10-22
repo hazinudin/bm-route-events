@@ -53,6 +53,21 @@ class TestRouteRTC(unittest.TestCase):
             linkid=route_id,
         )
 
-        events.invalid_interval()
+        result = events.invalid_interval()
 
-        self.assertTrue(True)
+        self.assertTrue(type(result) is pl.DataFrame)
+        self.assertTrue(result.is_empty())
+
+    def test_get_all_survey_directions(self):
+        excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
+        route_id = "22040"
+
+        events = RouteRTC.from_excel(
+            excel_path=excel_path,
+            linkid=route_id,
+        )
+
+        dirs = events.get_all_survey_directions()
+        
+        self.assertTrue(len(dirs) == 2)
+        self.assertTrue('O' in dirs)
