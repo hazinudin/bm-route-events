@@ -113,11 +113,33 @@ class RouteRTC(RoutePointEvents):
             }
         )
         
-    def invalid_interval(self, interval:int=15):
+    def invalid_interval(self, interval:int=15) -> pl.DataFrame:
         """
         Find rows with invalid survey interval, the default survey interval is 15min
         """
-        return
+        invalids: list[pl.LazyFrame] = []
+
+        for direction in self.get_all_survey_directions():
+            invalid = self.df_with_timestamp.lazy().filter(
+                pl.col(self._surv_dir_col).eq(direction)
+            ).select(
+                self._surv_date_col,
+                self._hour_col,
+                self._min_col,
+                self._timestamp_col,
+                timedelta=pl.col(self._timestamp_col).dt.timestamp("ms")
+            ).sort(
+                pl.col(self._timestamp_col)
+            ).with_columns(
+                timedelta=pl.col('timedelta').diff()
+            ).filter(
+                pl.col('timedelta').ne(interval*60000) &
+                pl.col('timedelta').is_not_null()
+            )
+
+            invalids.append(invalid)
+
+        return pl.concat(invalids).collect()
     
     def invalid_timestamp(self):
         """
