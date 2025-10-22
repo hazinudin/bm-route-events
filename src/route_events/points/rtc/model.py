@@ -86,6 +86,13 @@ class RouteRTC(RoutePointEvents):
         # Default columns
         self._hour_col: str = 'SURVEY_HOURS'
         self._min_col: str= 'SURVEY_MINUTE'
+        self._surv_dir_col: str = 'SURVEY_DIREC'
+
+    def get_all_survey_directions(self) -> list[str]:
+        """
+        Get all the survey directions.
+        """
+        return self.pl_df[self._surv_dir_col].unique().to_list()
 
     @property
     def df_with_timestamp(self) -> pl.DataFrame:
