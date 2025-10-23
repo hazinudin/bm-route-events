@@ -146,6 +146,7 @@ class RouteRTCValidation(RoutePointEventsValidation):
         Base validation function.
         """
         self.invalid_interval_check()
+        self.invalid_survey_duration()
         self.lrs_distance_check()
         self.route_has_rni_check()
 
@@ -165,5 +166,16 @@ class RouteRTCValidation(RoutePointEventsValidation):
         )
 
         self._result.add_messages(msg, 'error')
+
+        return
+    
+    def invalid_survey_duration(self):
+        """
+        Check if the RTC survey duration is at least 3 days.
+        """
+        if self._events.survey_duration() < 3:
+            msg = "Durasi survey kurang dari 3 hari."
+
+            self._result.add_message(msg, "error")
 
         return
