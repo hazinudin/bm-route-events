@@ -179,3 +179,31 @@ class RouteRTCValidation(RoutePointEventsValidation):
             self._result.add_message(msg, "error")
 
         return
+    
+    def lane_width_check(self):
+        """
+        Make sure if the lane width is less than 2.5m, then there should be no VEH7C.
+        """
+        nearest = self.rni.points_lambert.nearest(
+            self._events.points_lambert.first()
+        )
+
+        # Fetch the lane width from the nearest segment.
+        lane_width = self.rni.pl_df.join(
+            nearest,
+            on=[
+                self.rni._linkid_col,
+                self.rni._from_sta_col,
+                self.rni._to_sta_col,
+            ]
+        )[self.rni._lane_width_col].min()
+
+        if lane_width <= 2.5 and (not self._events.pl_df[VEH7C_COL].eq(0).all()):
+            msg = "Survey dilakukan pada segmen dengan lebar kurang dari 2.5m, namun memiliki nilai tipe kendaraan 7C."
+            self._result.add_message(
+                msg,
+                "error",
+                "force"
+            )
+            
+        return
