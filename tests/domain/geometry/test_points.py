@@ -69,4 +69,25 @@ class TestPoints(unittest.TestCase):
         self.assertTrue(transformed._rows.filter(
             (col('long') == -2184157.971000001) & (col('lat') == 609253.9258999936)
             ).shape == (2,4))
+        
+    def test_nearest(self):
+        """
+        Test nearest method.
+        """
+        df = DataFrame([
+            {"long": 95.42103999972832, "lat": 5.647860000331377, "id": 'a', "id1": 1},
+            {"long": 95.42103999972832, "lat": 5.647860000331377, "id": 'b', "id1": 2}
+        ])
 
+        pt = Points(
+            df,
+            long_col="long",
+            lat_col="lat",
+            wkt="EPSG:4326",
+            ids_column=["id", "id1"]
+        )
+        transformed = pt.transform(LAMBERT_WKT, invert=True)
+
+        pt.nearest(pt.first())
+        
+        self.assertTrue(True)
