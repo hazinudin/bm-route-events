@@ -92,7 +92,7 @@ class Point(object):
         if type(other_point) != Point:
             raise TypeError("Only accepts Point type object.")
         
-        distance_query = f"""select ST_Distance(ST_Point({other_point.Y}, {other_point.X}), {self._pt_col}) as dist from {self._pt}"""
+        distance_query = f"""select ST_Distance(ST_Point({other_point.Y}, {other_point.X}), {self._pt_col}) as dist, * from {self._pt}"""
         distance = self.dconn.sql(distance_query)
 
         return distance
@@ -136,6 +136,18 @@ class Points(Point):
             )
             """
         )
+
+    def first(self) -> Point:
+        """
+        Fetch the first row as Point object.
+        """
+        return Point(
+            self._rows[self.X][0],
+            self._rows[self.Y][0],
+            self.origin_wkt,
+            self.dconn,
+        )
+
         
     def h3_indexed(self, resolution: int, index_only=False) -> pl.DataFrame:
         """
@@ -190,6 +202,13 @@ class Points(Point):
         Calculate distance to other Point geometry object. Return distance in meters.
         """
         return self._calculate_distance(other_point)
+    
+    def nearest(self, other_point: Point):
+        """
+        Find nearest row from ```other_point```.
+        """
+        row = self._calculate_distance(other_point).pl().sort('dist').head(1)
+        return row
     
     def create_buffer(self):
         raise AttributeError("Method 'create_buffer' not available.")
