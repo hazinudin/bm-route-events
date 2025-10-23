@@ -125,6 +125,8 @@ class RouteRTC(RoutePointEvents):
             invalid = self.df_with_timestamp.lazy().filter(
                 pl.col(self._surv_dir_col).eq(direction)
             ).select(
+                self._linkid_col,
+                self._surv_dir_col,
                 self._surv_date_col,
                 self._hour_col,
                 self._min_col,
