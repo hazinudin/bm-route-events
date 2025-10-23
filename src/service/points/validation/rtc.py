@@ -5,6 +5,7 @@ from route_events import (
     RouteRTC,
     LRSRoute,
 )
+from route_events.points.rtc import VEH7C_COL
 from ..analysis import segments_points_join
 from sqlalchemy import Engine
 from typing import List
@@ -145,6 +146,7 @@ class RouteRTCValidation(RoutePointEventsValidation):
         """
         Base validation function.
         """
+        self.lane_width_check()
         self.invalid_interval_check()
         self.invalid_survey_duration()
         self.lrs_distance_check()
