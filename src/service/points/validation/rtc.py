@@ -145,5 +145,25 @@ class RouteRTCValidation(RoutePointEventsValidation):
         """
         Base validation function.
         """
+        self.invalid_interval_check()
         self.lrs_distance_check()
         self.route_has_rni_check()
+
+    def invalid_interval_check(self):
+        """
+        Check for rows with invalid interval from the previous survey timestamp.
+        """
+        interval = 15  # Interval in minutes
+
+        msg = self._events.invalid_interval(interval=interval).select(
+            pl.format(
+                "Data survey pada {} arah {} tidak berjarak {} menit dari input sebelumnya.",
+                pl.col(self._events._timestamp_col),
+                pl.col(self._events._surv_dir_col),
+                pl.lit(interval)
+            )
+        )
+
+        self._result.add_messages(msg, 'error')
+
+        return
