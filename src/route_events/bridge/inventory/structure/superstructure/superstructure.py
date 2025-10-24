@@ -407,3 +407,9 @@ class Superstructure(object):
         )
 
         return total
+    
+    def min_width(self) -> float:
+        """
+        Find the minimum value of span width.
+        """
+        return self.span_width()['total_width'].min()
