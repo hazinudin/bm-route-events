@@ -151,7 +151,7 @@ class BridgeInventoryValidation(object):
         Check if the inventory data has substructure data.
         """
         if self._inv.subs is None:
-            self._result.add_message('Jembatan tidak memiliki data bangunan bawah.', 'error')
+            self._result.add_message('Jembatan tidak memiliki data bangunan bawah.', 'error', 'force')
     
     def base_check(self):
         """
