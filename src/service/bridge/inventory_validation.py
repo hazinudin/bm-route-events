@@ -163,13 +163,13 @@ class BridgeInventoryValidation(object):
         # Check if DETAIL inventory has substructure
         if self._inv.inventory_state == DETAILED_STATE:
             self.has_subs_check()
-            self.compare_total_span_length_to_inv_length_check()
             self.master_data_distance_check()
             self.lrs_distance_check()
     
         if self.get_status() == 'error':
             return
         
+        self.compare_total_span_length_to_inv_length_check()
         self.main_span_structure_type_check()
         self.main_span_num_check()
         self.span_num_unique_check()
