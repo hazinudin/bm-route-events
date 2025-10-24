@@ -17,6 +17,7 @@
 	"lokasi_km": 0,
 	"tahun_bangun": 2025,
 	"jml_bentang": 2,
+	"no_jbt": "ABC",
 	"bangunan_atas": [
 		{
 			"no_btg": 1,
