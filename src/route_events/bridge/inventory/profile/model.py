@@ -152,6 +152,7 @@ class BridgeInventory(object):
         self._lat_col = 'LATITUDE'
         self._lon_col = 'LONGITUDE'
         self._span_col = 'MAIN_SPAN_TYPE'
+        self._width_col = 'BRIDGE_WIDTH'
 
         self.artable = inv_data
         self._sups = None
@@ -291,6 +292,13 @@ class BridgeInventory(object):
         Return the bridge number.
         """
         return str(self.artable[self._bridge_num_col][0].as_py())
+
+    @property
+    def width(self)->float:
+        """
+        Return the bridge width.
+        """
+        return float(self.artable[self._width_col][0].as_py())
     
     @property
     def pl_df(self):
