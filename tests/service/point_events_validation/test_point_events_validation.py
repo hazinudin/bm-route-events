@@ -7,14 +7,17 @@ from src.service.points.validation.defects import RouteDefectsValidation
 from src.service.validation_result.result import ValidationResult
 from src.service.photo import gs
 from google.cloud import storage
+from google.oauth2 import service_account
 
 
 load_dotenv('tests/dev.env')
-HOST = os.getenv('DB_HOST')
+HOST = os.getenv('GDB_HOST')
 USER = os.getenv('SMD_USER')
 PWD = os.getenv('SMD_PWD')
+SERVICE_ACCOUNT_JSON = os.getenv('SERVICE_ACCOUNT_JSON')
 
 engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
+cred = service_account.Credentials.from_service_account_file('tests/' + SERVICE_ACCOUNT_JSON)
 
 
 class TestRouteDefectsValidation(unittest.TestCase):
@@ -61,7 +64,7 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
         results = ValidationResult('010362')
 
-        client = storage.Client()
+        client = storage.Client(credentials=cred)
         sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
 
         check = RouteDefectsValidation(
