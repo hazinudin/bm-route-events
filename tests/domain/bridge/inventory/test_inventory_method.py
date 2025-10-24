@@ -71,3 +71,7 @@ class TestBridgeInventoryMethod(unittest.TestCase):
         self.assertTrue(type(types) is list)
         self.assertTrue(len(types) > 0)
         self.assertTrue(type(types[0]) is str)
+
+    def test_width(self):
+        inv = BridgeInventory.from_invij(input_dict)
+        self.addTypeEqualityFunc(float, inv.width)
