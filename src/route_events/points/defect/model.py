@@ -1,6 +1,7 @@
 from ..base import RoutePointEvents
 import os
 from ...schema import RouteEventsSchema
+from ...segments.rni import surface_types
 import polars as pl
 from pydantic import TypeAdapter
 from typing import List
@@ -82,6 +83,9 @@ class RouteDefects(RoutePointEvents):
 
         self.lane_data = True
 
+        # Surface types mapping for types in data
+        self._surf_types_map = None
+
     def invalid_severity(self) -> pl.DataFrame:
         """
         Check the severity value, there are damages type that can and should have null damage severity.
@@ -92,3 +96,25 @@ class RouteDefects(RoutePointEvents):
         )
 
         return error
+
+    @property
+    def surface_type_mapping(self) -> pl.DataFrame:
+        """
+        Return surface types mapping and other properties for available surfaces in this model.
+        """
+        if self._surf_types_map is None:
+            self._surf_types_map = pl.DataFrame(surface_types).cast({
+                'iri_kemantapan': pl.Array(shape=(3,), inner=pl.Int16),
+                'pci_kemantapan': pl.Array(shape=(3,), inner=pl.Int16),
+                'iri_rating': pl.Array(shape=(4,), inner=pl.Int16),
+                'pci_rating': pl.Array(shape=(4,), inner=pl.Int16)
+            }).filter(
+                pl.col('surf_type').is_in(
+                    self.pl_df[self._surf_type_col].unique()
+                )
+            )
+            return self._surf_types_map
+        
+        else:
+            return self._surf_types_map
+
