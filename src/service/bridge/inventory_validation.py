@@ -504,11 +504,12 @@ class BridgeInventoryValidation(object):
         1. Length
         2. Location 
         """
-        self._bm.length = self._inv.length
-        self._bm.update_coordinate(
-            lon=self._inv.longitude,
-            lat=self._inv.latitude
-        )
+        if self._inv.inventory_state == DETAILED_STATE:
+            self._bm.length = self._inv.length
+            self._bm.update_coordinate(
+                lon=self._inv.longitude,
+                lat=self._inv.latitude
+            )
     
     def invij_json_result(self, as_dict=False):
         """
