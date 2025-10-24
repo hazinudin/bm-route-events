@@ -323,8 +323,9 @@ class BridgeInventoryValidation(object):
         total_main_span_len = self._inv.total_span_length('utama')
 
         if (not bool(isclose(total_main_span_len, self._inv.length))):
-            if self._inv.length > total_main_span_len:
+            if (self._inv.length > total_main_span_len) and ((self._inv.length - total_main_span_len) > 1):
                 # If there is difference between main span total length and inventory bridge length and main span length > inventory length.
+                # The difference is at least 1m to be notified.
                 msg = f"Total panjang bentang utama ({total_main_span_len}m) tidak sama dengan panjang data inventori ({self._inv.length}m). Perlu ditinjau ulang."
                 self._result.add_message(msg, 'review', 'review')
             else:
