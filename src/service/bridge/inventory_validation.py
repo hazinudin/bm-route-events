@@ -167,6 +167,7 @@ class BridgeInventoryValidation(object):
             self.lrs_distance_check()
 
         self.compare_total_span_length_to_inv_length_check()
+        self.compare_total_span_length_to_inv_length_check()
         self.main_span_structure_type_check()
         self.main_span_num_check()
         self.span_num_unique_check()
