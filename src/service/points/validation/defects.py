@@ -213,6 +213,11 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         else:
             suffix = ''
 
+        # All available surface type mapping from the defect and RNI
+        surf_types = pl.concat(
+            [self._events.surface_type_mapping, self.rni.surface_types_mapping]
+        ).unique('surf_type').select(['surf_type', 'category'])
+
         errors = segments_points_join(
             segments=self.rni,
             points=self._events,
@@ -220,15 +225,26 @@ class RouteDefectsValidation(RoutePointEventsValidation):
             point_select=[self._events._surf_type_col],
             segment_select=[self.rni._surf_type_col],
             suffix='_r'
+        ).join(
+            surf_types,
+            left_on=self._events._surf_type_col,
+            right_on='surf_type',
+        ).join(
+            surf_types,
+            left_on=self.rni._surf_type_col+suffix,
+            right_on='surf_type',
+            suffix=suffix
         ).filter(
-            pl.col(self._events._surf_type_col).ne(
-                pl.col(self.rni._surf_type_col+suffix)
+            pl.col('category').ne(
+                pl.col('category'+suffix)
             )
         ).select(
             msg=pl.format(
-                "Tipe perkerasan pada STA {} {} tidak sama dengan data RNI",
+                "Tipe perkerasan pada STA {} {} tidak sama dengan data RNI, yaitu {} sedangkan data RNI {}",
                 pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64),
-                pl.col(self._events._lane_code_col)
+                pl.col(self._events._lane_code_col),
+                pl.col('category'),
+                pl.col('category'+suffix)
             )
         )
 
