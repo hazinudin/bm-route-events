@@ -118,8 +118,11 @@ class Superstructure(object):
         self._span_seq_col = 'SPAN_SEQ'
         self._span_len_col = 'SPAN_LENGTH'
         self._span_struct_col = 'SUPERSTRUCTURE'
-        self._span_width_col = 'FLOOR_WIDTH'
+        self._floor_width_col = 'FLOOR_WIDTH'
         self._span_sidew_col = 'SIDEWALK_WIDTH'
+        self._shwidth_col = 'OUT_SHWIDTH'
+        self._medwidth_col = 'LBR_MEDIAN'
+        self._drainage_width = 'DITCH_WIDTH'
 
         # Data
         self.artable = data
@@ -379,3 +382,28 @@ class Superstructure(object):
             self._span_num_col
             ]
             )
+    
+    def span_width(self) -> pl.DataFrame:
+        """
+        Calculate total span width
+        """
+        total = self.pl_df.select(
+            self._span_type_col,
+            self._span_num_col,
+            self._span_seq_col,
+            total_width = pl.col(self._floor_width_col).add(
+                pl.col('L_'+self._span_sidew_col).fill_null(0)
+            ).add(
+                pl.col('R_'+self._span_sidew_col).fill_null(0)
+            ).add(
+                pl.col('L_'+self._drainage_width).fill_null(0)
+            ).add(
+                pl.col('R_'+self._drainage_width).fill_null(0)
+            ).add(
+                pl.col('L_'+self._shwidth_col).fill_null(0)
+            ).add(
+                pl.col('R_'+self._shwidth_col).fill_null(0)
+            )
+        )
+
+        return total
