@@ -166,6 +166,7 @@ class BridgeInventoryValidation(object):
             self.master_data_distance_check()
             self.lrs_distance_check()
             self.compare_total_span_length_to_inv_length_check()
+            self.span_width_check()
 
         self.main_span_structure_type_check()
         self.main_span_num_check()
@@ -480,6 +481,17 @@ class BridgeInventoryValidation(object):
             self._result.add_message(msg, 'error', 'force')
 
         return self
+    
+    def span_width_check(self):
+        """
+        The bridge width should match the narrowest span width.
+        """
+        span_width = self._inv.sups.min_width()
+        bridge_width = self._inv.width
+
+        if not isclose(span_width, bridge_width):
+            msg = f"Lebar jembatan tidak cocok dengan lebar bentang paling sempit, yaitu {bridge_width}m sedangkan lebar bentang paling sempit adalah {bridge_width}m"
+            self._result.add_message(msg, 'error', 'force')
     
     def put_data(self):
         """
