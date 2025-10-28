@@ -12,6 +12,7 @@ from typing import Optional, Literal, List
 from logger import setup_logger, get_job_logger
 from handler import (
     PayloadSMD, 
+    RTCValidation,
     RNIValidation, 
     IRIValidation, 
     ValidationHandler, 
@@ -98,6 +99,7 @@ class ValidationWorker:
             'RNI', 
             'PCI', 
             'DEFECTS', 
+            'RTC',
         ]  # Please update if more handlers are added.
 
         self._invij_supported_data_type = [
@@ -110,6 +112,7 @@ class ValidationWorker:
         self._handler['ROUGHNESS'] = IRIValidation
         self._handler['PCI'] = PCIValidation
         self._handler['DEFECTS'] = DefectValidation
+        self._handler['RTC'] = RTCValidation
         
         # Bridge
         self._handler['INVENTORY'] = BridgeInventoryValidation_
