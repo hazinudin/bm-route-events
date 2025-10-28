@@ -546,7 +546,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 msg = f"Data PCI memiliki kerusakan {dmg} namun tidak pada data defects."
                 self._result.add_message(
                     msg,
-                    'error'
+                    'error',
+                    'force'
                 )
 
             elif rdd_col in pivot.columns:
