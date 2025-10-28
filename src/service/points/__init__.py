@@ -1,1 +1,1 @@
-from .validation import RouteDefectsValidation
+from .validation import RouteDefectsValidation, RouteRTCValidation
