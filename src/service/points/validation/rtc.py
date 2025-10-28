@@ -209,3 +209,9 @@ class RouteRTCValidation(RoutePointEventsValidation):
             )
             
         return
+    
+    def put_data(self):
+        """
+        Put the RouteRTC data to database.
+        """
+        self._repo.put(self._events, self._survey_year)
