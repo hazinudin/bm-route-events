@@ -6,6 +6,7 @@ from route_events_service import (
     RoutePCIValidation,
     RouteDefectsValidation,
     BridgeInventoryValidation,
+    RouteRTCValidation,
     BridgeMasterValidation
 )
 from route_events_service.photo import gs
@@ -210,6 +211,47 @@ class PCIValidation(ValidationHandler):
             span.set_attribute("validation.result.status", check.get_status())
 
             span.set_status(StatusCode.OK)
+
+            return check._result.to_job_event(self.job_id)
+
+
+class RTCValidation(ValidationHandler):
+    def __init__(
+            self,
+            payload: PayloadSMD,
+            job_id: str,
+            validate: bool=True
+    ):
+        ValidationHandler.__init__(self, payload, job_id, validate)
+
+    def validate(self)->str:
+        """
+        Start validation.
+        """
+        with tracer.start_as_current_span('rtc-validation-process') as span:
+            check = RouteRTCValidation.validate_excel(
+                excel_path=self.payload.file_name,
+                route=self.payload.routes[0],
+                survey_year=self.payload.year,
+                sql_engine=SMD_ENGINE,
+                lrs=self.get_lrs(),
+                ignore_review=self.ignore_review,
+                force_write=self.force_write
+            )
+
+            if check.get_status() == 'rejected':
+                return check._result.to_job_event(self.job_id)
+            
+            if self._validate:
+                check.base_validation()
+
+            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                check.put_data()
+            
+            ## Set span attributes and status
+            span.set_attribute('file_name', self.payload.file_name)
+            span.set_attribute('route', self.payload.routes[0])
+            span.set_attribute('validation.result.status', check.get_status())
 
             return check._result.to_job_event(self.job_id)
 
