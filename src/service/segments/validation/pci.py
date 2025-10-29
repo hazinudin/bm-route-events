@@ -598,5 +598,4 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         self.has_defect_data_check()
         
         self.defect_surf_type_segment_length_check()
-        self.defects_point_check()
-
+        # self.defects_point_check()
