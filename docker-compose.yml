@@ -15,7 +15,7 @@ services:
       - .env
     command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=10
     volumes:
-      - "${POSTGRES_VOLUME}:var/lib/postgresql/data"
+      - "${POSTGRES_VOLUME}:/var/lib/postgresql/data"
 
   rabbitmq:
     image: rabbitmq:management
@@ -172,3 +172,7 @@ services:
 networks:
   backend:
     driver: bridge
+
+volumes:
+  "${POSTGRES_VOLUME}":  # Mount the existing docker volume
+    external: true
