@@ -14,6 +14,8 @@ services:
     env_file:
       - .env
     command: postgres -c wal_level=logical -c max_replication_slots=5 -c max_wal_senders=10
+    volumes:
+      - "${POSTGRES_VOLUME}:var/lib/postgresql/data"
 
   rabbitmq:
     image: rabbitmq:management
