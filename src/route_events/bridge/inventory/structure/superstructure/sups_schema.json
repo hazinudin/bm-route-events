@@ -71,7 +71,13 @@
         },
         "LBR_LANTAI_KEND": {
             "dtype": "double",
-            "db_col": "FLOOR_WIDTH"
+            "db_col": "FLOOR_WIDTH",
+            "range": {
+                "upper": 0,
+                "lower": 100,
+                "eq_lower": false,
+                "eq_upper": false
+            }
         },
         "LBR_TROTOAR_KANAN": {
             "dtype": "double",
