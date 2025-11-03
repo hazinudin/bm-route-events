@@ -49,6 +49,10 @@
             },
             "db_col": "BRIDGE_LENGTH"
         },
+        "LBR_JEMBATAN": {
+            "dtype": "double",
+            "db_col": "BRIDGE_WIDTH"
+        },
         "TIPE_BA_UTAMA": {
             "dtype": "string",
             "db_col": "MAIN_SPAN_TYPE"
