@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from sqlalchemy import create_engine
 from google.cloud import storage
 from google.oauth2 import service_account
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 from route_events_service import (
     BridgeMasterValidation,
     BridgeInventoryValidation,
@@ -24,8 +24,16 @@ init(address='auto')
 
 app = FastAPI()
 
+class BridgeValidationParams(BaseModel):
+    validate_length: Optional[bool] = Field(default=False, validation_alias="length.validate")
+    validate_width: Optional[bool] = Field(default=False, validation_alias="width.validate")
+
+class BridgeValidationPayloadFormat(BaseModel):
+    model_config = ConfigDict(extra='allow')
+    validation_params: Optional[BridgeValidationParams] = BridgeValidationParams()
+
 class BridgeValidationPayload(BaseModel):
-    input_json: dict
+    input_json: BridgeValidationPayloadFormat
 
 class _Payload(BaseModel):
     file_name: str
@@ -128,6 +136,15 @@ class DataValidation:
         else:
             ignore_review = False
 
+        # For popup the params depends on the payload
+        if popup:
+            validate_length = payload.input_json.validation_params.validate_length
+            validate_width = payload.input_json.validation_params.validate_width
+        # For regular inventory the validation is always True
+        else:
+            validate_length = True
+            validate_width = True
+
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
         
@@ -149,7 +166,10 @@ class DataValidation:
             check.update_check()
 
         if check.validation_mode == 'INSERT':
-            check.insert_check()
+            check.insert_check(
+                validate_length=validate_length,
+                validate_width=validate_width
+            )
         
         if write and (check.get_status() == 'verified'):
             check.put_data()
