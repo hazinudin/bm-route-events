@@ -171,10 +171,12 @@ class BridgeInventoryValidation(object):
             self.lrs_distance_check()
             self.compare_total_span_length_to_inv_length_check()
             self.span_width_check()
+            self.compare_length_to_master_data_check()
         
         if (self._inv.inventory_state == POPUP_STATE) and validate_length:
             self.compare_total_span_length_to_inv_length_check()
-
+            self.compare_length_to_master_data_check()
+    
         if (self._inv.inventory_state == POPUP_STATE) and validate_width:
             self.span_width_check()
 
@@ -183,7 +185,6 @@ class BridgeInventoryValidation(object):
         self.span_num_unique_check()
         self.other_span_num_exist_in_main_span_check()
         self.span_seq_check()
-        self.compare_length_to_master_data_check()
         self.master_data_bridge_number_comparison()
 
         # Only execute if input data has substructure
