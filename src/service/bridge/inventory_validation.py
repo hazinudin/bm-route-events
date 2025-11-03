@@ -153,7 +153,11 @@ class BridgeInventoryValidation(object):
         if self._inv.subs is None:
             self._result.add_message('Jembatan tidak memiliki data bangunan bawah.', 'error', 'force')
     
-    def base_check(self):
+    def base_check(
+            self, 
+            validate_length:bool=True, 
+            validate_width:bool=True
+        ):
         """
         Base validation function.
         """
@@ -166,6 +170,12 @@ class BridgeInventoryValidation(object):
             self.master_data_distance_check()
             self.lrs_distance_check()
             self.compare_total_span_length_to_inv_length_check()
+            self.span_width_check()
+        
+        if (self._inv.inventory_state == POPUP_STATE) and validate_length:
+            self.compare_total_span_length_to_inv_length_check()
+
+        if (self._inv.inventory_state == POPUP_STATE) and validate_width:
             self.span_width_check()
 
         self.main_span_structure_type_check()
@@ -208,14 +218,17 @@ class BridgeInventoryValidation(object):
 
         return
     
-    def insert_check(self):
+    def insert_check(self, validate_length:bool=True, validate_width:bool=True):
         """
         Insert check.
         """
         self.previous_data_exists_check(should_exists=False)
 
         if self.get_status != 'error':
-            self.base_check()
+            self.base_check(
+                validate_length=validate_length,
+                validate_length=validate_width
+            )
     
         return
     
