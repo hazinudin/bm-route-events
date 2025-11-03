@@ -537,6 +537,8 @@ class BridgeInventoryValidation(object):
                 lon=self._inv.longitude,
                 lat=self._inv.latitude
             )
+        elif self._inv.inventory_state == POPUP_STATE:
+            self._bm.length = self._inv.length
     
     def invij_json_result(self, as_dict=False):
         """
