@@ -1,0 +1,1 @@
+drop index in exists smd_job_route_idx;
