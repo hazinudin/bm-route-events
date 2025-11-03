@@ -334,8 +334,11 @@ class BridgeInventoryValidation(object):
     def compare_total_span_length_to_inv_length_check(self):
         """
         Compare inventory total span length data (main span) with inventory total length data.
+        If the main superstructure type (first letter) is ```'A', 'B', 'W', or 'Y'```, then the main span total length could be equal to the bridge length.
         """
         total_main_span_len = self._inv.total_span_length('utama')
+        culvert_types = ['A', 'B', 'W', 'Y']
+        main_span_type = self._inv.span_type[0]  # Only use the first letter
 
         if (not bool(isclose(total_main_span_len, self._inv.length))):
             if (self._inv.length > total_main_span_len) and ((self._inv.length - total_main_span_len) > 1):
@@ -346,7 +349,7 @@ class BridgeInventoryValidation(object):
             else:
                 msg = f"Total panjang bentang utama ({total_main_span_len}m) lebih panjang dari panjang data inventory ({self._inv.length}m)."
                 self._result.add_message(msg, "error")
-        else:
+        elif main_span_type not in culvert_types:
             # If main span total length is equal to inventory bridge length, then raise error message
             msg = f"Total panjang bentang utama ({total_main_span_len}m) sama dengan panjang data inventori ({self._inv.length}m)."
             self._result.add_message(msg, 'error', 'force')
