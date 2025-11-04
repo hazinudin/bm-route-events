@@ -124,9 +124,9 @@ class DataValidation:
         popup: bool = False,
         write: bool = False
     ):
-        val_mode = payload.input_json.get('mode')
+        val_mode = payload.input_json.model_dump().get('mode')
 
-        if "force" in payload.input_json.get("val_history"):
+        if "force" in payload.input_json.model_dump().get("val_history"):
             ignore_force = True
         else:
             ignore_force = False
