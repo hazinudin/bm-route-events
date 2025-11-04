@@ -228,7 +228,7 @@ class BridgeInventoryValidation(object):
         if self.get_status != 'error':
             self.base_check(
                 validate_length=validate_length,
-                validate_length=validate_width
+                validate_width=validate_width
             )
     
         return
