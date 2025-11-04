@@ -131,7 +131,7 @@ class DataValidation:
         else:
             ignore_force = False
         
-        if "review" in payload.input_json.get("val_history"):
+        if "review" in payload.input_json.model_dump().get("val_history"):
             ignore_review = True
         else:
             ignore_review = False
