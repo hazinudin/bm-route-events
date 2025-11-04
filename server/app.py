@@ -86,7 +86,7 @@ class DataValidation:
         else:
             ignore_force = False
         
-        if "review" in payload.input_json.get("val_history"):
+        if "review" in payload.input_json.model_dump().get("val_history"):
             ignore_review = True
         else:
             ignore_review = False
@@ -95,7 +95,7 @@ class DataValidation:
             return {"status": "Input JSON tidak memiliki MODE"}
         
         check = BridgeMasterValidation(
-            data=payload.input_json,
+            data=payload.input_json.model_dump(),
             validation_mode=val_mode.upper(),
             lrs_grpc_host=self.lrs_host,
             sql_engine=self.misc_engine,
@@ -149,7 +149,7 @@ class DataValidation:
             return {"status": "Input JSON tidak memiliki MODE"}
         
         check = BridgeInventoryValidation(
-            data=payload.input_json,
+            data=payload.input_json.model_dump(),
             lrs_grpc_host=self.lrs_host,
             validation_mode=val_mode.upper(),
             sql_engine=self.misc_engine,
