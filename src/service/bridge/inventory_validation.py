@@ -507,7 +507,7 @@ class BridgeInventoryValidation(object):
         bridge_width = self._inv.width
 
         if not isclose(span_width, bridge_width):
-            msg = f"Lebar jembatan tidak cocok dengan lebar bentang paling sempit, yaitu {bridge_width}m sedangkan lebar bentang paling sempit adalah {bridge_width}m"
+            msg = f"Lebar jembatan tidak cocok dengan lebar bentang paling sempit, yaitu {bridge_width}m sedangkan lebar bentang paling sempit adalah {span_width}m"
             self._result.add_message(msg, 'error', 'force')
     
     def put_data(self):
