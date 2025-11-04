@@ -150,7 +150,7 @@ class Substructure(object):
         Check if the substructure number is monotonic for every span type and sequence.
         """
         results = self.pl_df.group_by(
-            [self._span_type_col, self._span_seq_col]
+            [self._span_type_col, self._span_seq_col, self._abt_status_col]
         ).agg(
             pl.col(self._abt_num_col).
             sort().
@@ -172,7 +172,7 @@ class Substructure(object):
         Check if the subs number is unique from all span/seq
         """
         results = self.pl_df.group_by(
-            [self._span_type_col, self._span_seq_col]
+            [self._span_type_col, self._span_seq_col, self._abt_status_col]
         ).agg(
             is_unique = pl.col(self._abt_num_col).n_unique() == 
             pl.col(self._abt_num_col).count()
