@@ -30,7 +30,7 @@ class BridgeValidationParams(BaseModel):
 
 class BridgeValidationPayloadFormat(BaseModel):
     model_config = ConfigDict(extra='allow')
-    validation_params: Optional[BridgeValidationParams] = BridgeValidationParams()
+    validation_params: Optional[BridgeValidationParams] = Field(default=BridgeValidationParams(), exclude=True)
 
 class BridgeValidationPayload(BaseModel):
     input_json: BridgeValidationPayloadFormat
