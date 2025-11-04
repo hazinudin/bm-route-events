@@ -25,8 +25,8 @@ init(address='auto')
 app = FastAPI()
 
 class BridgeValidationParams(BaseModel):
-    validate_length: Optional[bool] = Field(default=False, validation_alias="length.validate")
-    validate_width: Optional[bool] = Field(default=False, validation_alias="width.validate")
+    validate_length: Optional[bool] = Field(default=False, validation_alias="length_validate")
+    validate_width: Optional[bool] = Field(default=False, validation_alias="width_validate")
 
 class BridgeValidationPayloadFormat(BaseModel):
     model_config = ConfigDict(extra='allow')
