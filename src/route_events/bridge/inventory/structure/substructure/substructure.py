@@ -195,7 +195,7 @@ class Substructure(object):
         results = self.pl_df.group_by(
             [self._span_type_col, self._span_seq_col]
         ).agg(
-            pl.col(self._abt_num_col).n_unique()
+            pl.col(self._abt_num_col).len()
         ).to_dicts()
 
         out_dict = {}
