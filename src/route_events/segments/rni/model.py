@@ -522,7 +522,7 @@ class RouteRNI(RouteSegmentEvents):
                     pl.col('lane_width_sum').add(width_delta).lt(pl.col('surface_width'))
                 ) |
                 (
-                    pl.col('lane_width_sum').gt(pl.col('surface_width'))
+                    pl.col('lane_width_sum').gt(pl.col('surface_width').add(0.005))  # Add tolerance
                 )
             ) |
             pl.col('has_median').and_(
@@ -530,13 +530,13 @@ class RouteRNI(RouteSegmentEvents):
                     pl.col('r_lane_width_sum').add(width_delta).lt(pl.col('r_surf_width'))
                 ) |
                 (
-                    pl.col('r_lane_width_sum').gt(pl.col('r_surf_width'))
+                    pl.col('r_lane_width_sum').gt(pl.col('r_surf_width').add(0.05))
                 ) |
                 (
                     pl.col('l_lane_width_sum').add(width_delta).lt(pl.col('l_surf_width'))
                 ) |
                 (
-                    pl.col('l_lane_width_sum').gt(pl.col('l_surf_width'))
+                    pl.col('l_lane_width_sum').gt(pl.col('l_surf_width').add(0.05))
                 )
             )
         )
