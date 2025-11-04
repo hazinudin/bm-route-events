@@ -117,7 +117,9 @@ class BridgeInventory(object):
             INVENTORY_STATE: str = DETAILED_STATE # The data state
             VAL_HISTORY: List
 
-        data = json.loads(json.dumps(data).upper().replace("NULL", "null"))  # Upper case model
+        data = json.loads(
+            json.dumps(data).upper().replace("NULL", "null").replace("TRUE", "true").replace("FALSE", "false")
+        )  # Upper case model
 
         # Pydantic validation start
         invij_model = InvModel.model_validate(data)  # Load as a model
