@@ -18,7 +18,8 @@ from handler import (
     ValidationHandler, 
     PCIValidation,
     DefectValidation,
-    BridgeInventoryValidation_
+    BridgeInventoryValidation_,
+    BridgeValidationPayloadFormat
 )
 from typing import Dict
 
@@ -247,7 +248,7 @@ class ValidationWorker:
                     job_logger.info(f"finished executing {data_type} validation.")
 
                 elif data_type in self._invij_supported_data_type:
-                    payload = json.loads(payload_str)
+                    payload = BridgeValidationPayloadFormat.model_validate_json(payload_str)
                     job_logger.info(f"processing {data_type} validation, validate: {validate}")
                     event = self.invij_validate(data_type, payload, job_id, validate)
                     job_logger.info(f"finished executing {data_type} validation.")
