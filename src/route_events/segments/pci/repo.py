@@ -56,8 +56,11 @@ class RoutePCIRepo(object):
             data_year=year
         )
 
-        pci.sta_unit = 'km'  # Default is kilometers
-
+        if year <= 2024:
+            pci.sta_unit = 'km'  # Default is kilometers
+        else:
+            pci.sta_unit = 'dm'
+            
         if year <= 2024:  # From 2024 and before that, default segment is 100m
             pci.segment_length = 0.1
         else:  # Starting from 2025, default segment is 50m

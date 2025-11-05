@@ -53,7 +53,10 @@ class RouteRoughnessRepo(object):
             data_semester=semester
         )
 
-        obj.sta_unit = 'km'
+        if year <= 2024:
+            obj.sta_unit = 'km'
+        else:
+            obj.sta_unit = 'dm'
 
         return obj
 
