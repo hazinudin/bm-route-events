@@ -163,11 +163,15 @@ class RoutePCI(RouteSegmentEvents):
         ).filter(
             pl.all_horizontal(
                 *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
-            ).not_().and_(pl.col(self._pci_col).eq(self._pci_max)) 
+            ).not_().and_(
+                pl.col(self._pci_col).eq(self._pci_max).or_(pl.col(self._pci_col).eq(-1))
+            ) 
             |
             pl.all_horizontal(
                 *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
-            ).and_(pl.col(self._pci_col).ne(self._pci_max))
+            ).and_(
+                pl.col(self._pci_col).ne(self._pci_max).and_(pl.col(self._pci_col).ne(-1))
+            )
             |
             pl.all_horizontal(
                 *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
