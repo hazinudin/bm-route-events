@@ -160,7 +160,7 @@ class IRIValidation(ValidationHandler):
                 check.base_validation()
 
             if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
-                check.put_data(semester=self.payload.semester)
+                check.put_data()
 
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)
