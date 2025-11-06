@@ -153,7 +153,8 @@ class BridgeMasterValidation(object):
         """
         Execute all check related to the bridge number.
         """
-        self.bridge_num_already_exists(exclude_self=False)
+        if self.validation_mode == 'INSERT':
+            self.bridge_num_already_exists(exclude_self=False)
  
         if self.validation_mode == 'UPDATE':
             self.bridge_num_already_exists(exclude_self=True)
