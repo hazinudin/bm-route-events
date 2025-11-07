@@ -254,6 +254,13 @@ func (s *Server) GetJobStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler for fetching the job result.
 func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	tracer := otel.Tracer("http-handling")
+	_, span := tracer.Start(ctx, "publish-invij-job-handler")
+	defer span.End()
+
+	valid_format := []string{"smd", "invij"}
 	job_id := r.PathValue("job_id")
 	query_param := r.URL.Query()
 
@@ -263,6 +270,16 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 	// Failed to parse the get_msg, revert to the default value
 	if err != nil {
 		get_msg = false
+	}
+
+	msg_format := query_param.Get("msg_format")
+
+	span.SetAttributes(attribute.String("query.msg_format", msg_format))
+	span.SetAttributes(attribute.Bool("query.get_msg", get_msg))
+
+	// Default message format is SMD
+	if msg_format == "" || !slices.Contains(valid_format, msg_format) {
+		msg_format = "smd"
 	}
 
 	resp, err := s.job_service.GetLatestJobResult(job_id)
@@ -293,14 +310,17 @@ func (s *Server) GetJobResultHandler(w http.ResponseWriter, r *http.Request) {
 		resp.AddMessages(messages)
 	}
 
-	smd_resp, err := resp.ToSMDResponse()
-
-	if err != nil {
-		http.Error(w, "Error when encoding result to SMD format", http.StatusInternalServerError)
+	// Set the response format based on the URL params
+	switch msg_format {
+	case "smd":
+		final_resp := resp.ToSMDResponse()
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(final_resp)
+	case "invij":
+		final_resp := resp.ToINVIJResponse()
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(final_resp)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(smd_resp)
 }
 
 // Handler for fetching the job result messages.
