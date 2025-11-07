@@ -32,6 +32,17 @@ type validationJobResultSMD struct {
 	Messages         []*ValidationJobResultMessageSMD `json:"messages"`
 }
 
+// Validation job result, in INVIJ format
+type validationJobResultINVIJ struct {
+	JobID            string                           `json:"job_id"`
+	Status           ResultStatus                     `json:"status"`
+	MessageCount     int                              `json:"msg_count"`
+	AllMessageStatus []string                         `json:"all_msg_status"`
+	Ignorables       []string                         `json:"ignorables"`
+	AttemptID        int                              `json:"attempt_id"`
+	Messages         *ValidationJobResultMessageINVIJ `json:"messages"`
+}
+
 // Validation job result, contains the results and final status of the finished job.
 type ValidationJobResult struct {
 	JobID            string       `json:"job_id"`
@@ -69,7 +80,7 @@ func (j *ValidationJobResult) AddMessages(messages []ValidationJobResultMessage)
 	j.messages = messages
 }
 
-func (j *ValidationJobResult) ToSMDResponse() (*validationJobResultSMD, error) {
+func (j *ValidationJobResult) ToSMDResponse() *validationJobResultSMD {
 	var smd_messages []*ValidationJobResultMessageSMD
 
 	for _, msg := range j.messages {
@@ -90,7 +101,52 @@ func (j *ValidationJobResult) ToSMDResponse() (*validationJobResultSMD, error) {
 		out.Messages = smd_messages
 	}
 
-	return &out, nil
+	return &out
+}
+
+func (j *ValidationJobResult) ToINVIJResponse() *validationJobResultINVIJ {
+	var invij_msg ValidationJobResultMessageINVIJ
+	var general_msgs []string
+	status := "unverified"
+
+	if j.Status == REJECTED_STATUS {
+		invij_msg.Status = status
+		invij_msg.General = make(map[string]any)
+		invij_msg.General["status"] = "error"
+
+		for _, msg := range j.messages {
+			general_msgs = append(general_msgs, msg.Message)
+		}
+
+		invij_msg.General["error"] = general_msgs
+	} else {
+		invij_msg.Status = string(j.Status)
+		invij_msg.General = make(map[string]any)
+		invij_msg.General["status"] = "verified"
+		invij_msg.General["error"] = general_msgs
+
+		for _, msg := range j.messages {
+			if msg.MessageStatus == string(ERROR_STATUS) {
+				invij_msg.Errors = append(invij_msg.Errors, msg.Message)
+			}
+
+			if msg.MessageStatus == string(REVIEW_STATUS) {
+				invij_msg.Reviews = append(invij_msg.Reviews, msg.Message)
+			}
+		}
+	}
+
+	out := validationJobResultINVIJ{
+		JobID:            j.JobID,
+		Status:           j.Status,
+		MessageCount:     j.MessageCount,
+		AllMessageStatus: j.AllMessageStatus,
+		Ignorables:       j.Ignorables,
+		AttemptID:        j.AttemptID,
+		Messages:         &invij_msg,
+	}
+
+	return &out
 }
 
 // Get all the ignored tags
@@ -211,6 +267,14 @@ type ValidationJobResultMessageSMD struct {
 	Message       string `json:"msg"`
 	MessageStatus string `json:"status"`
 	ContentID     string `json:"linkid"`
+}
+
+// Message in INVIJ format
+type ValidationJobResultMessageINVIJ struct {
+	General map[string]any `json:"msg"`
+	Status  string         `json:"status"`
+	Errors  []string       `json:"error"`
+	Reviews []string       `json:"reviews"`
 }
 
 // All messages generated from the validation process.
