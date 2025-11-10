@@ -371,6 +371,9 @@ class BridgeInventoryValidation_(ValidationHandler):
                     )
             
             if (check.get_status() == 'verified') and WRITE_VERIFIED_DATA:
+                check.merge_master_data()
+                check.update_master_data()
+                
                 check.put_data()
 
             span.set_attribute("validation.result.status", check.get_status())
