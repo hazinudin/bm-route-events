@@ -273,7 +273,7 @@ class BridgeMasterValidation(object):
         Compare bridge input length with the data from repo.
         """
         if not isclose(self._bm.length, self._current_bm.length):
-            msg = f"Jembatan mengalami perubahan panjang dari {self._bm.length} ke {self._current_bm.length}."
+            msg = f"Jembatan mengalami perubahan panjang dari {self._current_bm.length} ke {self._bm.length}."
             self._result.add_message(msg, status='review', ignore_in='review')
 
             # Generate the event
