@@ -279,7 +279,7 @@ type ValidationJobResultMessageINVIJ struct {
 	General map[string]any `json:"general"`
 	Status  string         `json:"status"`
 	Errors  []string       `json:"error"`
-	Reviews []string       `json:"reviews"`
+	Reviews []string       `json:"review"`
 }
 
 // All messages generated from the validation process.
