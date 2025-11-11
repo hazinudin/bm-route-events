@@ -40,11 +40,25 @@
         },
         "LONGITUDE": {
             "dtype": "double",
-            "db_col": "LONGITUDE"
+            "db_col": "LONGITUDE",
+            "range": {
+                "upper": 141.1,
+                "lower": 95,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            }
         },
         "LATITUDE":{
             "dtype": "double",
-            "db_col": "LATITUDE"
+            "db_col": "LATITUDE",
+            "range": {
+                "upper": 6,
+                "lower": -11,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            }
         },
         "PJG_TOTAL": {
             "dtype": "double",
