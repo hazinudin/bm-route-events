@@ -119,7 +119,7 @@ class Substructure(object):
         if self._elements is None:
             self._elements = obj
         else:
-            self._elements.artable = pl.concat([pl.from_arrow(obj.artable), pl.from_arrow(self._elements.artable)]).to_arrow()
+            self._elements.artable = pl.concat([pl.from_arrow(obj.artable), pl.from_arrow(self._elements.artable)], how='vertical_relaxed').to_arrow()
 
         return self
     
