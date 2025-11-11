@@ -120,7 +120,12 @@ func (j *ValidationJobResult) ToINVIJResponse() *validationJobResultINVIJ {
 
 		invij_msg.General["error"] = general_msgs
 	} else {
-		invij_msg.Status = string(j.Status)
+		if j.Status == ERROR_STATUS {
+			invij_msg.Status = "failed"
+		} else {
+			invij_msg.Status = string(j.Status)
+		}
+
 		invij_msg.General = make(map[string]any)
 		invij_msg.General["status"] = "verified"
 		invij_msg.General["error"] = general_msgs
