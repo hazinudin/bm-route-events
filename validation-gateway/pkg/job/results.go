@@ -84,7 +84,14 @@ func (j *ValidationJobResult) ToSMDResponse() *validationJobResultSMD {
 	var smd_messages []*ValidationJobResultMessageSMD
 
 	for _, msg := range j.messages {
-		smd_messages = append(smd_messages, msg.ToSMDMessages())
+		if j.Status != REJECTED_STATUS {
+			smd_messages = append(smd_messages, msg.ToSMDMessages())
+		} else {
+			// Only append rejected messages when validation result status is 'rejected'
+			if msg.MessageStatus == string(REJECTED_STATUS) {
+				smd_messages = append(smd_messages, msg.ToSMDMessages())
+			}
+		}
 	}
 
 	out := validationJobResultSMD{
