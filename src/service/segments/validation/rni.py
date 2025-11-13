@@ -612,3 +612,42 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         self.decreasing_surf_width_check()
         self.decreasing_lane_count()
         self.paved_to_unpaved_check()
+
+        if self._events.is_partial:
+            # Merge with old data and conduct check to make sure new data has correct STA interval
+            self.merge_previous_data()
+            self.sta_gap_check()
+            self.sta_overlap_check()
+
+    def merge_previous_data(self):
+        """
+        Merge previous data with the current data. This function can be used to complete the partial data.
+        """
+        missing = self.prev_sem_data.pl_df.join(
+            self._events.pl_df,
+            left_on=[
+                self.prev_data._linkid_col,
+                self.prev_data._from_sta_col,
+                self.prev_data._to_sta_col
+            ],
+            right_on=[
+                self._events._linkid_col,
+                self._events._from_sta_col,
+                self._events._to_sta_col
+            ],
+            how='anti'
+        )
+
+        merged = pl.concat(
+            [missing, self._events.pl_df],
+            how='diagonal_relaxed'
+        )
+
+        events = RouteRNI(
+            artable=merged.to_arrow(),
+            route=self._route,
+            data_year=self._survey_year
+        )
+
+        # Set the events with updated
+        self._events = events
