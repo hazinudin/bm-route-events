@@ -1,7 +1,7 @@
 from sqlalchemy import Engine, inspect, text
 from .model import RouteRNI
 import polars as pl
-from typing import List, Union
+from typing import List, Union, Literal
 from datetime import datetime
 from ...utils.oid import has_objectid, generate_objectid
 from ...utils import ora_pl_dtype
