@@ -71,7 +71,8 @@ class RouteSegmentEvents(object):
             segment_length:float = 0.1,
             data_year: int = None,
             data_semester: Literal[1,2] = None,
-            sta_unit: str = 'dm'
+            sta_unit: str = 'dm',
+            is_partial: bool = False
         ):
         # Columns
         self._linkid_col = 'LINKID'
@@ -91,6 +92,7 @@ class RouteSegmentEvents(object):
 
         self.artable = artable
         self._pl_df = pl.from_arrow(self.artable)
+        self._is_partial: bool = is_partial
         self._route_id = route  # Route of the events
         self._lane_data = True  # Indicator if the events data is lane based
         self._data_year = data_year
@@ -126,6 +128,13 @@ class RouteSegmentEvents(object):
                 LAMBERT_WKT, 
                 invert = True
             )
+    
+    @property
+    def is_partial(self) -> bool:
+        """
+        If True, then the data does not represent a full route data.
+        """
+        return self._is_partial
 
     @property
     def no_data(self) -> bool:
