@@ -34,7 +34,8 @@ class RouteRNI(RouteSegmentEvents):
         linkid: str | list = 'ALL', 
         linkid_col: str = 'LINKID',
         ignore_review = False,
-        data_year: int = None
+        data_year: int = None,
+        filter: pl.Expr = None
     ):
         """
         Parse data from Excel file to Arrow format and load it into RNI object.
@@ -57,6 +58,15 @@ class RouteRNI(RouteSegmentEvents):
                 pl.String  # Cast all values into string for Pydantic validation.
             )
 
+        if filter is not None:
+            filtered = df_str.filter(filter)
+
+            if not filtered.is_empty():
+                df_str = filtered
+                is_partial = True
+            else:
+                is_partial = False
+
         # Validate using Pydantic
         ta = TypeAdapter(List[schema.model])
         df = pl.DataFrame(
@@ -77,7 +87,8 @@ class RouteRNI(RouteSegmentEvents):
             artable=df.to_arrow(),
             route=linkid,
             segment_length=segment_length,
-            data_year=data_year
+            data_year=data_year,
+            is_partial=is_partial
         )
     
     def __init__(self, *args, **kwargs):
