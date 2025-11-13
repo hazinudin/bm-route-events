@@ -125,7 +125,11 @@ class RouteSegmentEventsValidation(object):
         self.sta_gap_check()
         self.sta_overlap_check()
         self.survey_max_m_value_check()
-        self.from_sta_start_from_zero()
+        
+        # Does not check start from zero when the data is only partial
+        if not self._events.is_partial:
+            self.from_sta_start_from_zero()    
+        
         self.last_segment_single_to_sta_check()
         # self.survey_date_year_check()
         # self.data_semester_check()
