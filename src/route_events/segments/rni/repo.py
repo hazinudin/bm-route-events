@@ -22,7 +22,8 @@ class RouteRNIRepo(object):
             linkid: str, 
             year: int,
             columns: Union[str | List[str]] = '*',
-            raise_if_table_does_not_exists: bool = False
+            raise_if_table_does_not_exists: bool = False,
+            semester: Literal[1, 2] | Literal["latest"] = "latest"
     ) -> RouteRNI:
         """
         Get RNI data from database and load it into RouteRNI object.
