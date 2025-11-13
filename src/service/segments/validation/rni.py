@@ -130,6 +130,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         self._events = events
         self._prev_data = None
+        self._prev_sem_data = None
         self._repo = RouteRNIRepo(self._engine)
 
     @property
