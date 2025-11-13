@@ -8,6 +8,9 @@ import polars as pl
 from pydantic import ValidationError
 
 
+PARTIAL_UPDATE_KEYWORDS = 'partial_update'
+
+
 class RouteRNIValidation(RouteSegmentEventsValidation):
     """
     Route RNI Events validation class.
@@ -44,7 +47,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                 linkid=route,
                 linkid_col=linkid_col,
                 ignore_review=ignore_review,
-                data_year=survey_year
+                data_year=survey_year,
+                filter=pl.col('DETIL_IVR').eq(PARTIAL_UPDATE_KEYWORDS)
             )
 
             obj = cls(
@@ -82,7 +86,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                     linkid=route,
                     linkid_col=linkid_col,
                     ignore_review=True,
-                    data_year=survey_year
+                    data_year=survey_year,
+                    filter=pl.col('DETIL_IVR').eq(PARTIAL_UPDATE_KEYWORDS)
                 )
                 
                 obj = cls(
