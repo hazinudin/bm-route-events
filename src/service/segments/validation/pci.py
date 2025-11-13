@@ -425,7 +425,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                     pl.col(self._events._seg_len_col).gt(0.05 + tolerance)
                 )
             ).filter(
-                pl.col(self._events._from_sta_col).ne(self._events.max_from_sta*self._events.sta_conversion)
+                pl.col(self._events._from_sta_col).cast(pl.Int32).ne(self._events.max_from_sta*self._events.sta_conversion) &
+                pl.col(self._events._to_sta_col).cast(pl.Int32).ne(self._events.max_to_sta*self._events.sta_conversion)
             ).select(
                 msg = pl.format(
                     "Segmen {}-{} memiliki tipe perkerasan (defect) {} namun memmiliki panjang segmen {}km.",
