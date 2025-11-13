@@ -598,6 +598,10 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         self._repo.put(self._events, self._survey_year, semester)
 
     def base_validation(self):
+        if self.prev_sem_data.no_data:
+            self._result.add_message("Update parsial, namun data tahun lalu tidak tersedia", "error")
+            return
+        
         super().base_validation()
 
         self.segment_length_check(tolerance=0.005)
