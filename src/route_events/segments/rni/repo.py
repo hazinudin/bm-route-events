@@ -61,6 +61,8 @@ class RouteRNIRepo(object):
                 ),
                 connection=self._engine,
                 infer_schema_length=None
+            ).select(
+                pl.exclude(['UPDATE_DATE', 'COPIED', 'OBJECTID'])
             )
 
         return RouteRNI(
