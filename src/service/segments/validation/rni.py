@@ -2,7 +2,7 @@ from .base import RouteSegmentEventsValidation
 from ..analysis import segments_join
 from route_events import RouteRNI, LRSRoute, RouteRNIRepo
 from ...validation_result.result import ValidationResult
-from typing import Type
+from typing import Type, List
 from sqlalchemy import Engine
 import polars as pl
 from pydantic import ValidationError
@@ -136,6 +136,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         self._events = events
         self._prev_data = None
         self._prev_sem_data = None
+        self.__joined_prev_sem_data: pl.DataFrame = None
         self._repo = RouteRNIRepo(self._engine)
 
     @property
@@ -154,6 +155,31 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         else:
             return self._prev_data
+        
+    @property
+    def _joined_prev_sem_data(self) -> pl.DataFrame:
+        """
+        Current event data joined with the previous semester data.
+        """
+        if self.__joined_prev_sem_data is None:
+            self.__joined_prev_sem_data = self._events.pl_df.join(
+                self.prev_sem_data.pl_df,
+                left_on=[
+                    self._events._linkid_col,
+                    pl.col(self._events._from_sta_col).mul(self._events.sta_conversion),
+                    pl.col(self._events._to_sta_col).mul(self._events.sta_conversion),
+                    self._events._lane_code_col
+                ],
+                right_on=[
+                    self.prev_sem_data._linkid_col,
+                    pl.col(self.prev_sem_data._from_sta_col).mul(self.prev_sem_data.sta_conversion),
+                    pl.col(self.prev_sem_data._to_sta_col).mul(self.prev_sem_data.sta_conversion),
+                    self.prev_sem_data._lane_code_col
+                ],
+                how='left'
+            )
+
+        return self.__joined_prev_sem_data
         
     @property
     def prev_sem_data(self) -> RouteRNI:
