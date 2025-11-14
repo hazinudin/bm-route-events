@@ -105,6 +105,7 @@ def generate_custom_review_msg(v: any, handler: ValidatorFunctionWrapHandler, in
                     CUSTOM_ERROR_MSG[error['type']].format(info.field_name, v), 
                     dict(input=error['input'])
                 )
+
         else:
             raise e
         
