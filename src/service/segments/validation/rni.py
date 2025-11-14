@@ -680,3 +680,34 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         # Set the events with updated
         self._events = events
+
+    def updated_rows(self, columns: List[str]) -> pl.DataFrame:
+        """
+        Return a Polars Expression which can be used to filter events DataFrame, to only include rows with updated column.
+        """
+        suffix = '_right'
+        joined = self._joined_prev_sem_data
+        
+        # Convert the type first
+        if type(columns) != list:
+            columns = [columns]
+
+        filters : pl.Expr = None
+        for col in columns:
+            expr = pl.col(col).ne(pl.col(col + suffix)).or_(
+                pl.col(col).is_not_null().and_(pl.col(col + suffix).is_null())
+            )
+
+            if filters is None:
+                filters = expr
+            else:
+                filters.or_(expr)
+
+        updated_rows = joined.filter(
+            filters
+        ).select(
+            pl.col(self._events._linkid_col, self._events._from_sta_col, self._events._to_sta_col),
+            pl.col(*[col + suffix for col in columns] + [col for col in columns])
+        )
+
+        return updated_rows
