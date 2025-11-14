@@ -186,18 +186,17 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
         """
         Data from previous semester, only if the current data is from second semester (semester = 2).
         """
-        if self._prev_sem_data is None and self._events.semester == 2:
+        if self._prev_sem_data is None: 
             self._prev_sem_data = self._repo.get_by_linkid(
                 self._route,
                 year=self._survey_year,
                 raise_if_table_does_not_exists=True,
-                semester=1
             )
             
             return self._prev_sem_data
         
         else:
-            return self._prev_data 
+            return self._prev_sem_data 
 
     def side_columns_check(self, current_year_only: bool = False):
         if current_year_only:
