@@ -93,10 +93,17 @@ def generate_custom_review_msg(v: any, handler: ValidatorFunctionWrapHandler, in
             'less_than',
             'less_than_equal'
         ]:
-            raise PydanticCustomError(
-                error['type'] + '_review', # Add review suffix
-                CUSTOM_ERROR_MSG[error['type']].format(info.field_name, v), 
-                dict(input=error['input'])
+            if (info.data.get('FROM_STA') is not None) and (info.data.get('TO_STA') is not None) and (info.data.get('LANE_CODE') is not None):
+                raise PydanticCustomError(
+                    error['type'] + '_review', # Add review suffix
+                    CUSTOM_ERROR_MSG[error['type']].format(info.field_name, v) + f" Pada segmen {info.data.get('FROM_STA')}-{info.data.get('TO_STA')} {info.data.get('LANE_CODE')}", 
+                    dict(input=error['input'])
+                )
+            else:
+                raise PydanticCustomError(
+                    error['type'] + '_review', # Add review suffix
+                    CUSTOM_ERROR_MSG[error['type']].format(info.field_name, v), 
+                    dict(input=error['input'])
                 )
         else:
             raise e
