@@ -346,7 +346,7 @@ class BridgeInventoryValidation(object):
                 # The difference is at least 1m to be notified.
                 msg = f"Total panjang bentang utama ({total_main_span_len}m) tidak sama dengan panjang data inventori ({self._inv.length}m). Perlu ditinjau ulang."
                 self._result.add_message(msg, 'review', 'review')
-            else:
+            elif (total_main_span_len > self._inv.length):
                 msg = f"Total panjang bentang utama ({total_main_span_len}m) lebih panjang dari panjang data inventory ({self._inv.length}m)."
                 self._result.add_message(msg, "error")
         elif main_span_type not in culvert_types:
