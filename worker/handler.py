@@ -32,8 +32,8 @@ class PayloadSMD(BaseModel):
     show_all_msg: Optional[bool] = False
 
 class BridgeValidationParams(BaseModel):
-    validate_length: Optional[bool] = Field(default=False, validation_alias="length_validate")
-    validate_width: Optional[bool] = Field(default=False, validation_alias="width_validate")
+    validate_length: Optional[bool] = Field(default=True, validation_alias="length_validate")
+    validate_width: Optional[bool] = Field(default=True, validation_alias="width_validate")
 
 class BridgeValidationPayloadFormat(BaseModel):
     model_config = ConfigDict(extra='allow')
