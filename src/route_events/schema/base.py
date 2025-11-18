@@ -233,7 +233,13 @@ class RouteEventsSchema(object):
             # Pydantic and Patito Field object kwargs
             # Accepts uppercase and lowercase alias
             field_kwargs = {
-                "validation_alias": AliasChoices(col, db_col, col.lower(), col.upper()), 
+                "validation_alias": AliasChoices(
+                    col, 
+                    db_col, 
+                    col.lower(),
+                    col.upper(),
+                    col.replace('DETAIL', 'DETIL')  # Special case for DETAIL_IVR, DETIL_IVR
+                ), 
                 "alias": db_col
             }
             
