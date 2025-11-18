@@ -172,14 +172,15 @@ class RoutePCI(RouteSegmentEvents):
             ).and_(
                 pl.col(self._pci_col).ne(self._pci_max).and_(pl.col(self._pci_col).ne(-1))
             )
-            |
-            pl.all_horizontal(
-                *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
-            ).and_(pl.col(self._pci_col).ne(-1))
-            |
-            pl.all_horizontal(
-                *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
-            ).not_().and_(pl.col(self._pci_col).eq(-1))
+            # REVISION 3: Disable ISNULL check, the unpaved case is covered in the PCI-RNI comparison.
+            # |
+            # pl.all_horizontal(
+            #     *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
+            # ).and_(pl.col(self._pci_col).ne(-1))
+            # |
+            # pl.all_horizontal(
+            #     *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
+            # ).not_().and_(pl.col(self._pci_col).eq(-1))
         ).with_columns(
             # Revert back the -1 value to Null/None
             pl.when(
