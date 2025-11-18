@@ -238,7 +238,8 @@ class RouteEventsSchema(object):
                     db_col, 
                     col.lower(),
                     col.upper(),
-                    col.replace('DETAIL', 'DETIL')  # Special case for DETAIL_IVR, DETIL_IVR
+                    col.replace('DETAIL', 'DETIL').upper(),
+                    col.replace('DETAIL', 'DETIL').lower()
                 ), 
                 "alias": db_col
             }
