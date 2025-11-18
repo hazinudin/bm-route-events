@@ -264,46 +264,49 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             # Rigid
             pl.col(self.rni._surf_type_col).eq(21).and_(
                 pl.all_horizontal(pl.col('^VOL_AS.*$').is_not_null()) |
-                pl.all_horizontal(pl.col('^VOL_AS.*$').gt(0))
+                pl.all_horizontal(pl.col('^VOL_AS.*$').gt(0)) |
+                pl.col(self._events._pci_col).is_null()  # Make sure PCI is not null, if null then error is raised.
             ) |
             # Asphal
             pl.col(self.rni._surf_type_col).ne(21).and_(
                 pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
             ).and_(
                 pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null()) |
-                pl.all_horizontal(pl.col('^VOL_RG.*$').gt(0))
+                pl.all_horizontal(pl.col('^VOL_RG.*$').gt(0)) |
+                pl.col(self._events._pci_col).is_null()  # Make sure PCI is not null
             ) |
             # Unpaved
             pl.col(self.rni._surf_type_col).is_in([1,2]).and_(
                 pl.all_horizontal(pl.col('^VOL_AS.*$').is_not_null()) |
-                pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null())
+                pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null()) |
+                pl.col(self._events._pci_col).is_not_null()  # Add this, to make sure the PCI column for unpaved is also null
             )
         ).select(
             msg = pl.when(
                 pl.col(self.rni._surf_type_col).eq(21)
             ).then(
                 pl.format(
-                    "Segmen {}-{} {} memiliki tipe perkerasan rigid namun memiliki kerusakan aspal.",
-                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
+                    "Segmen {}-{} {} memiliki tipe perkerasan rigid namun memiliki kerusakan aspal, atau nilai PCI yang Null/kosong",
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion).cast(pl.Int32),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion).cast(pl.Int32),
                     pl.col(self._events._lane_code_col)
                 )
             ).when(
                 pl.col(self.rni._surf_type_col).ne(21) & pl.col(self.rni._surf_type_col).is_in([1,2]).not_()
             ).then(
                 pl.format(
-                    "Segmen {}-{} {} memiliki tipe perkerasan aspal namum memiliki kerusakan rigid.",
-                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
+                    "Segmen {}-{} {} memiliki tipe perkerasan aspal namum memiliki kerusakan rigid, atau nilai PCI yang Null/kosong",
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion).cast(pl.Int32),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion).cast(pl.Int32),
                     pl.col(self._events._lane_code_col)
                 )
             ).when(
                 pl.col(self.rni._surf_type_col).is_in([1,2])
             ).then(
                 pl.format(
-                    "Segmen {}-{} {} memiliki tipe perkerasan tanah namun memiliki nilai kerusakan.",
-                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion),
-                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion),
+                    "Segmen {}-{} {} memiliki tipe perkerasan tanah namun memiliki nilai kerusakan, atau nilai PCI yang tidak Null/kosong.",
+                    pl.col(self._events._from_sta_col + '_r').truediv(self._events.sta_conversion).cast(pl.Int32),
+                    pl.col(self._events._to_sta_col + '_r').truediv(self._events.sta_conversion).cast(pl.Int32),
                     pl.col(self._events._lane_code_col)
                 )
             )
