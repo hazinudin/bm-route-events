@@ -48,7 +48,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                 linkid_col=linkid_col,
                 ignore_review=ignore_review,
                 data_year=survey_year,
-                filter=pl.col('^IL_IVR$').eq(PARTIAL_UPDATE_KEYWORDS)
+                filter=pl.col('^.+IL_IVR$').eq(PARTIAL_UPDATE_KEYWORDS)
             )
 
             obj = cls(
