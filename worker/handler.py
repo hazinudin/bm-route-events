@@ -375,8 +375,6 @@ class BridgeInventoryValidation_(ValidationHandler):
             if (
                 check.get_status() == 'verified'
             ) and WRITE_VERIFIED_DATA and (
-                check._inv.inventory_state == 'DETAIL'
-            ) and (
                 self.payload.validation_params.validate_length
             ):
                 check.merge_master_data()
@@ -389,3 +387,13 @@ class BridgeInventoryValidation_(ValidationHandler):
             span.set_status(StatusCode.OK)
 
         return check._result.to_job_event(self.job_id)
+
+
+class BridgePopUpInventoryValidation(BridgeInventoryValidation_):
+    def __init__(
+        self,
+        payload: BridgeValidationPayloadFormat,
+        job_id: str,
+        validate: bool=True,
+    ):
+        BridgeInventoryValidation_.__init__(self, payload, job_id, validate, popup=True)
