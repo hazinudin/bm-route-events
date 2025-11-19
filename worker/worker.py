@@ -19,7 +19,8 @@ from handler import (
     PCIValidation,
     DefectValidation,
     BridgeInventoryValidation_,
-    BridgeValidationPayloadFormat
+    BridgePopUpInventoryValidation,
+    BridgeValidationPayloadFormat,
 )
 from typing import Dict
 
@@ -117,6 +118,7 @@ class ValidationWorker:
         
         # Bridge
         self._handler['INVENTORY'] = BridgeInventoryValidation_
+        self._handler['POPUP_INVENTORY'] = BridgePopUpInventoryValidation
 
     def connect(self):
         worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
