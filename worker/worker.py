@@ -108,6 +108,7 @@ class ValidationWorker:
         self._invij_supported_data_type = [
             'INVENTORY',
             'POPUP_INVENTORY',
+            'MASTER',
         ]  # Please update if more handlers are added.
         
         # Road
