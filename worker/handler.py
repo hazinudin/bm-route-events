@@ -324,10 +324,12 @@ class BridgeInventoryValidation_(ValidationHandler):
             self,
             payload: BridgeValidationPayloadFormat,
             job_id: str,
-            validate: bool=True
+            validate: bool=True,
+            popup: bool=False,
     ):
         ValidationHandler.__init__(self, payload, job_id, validate)
         self.payload: BridgeValidationPayloadFormat
+        self._is_popup: bool = popup
 
     def validate(self) -> str:
         """
@@ -351,7 +353,7 @@ class BridgeInventoryValidation_(ValidationHandler):
                 lrs_grpc_host=LRS_HOST,
                 sql_engine=MISC_ENGINE,
                 dev=False,
-                popup=False,
+                popup=self._is_popup,
                 ignore_review=self.ignore_review,
                 ignore_force=self.force_write,
             )
@@ -370,10 +372,17 @@ class BridgeInventoryValidation_(ValidationHandler):
                         validate_width=self.payload.validation_params.validate_width
                     )
             
-            if (check.get_status() == 'verified') and WRITE_VERIFIED_DATA:
+            if (
+                check.get_status() == 'verified'
+            ) and WRITE_VERIFIED_DATA and (
+                check._inv.inventory_state == 'DETAIL'
+            ) and (
+                self.payload.validation_params.validate_length
+            ):
                 check.merge_master_data()
                 check.update_master_data()
-                
+            
+            if check.get_status() == 'verified':    
                 check.put_data()
 
             span.set_attribute("validation.result.status", check.get_status())
