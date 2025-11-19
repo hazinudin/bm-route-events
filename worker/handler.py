@@ -319,6 +319,56 @@ class DefectValidation(ValidationHandler):
             return check._result.to_job_event(self.job_id)
         
 
+class BridgeMasterValidation_(ValidationHandler):
+    def __init__(
+            self,
+            payload: BridgeValidationPayloadFormat,
+            job_id: str,
+            validate: bool=True,
+    ):
+        ValidationHandler.__init__(self, payload, job_id, validate)
+        self.payload: BridgeValidationPayloadFormat
+    
+    def validate(self) -> str:
+        """
+        Start validation
+        """
+        with tracer.start_as_current_span('bridge.master-validation-process') as span:
+            val_mode = self.payload.model_dump().get('mode')
+
+            if val_mode is None:
+                span.set_status(StatusCode.ERROR)
+                raise KeyError("Input JSON does not contain 'mode'.")
+            else:
+                span.set_attribute("validation.mode", val_mode)
+
+            check = BridgeMasterValidation(
+                data=self.payload.model_dump(),
+                validation_mode=str(val_mode).upper(),
+                lrs_grpc_host=LRS_HOST,
+                sql_engine=MISC_ENGINE,
+                ignore_review=self.ignore_review,
+                ignore_force=self.ignore_review
+            )
+
+            if check.get_status() in ['rejected', 'error']:
+                return check._result.to_job_event(self.job_id)
+
+            if self.validate:            
+                if check.validation_mode == 'UPDATE':
+                    check.update_check()
+
+                if check.validation_mode == 'INSERT':
+                    check.insert_check()
+
+            if check.get_status() == 'verified':
+                check.put_data()
+
+            span.set_attribute("validation.result.status", check.get_status())
+            span.set_status(StatusCode.OK)
+
+        return check._result.to_job_event(self.job_id)
+
 class BridgeInventoryValidation_(ValidationHandler):
     def __init__(
             self,
