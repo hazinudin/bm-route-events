@@ -66,6 +66,8 @@ class RouteRNI(RouteSegmentEvents):
                 is_partial = True
             else:
                 is_partial = False
+        else:
+            is_partial = False
 
         # Validate using Pydantic
         ta = TypeAdapter(List[schema.model])
