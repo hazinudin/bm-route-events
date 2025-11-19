@@ -170,15 +170,15 @@ class BridgeInventoryValidation(object):
             self.master_data_distance_check()
             self.lrs_distance_check()
             self.compare_total_span_length_to_inv_length_check()
-            self.span_width_check()
-            self.compare_length_to_master_data_check()
+            # self.span_width_check()
+            # self.compare_length_to_master_data_check()
         
         if (self._inv.inventory_state == POPUP_STATE) and validate_length:
             self.compare_total_span_length_to_inv_length_check()
-            self.compare_length_to_master_data_check()
+            # self.compare_length_to_master_data_check()
     
-        if (self._inv.inventory_state == POPUP_STATE) and validate_width:
-            self.span_width_check()
+        # if (self._inv.inventory_state == POPUP_STATE) and validate_width:
+        #     self.span_width_check()
 
         self.main_span_structure_type_check()
         self.main_span_num_check()
