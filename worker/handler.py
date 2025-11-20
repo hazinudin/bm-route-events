@@ -117,6 +117,8 @@ class RNIValidation(ValidationHandler):
                 force_write=self.force_write
             )
 
+            span.set_attribute("partial_update", check._events.is_partial)
+
             if check.get_status() == 'rejected':
                 return check._result.to_job_event(self.job_id)
 
@@ -124,6 +126,9 @@ class RNIValidation(ValidationHandler):
                 check.base_validation()
 
             if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                if check._events.is_partial:  # If its still partial, then merge with previous data
+                    check.merge_previous_data()
+
                 check.put_data(semester=self.payload.semester)
 
             # Set span attribute and status
