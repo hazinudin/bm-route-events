@@ -192,8 +192,7 @@ class BridgeMasterRepoDB(object):
         df = from_arrow(bridge.artable)
 
         # Set the end date value
-        df = df.with_columns(
-            LAST_INV_DATE=col("LAST_INV_DATE").dt.strftime("%d/%b/%Y"),
+        df = df.select(
             END_DATE=lit(datetime.now().strftime("%d/%b/%Y, %I:%M:%S%p"))
         )
 
