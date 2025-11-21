@@ -167,8 +167,11 @@ class BridgeInventoryValidation(object):
         # Check if DETAIL inventory has substructure
         if self._inv.inventory_state == DETAILED_STATE:
             self.has_subs_check()
-            self.master_data_distance_check()
-            self.lrs_distance_check()
+
+            # Disable on 21 November 2025 after requested
+            # self.master_data_distance_check() 
+            # self.lrs_distance_check()
+            
             self.compare_total_span_length_to_inv_length_check()
             # self.span_width_check()
             # self.compare_length_to_master_data_check()
