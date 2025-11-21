@@ -347,13 +347,20 @@ class BridgeMasterValidation_(ValidationHandler):
             else:
                 span.set_attribute("validation.mode", val_mode)
 
+            span.set_attribute('master.val_history', self.payload.model_dump().get('val_history'))
+            if 'review' in self.payload.model_dump().get('val_history'):
+                self.ignore_review = True
+            
+            if 'force' in self.payload.model_dump().get('val_history'):
+                self.force_write = True
+
             check = BridgeMasterValidation(
                 data=self.payload.model_dump(),
                 validation_mode=str(val_mode).upper(),
                 lrs_grpc_host=LRS_HOST,
                 sql_engine=MISC_ENGINE,
                 ignore_review=self.ignore_review,
-                ignore_force=self.ignore_review
+                ignore_force=self.force_write
             )
 
             if check.get_status() in ['rejected', 'error']:
