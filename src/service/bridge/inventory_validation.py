@@ -349,10 +349,11 @@ class BridgeInventoryValidation(object):
             elif (total_main_span_len > self._inv.length):
                 msg = f"Total panjang bentang utama ({total_main_span_len}m) lebih panjang dari panjang data inventory ({self._inv.length}m)."
                 self._result.add_message(msg, "error")
-        elif main_span_type not in culvert_types:
-            # If main span total length is equal to inventory bridge length, then raise error message
-            msg = f"Total panjang bentang utama ({total_main_span_len}m) sama dengan panjang data inventori ({self._inv.length}m)."
-            self._result.add_message(msg, 'error', 'force')
+        
+        # elif main_span_type not in culvert_types:
+        #     # If main span total length is equal to inventory bridge length, then raise error message
+        #     msg = f"Total panjang bentang utama ({total_main_span_len}m) sama dengan panjang data inventori ({self._inv.length}m)."
+        #     self._result.add_message(msg, 'error', 'force')
 
         return self
     
