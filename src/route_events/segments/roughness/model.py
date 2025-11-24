@@ -40,6 +40,15 @@ class RouteRoughness(RouteSegmentEvents):
             ).cast(
                 pl.String  # Cast all values into string for Pydantic validation.
             )
+        
+        if linkid == 'ALL':
+            pass
+        elif (type(linkid) == str) and (linkid != 'ALL'):
+            df_str = df_str.filter(pl.col(linkid_col) == linkid)
+        elif type(linkid) == list:
+            df_str = df_str.filter(pl.col(linkid_col).str.is_in(linkid))
+        else:
+            raise TypeError(f"LINKID argument with type {type(linkid)} is invalid type.")
 
         # Validate using Pydantic
         ta = TypeAdapter(List[schema.model])
@@ -47,15 +56,6 @@ class RouteRoughness(RouteSegmentEvents):
             ta.validate_python(df_str.to_dicts()),
             infer_schema_length=None
         )
-
-        if linkid == 'ALL':
-            pass
-        elif (type(linkid) == str) and (linkid != 'ALL'):
-            df = df.filter(pl.col(linkid_col) == linkid)
-        elif type(linkid) == list:
-            df = df.filter(pl.col(linkid_col).str.is_in(linkid))
-        else:
-            raise TypeError(f"LINKID argument with type {type(linkid)} is invalid type.")
         
         return cls(
             artable=df.to_arrow(),
