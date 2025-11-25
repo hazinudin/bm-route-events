@@ -443,7 +443,8 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
             if not error_.is_empty():
                 self._result.add_messages(
                     error_,
-                    'error'
+                    'error',
+                    'force',
                 )
             
             return
