@@ -352,12 +352,17 @@ class Superstructure(object):
         """
         Get span count.
         """
-        return self.pl_df.filter(
+        result = self.pl_df.filter(
             (pl.col(self._span_type_col) == span_type.upper()) &
             (pl.col(self._span_seq_col) == seq)
         ).group_by(
             [self._span_type_col, self._span_seq_col]
-        ).agg(pl.col(self._span_num_col).count())[self._span_num_col][0]
+        ).agg(pl.col(self._span_num_col).count())
+
+        if result.is_empty():
+            return 0
+        else:
+            return result[self._span_num_col][0]
             
     def select_structure_type(self, structure: str) -> pl.DataFrame:
         """
