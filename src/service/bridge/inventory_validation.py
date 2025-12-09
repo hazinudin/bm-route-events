@@ -296,10 +296,10 @@ class BridgeInventoryValidation(object):
         
         # Query span/seq with span number which does not exists in main span.
         errors = df.with_columns(
-            REF=df.filter(pl.col(self._inv.sups._span_type_col) == 'UTAMA')[self._inv.sups._span_num_col]
-            ).filter(
-                pl.col('REF').list.set_difference(self._inv.sups._span_num_col).list.len() != 0
-            ).rows(named=True)
+            REF=df.filter(pl.col(self._inv.sups._span_type_col) == 'UTAMA')[self._inv.sups._span_num_col].first()
+        ).filter(
+            pl.col('REF').list.set_difference(self._inv.sups._span_num_col).list.len() != 0
+        ).rows(named=True)
         
         for error in errors:
             span = error[self._inv.sups._span_type_col]
