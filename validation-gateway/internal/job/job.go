@@ -177,6 +177,16 @@ func (s *JobService) GetSMDJobID(file_name string, route_id string) ([]map[strin
 	return job_ids, nil
 }
 
+func (s *JobService) GetINVIJJobID(bridge_id string, data_type string) ([]map[string]any, error) {
+	job_ids, err := s.repo.FindINVIJJobID(data_type, bridge_id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return job_ids, nil
+}
+
 // CreateValidationJob will return a ValidationJob struct
 // This function will also store the new ValidationJob to database
 func (s *JobService) CreateValidationJob(data_type string, details any, ctx context.Context) (*job.ValidationJob, error) {
