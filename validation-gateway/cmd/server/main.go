@@ -76,6 +76,7 @@ func main() {
 
 	// Bridge data
 	mux.HandleFunc("POST /bridge/{data_type}/validation/submit", middleware.Auth(server.PublishINVIJValidationHandler, []byte(conf.TokenSecret)))
+	mux.HandleFunc("GET /bridge/get_job_id", middleware.Auth(server.GetINVIJJobIDHandler, []byte(conf.TokenSecret)))
 
 	// Login
 	mux.HandleFunc("POST /login", server.LoginHandler)

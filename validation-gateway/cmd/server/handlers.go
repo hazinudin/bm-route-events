@@ -36,6 +36,11 @@ type SMDGetJobIDRequest struct {
 	RouteID  string `json:"route_id" validate:"required"`
 }
 
+type INVIJGetJobIDRequest struct {
+	BridgeID string `json:"bridge_id" validate:"required"`
+	DataType string `json:"data_type" validate:"required"`
+}
+
 func validateRequest[T any](r *http.Request) (*T, *ErrorResponse) {
 	var input T
 
@@ -201,6 +206,30 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// Handler for fetching INVIJ Job ID from its bridge ID and data type
+func (s *Server) GetINVIJJobIDHandler(w http.ResponseWriter, r *http.Request) {
+	var req INVIJGetJobIDRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(400)
+		json.NewEncoder(w).Encode(ErrorResponse{Status: "Invalid JSON"})
+		return
+	}
+
+	ids, err := s.job_service.GetINVIJJobID(req.BridgeID, req.DataType)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(400)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(ids)
 }
 
 // Handler for fetching SMD Job ID from its file name and route
