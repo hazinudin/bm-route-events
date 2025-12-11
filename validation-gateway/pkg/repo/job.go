@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 	"validation-gateway/infra"
 	tracer "validation-gateway/infra/tracing"
@@ -408,6 +409,49 @@ func (r *ValidationJobRepository) InsertJobResult(result *job.ValidationJobResul
 	tx.Commit(ctx)
 
 	return nil
+}
+
+// Get INVIJ Job ID based on data type and payload bridge ID
+func (r *ValidationJobRepository) FindINVIJJobID(data_type string, bridge_id string) ([]map[string]any, error) {
+	var jobs []map[string]any
+
+	// The original payload use id_jbt instead of bridge_id
+	cte_query := fmt.Sprintf("WITH jobs as (select job_id, submitted_at, payload from %s where (payload ->> 'id_jbt') = $1 and data_type = $2)", r.job_table)
+	id_query := "SELECT job_id, submitted_at from jobs order by submitted_at desc"
+
+	query := cte_query + id_query
+
+	rows, err := r.db.Pool.Query(context.Background(), query, bridge_id, strings.ToUpper(data_type))
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		job := make(map[string]any)
+		var job_id string
+		var submitted_at int
+
+		err := rows.Scan(
+			&job_id,
+			&submitted_at,
+		)
+
+		job["job_id"] = &job_id
+		job["submitted_at"] = &submitted_at
+
+		if err != nil {
+			return nil, err
+		}
+
+		jobs = append(jobs, job)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return jobs, nil
 }
 
 func (r *ValidationJobRepository) FindSMDJobID(file_name string, route_id string) ([]map[string]any, error) {
