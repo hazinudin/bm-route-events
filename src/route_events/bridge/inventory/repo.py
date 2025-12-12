@@ -89,7 +89,8 @@ class BridgeInventoryRepo(object):
         """
         Get available year of bridge inventory data.
         """
-        query = f"select {self.inv_year_col} from {self.inv_table_name} where {self.bridge_id_col} = '{bridge_id}'"
+        # Add update_date is not null and inventory_state is not null to skip manually inserted data.
+        query = f"select {self.inv_year_col} from {self.inv_table_name} where {self.bridge_id_col} = '{bridge_id}' and update_date is not null and inventory_state is not null"
         results = pl.read_database(query, connection=self._engine)
 
         return results[self.inv_year_col].to_list()
