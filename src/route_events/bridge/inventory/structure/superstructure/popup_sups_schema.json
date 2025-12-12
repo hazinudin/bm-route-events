@@ -35,7 +35,7 @@
                 "eq_lower": true
             }
         },
-       "STRUKTUR_BA": {
+        "STRUKTUR_BA": {
             "dtype": "string",
             "db_col": "SUPERSTRUCTURE"
         },
@@ -48,12 +48,13 @@
                 "eq_upper": false,
                 "eq_lower": false
             }
-        },        "LBR_LANTAI_KEND": {
+        },
+        "LBR_LANTAI_KEND": {
             "dtype": "double",
             "db_col": "FLOOR_WIDTH",
             "range": {
-                "upper": 0,
-                "lower": 100,
+                "lower": 0,
+                "upper": 100,
                 "eq_lower": false,
                 "eq_upper": false
             }
