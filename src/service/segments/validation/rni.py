@@ -631,6 +631,7 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
 
         self.segment_length_check(tolerance=0.005)
         self.surface_year_check()
+        self.lane_sequence_check()
         # self.side_columns_check()  # TEMPORARY DISABLED
         self.road_type_spec_check()
         self.inner_shoulder_check(current_year_only=True)  # TEMPORARY ONLY CHECK CURRENT YEAR DATA

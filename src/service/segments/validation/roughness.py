@@ -372,6 +372,7 @@ class RouteRoughnessValidation(RouteSegmentEventsValidation):
     def base_validation(self):
         super().base_validation()
 
+        self.lane_sequence_check()
         self.survey_date_year_check()
         self.segment_length_check(tolerance=0.005)
         self.kemantapan_comparison_check()
