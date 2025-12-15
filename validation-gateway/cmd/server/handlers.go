@@ -144,7 +144,7 @@ func (s *Server) PublishSMDValidationHandler(w http.ResponseWriter, r *http.Requ
 	data_type := r.PathValue("data_type")
 	span.SetAttributes(attribute.String("data_type", data_type))
 
-	valid_types := []string{"roughness", "rni", "pci", "defects"} // Supported end points
+	valid_types := []string{"roughness", "rni", "pci", "defects", "rtc"} // Supported end points
 
 	if !slices.Contains(valid_types, data_type) {
 		http.Error(w, "Invalid data type", http.StatusNotFound)
