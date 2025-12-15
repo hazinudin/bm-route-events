@@ -119,7 +119,7 @@ class RouteSegmentEventsValidation(object):
         Run all validation function in this class.
         """
         self.duplicate_segment_check()
-        self.lane_sequence_check()
+        # self.lane_sequence_check() # Change to optional, will not executed on PCI validation.
         # self.segment_length_check(tolerance=0.005)
         self.sta_diff_check(tolerance=0.005)
         self.sta_gap_check()
