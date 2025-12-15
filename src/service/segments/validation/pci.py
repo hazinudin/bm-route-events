@@ -281,6 +281,10 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
                 pl.all_horizontal(pl.col('^VOL_RG.*$').is_not_null()) |
                 pl.col(self._events._pci_col).is_not_null()  # Add this, to make sure the PCI column for unpaved is also null
             )
+        ).filter(
+            pl.col(self._events._from_sta_col + '_r').is_not_null().and_(
+                pl.col(self._events._to_sta_col + '_r').is_not_null()
+            )
         ).select(
             msg = pl.when(
                 pl.col(self.rni._surf_type_col).eq(21)
