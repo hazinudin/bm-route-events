@@ -608,5 +608,5 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         self.damage_severity_check()
         self.has_defect_data_check()
         
-        self.defect_surf_type_segment_length_check()
+        # self.defect_surf_type_segment_length_check()  # Temporary disabled on 17/12/2025 on mas made request
         # self.defects_point_check()
