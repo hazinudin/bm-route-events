@@ -87,7 +87,7 @@ class RouteRTCRepo(object):
         Insert Defect data into Defect geodatabase table.
         """
         try:
-            if not self._inspect.has_table(f"{self.table}_{year}"):
+            if self._inspect.has_table(f"{self.table}_{year}"):
                 if has_objectid(f"{self._table}_{year}", self._engine):
                     oids = generate_objectid(
                         schema='smd',
@@ -119,11 +119,17 @@ class RouteRTCRepo(object):
             else:
                 events.pl_df.with_columns(
                     pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
-                    pl.lit(0).alias('COPIED'),
+                    pl.lit(0).alias('COPIED')
                 ).write_database(
                     f"{self.table}_{year}",
                     connection=conn,
-                    if_table_exists='append'
+                    if_table_exists='append',
+                    engine_options={
+                        'dtype': ora_pl_dtype(
+                            events.pl_df,
+                            date_cols_keyword='DATE'
+                        )
+                    }
                 )
         
         except Exception as e:

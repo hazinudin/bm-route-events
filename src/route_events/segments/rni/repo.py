@@ -139,8 +139,7 @@ class RouteRNIRepo(object):
             else:
                 events.pl_df.with_columns(
                     pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
-                    pl.lit(0).alias('COPIED'),
-                    *args
+                    pl.lit(0).alias('COPIED')
                 ).write_database(
                     f"{self._table}_{semester}_{year}",
                     connection=conn,
