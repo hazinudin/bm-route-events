@@ -108,6 +108,7 @@ class RouteRTCRepo(object):
                 ).write_database(
                     f"{self.table}_{year}",
                     connection=conn,
+                    if_table_exists='append',
                     engine_options={
                         'dtype': ora_pl_dtype(
                             events.pl_df,
