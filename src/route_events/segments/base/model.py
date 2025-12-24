@@ -392,7 +392,11 @@ class RouteSegmentEvents(object):
         df = self.pl_df.with_columns(
             sta_diff=(pl.col(self._to_sta_col)-pl.col(self._from_sta_col))*self.sta_conversion
         ).filter(
-            (pl.col('sta_diff').lt(0)) |  # Negative, means FROM_STA is larger than TO_STA
+            # Negative, means FROM_STA is larger than TO_STA
+            (
+                pl.col('sta_diff').lt(0)
+            ) |  
+            
             (
                 pl.col('sta_diff').gt(
                     pl.col(self._seg_len_col).mul(self.seg_len_conversion).add(tolerance)
@@ -400,6 +404,7 @@ class RouteSegmentEvents(object):
                     pl.col(self._from_sta_col).ne(self.max_from_sta)
                 )
             ) |
+            
             (
                 pl.col('sta_diff').lt(
                     pl.col(self._seg_len_col).mul(self.seg_len_conversion).sub(tolerance)
@@ -407,6 +412,12 @@ class RouteSegmentEvents(object):
                     pl.col(self._from_sta_col).ne(self.max_from_sta)
                 )
             ) |
+
+            # This check the last segment
+            # The last segment could only have segment length which is less than the actual STA delta
+            # Example: Correct (4000-4005 with 48m segment length) Incorrect (4000-4005 with 50.1m segment length)
+            # The last segment STA delta (in meters) - 10m should be less than segment length (in meters)
+            # Example : Correct (4000-4005 with 48m segment length) Incorrect (4000-4005 with 39m segment length) 
             (
                 pl.col(self._from_sta_col).eq(self.max_from_sta).and_(
                     pl.col('sta_diff').lt(
