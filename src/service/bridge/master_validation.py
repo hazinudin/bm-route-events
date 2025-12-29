@@ -14,7 +14,7 @@ class BridgeMasterValidation(object):
     def __init__(
             self, 
             data: dict, 
-            validation_mode: Literal['UPDATE', 'INSERT', 'RETIRE'], 
+            validation_mode: Literal['UPDATE', 'INSERT', 'ARCHIVE'], 
             lrs_grpc_host: str,
             sql_engine: Engine,
             ignore_review: bool = False,
@@ -93,7 +93,7 @@ class BridgeMasterValidation(object):
         if (self._current_bm is None) and (self.validation_mode == 'UPDATE'):
             self._result.add_message(f"Jembatan {self._bm.id} tidak tersedia di untuk diupdate.", 'rejected')
 
-        if self._lrs is None:
+        if (self.validation_mode != 'ARCHIVE') and (self._lrs is None):
             self._result.add_message(f'Ruas {self._bm.linkid} bukan merupakan jalan nasional.', 'rejected')
 
     @property
@@ -349,7 +349,7 @@ class BridgeMasterValidation(object):
             else:
                 self._repo.update(self._bm)
         
-        elif self.validation_mode == 'RETIRE':
+        elif self.validation_mode == 'ARCHIVE':
             self._repo.retire(self._bm)
 
         return self
