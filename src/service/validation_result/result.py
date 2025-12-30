@@ -256,7 +256,7 @@ class ValidationResult(object):
         schema = self.get_all_messages().to_arrow().schema
 
         with pa.ipc.new_stream(sink, schema) as writer:
-            for batch in self.get_all_messages().to_arrow().to_batches():
+            for batch in self.get_filtered_msg().to_arrow().to_batches():
                 writer.write_batch(batch)
 
         return base64.b64encode(sink.getvalue().to_pybytes()).decode('utf-8')
