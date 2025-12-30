@@ -75,14 +75,13 @@ class BridgeMasterValidation(object):
         self._inv = None
 
         # ValidationResult for tracking and storing validation result and status
-        _ignored_msg = None
+        _ignored_msg = []
 
         if ignore_review:
-            _ignored_msg = ['review']
-        elif ignore_force:
-            _ignored_msg = ['force']
-        elif ignore_force and ignore_review:
-            _ignored_msg = ['review', 'force']
+            _ignored_msg.append('review')
+        
+        if ignore_force:
+            _ignored_msg.append('force')
             
         self._result = ValidationResult(self._bm.id, ignore_in=_ignored_msg)
 
