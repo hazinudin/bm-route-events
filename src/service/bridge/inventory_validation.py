@@ -143,6 +143,9 @@ class BridgeInventoryValidation(object):
         """
         if self._inv.sups is None:
             self._result.add_message('Jembatan tidak memiliki data bangunan atas.', 'error')
+        else:
+            if self._inv.sups.elements is None :
+                self._result.add_message('Jembatan tidak memiliki elemen bangunan atas', 'error')
         
         return self
     
@@ -152,6 +155,11 @@ class BridgeInventoryValidation(object):
         """
         if self._inv.subs is None:
             self._result.add_message('Jembatan tidak memiliki data bangunan bawah.', 'error', 'force')
+        else:
+            if self._inv.subs.elements is None:
+                self._result.add_message('Jembatan tidak memiliki elemen bangunan bawah', 'error')
+        
+        return self
     
     def base_check(
             self, 
