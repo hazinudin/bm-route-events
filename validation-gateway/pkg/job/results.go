@@ -210,7 +210,7 @@ func (j *ValidationJobResult) ignore_msg_tag(tag MessageTag) error {
 			event := AllMessagesAccepted{
 				JobEvent: JobEvent{
 					JobID:     j.JobID,
-					OccuredAt: time.Now().UnixMilli() + 10, // Create offset for better logging
+					OccuredAt: time.Now().UnixMilli() + 5, // Create offset for better logging
 				},
 			}
 
