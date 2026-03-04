@@ -163,11 +163,11 @@ class TestRouteSegments(unittest.TestCase):
 
         df = pl.DataFrame(
             {
-                "LINKID": ["a" for _ in range(6)],
-                "FROM_STA": [0, 0, 10, 10, 20, 20],
-                "TO_STA": [10, 10, 20, 20, 21, 21],
-                "LANE_CODE": ["L1", "L2", "L1", "L2", "L1", "L2"],
-                "SEGMENT_LENGTH": [0.1, 0.098, 0.11, 0.110000003, 0.01, 0.0099]
+                "LINKID": ["a" for _ in range(7)],
+                "FROM_STA": [0, 0, 10, 10, 20, 20, 4000],
+                "TO_STA": [10, 10, 20, 20, 21, 21, 4005],
+                "LANE_CODE": ["L1", "L2", "L1", "L2", "L1", "L2", "L1"],
+                "SEGMENT_LENGTH": [0.1, 0.098, 0.11, 0.110000003, 0.01, 0.0099, 0.041]
             }
         )
 
