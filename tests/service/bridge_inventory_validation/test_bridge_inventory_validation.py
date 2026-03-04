@@ -9,7 +9,7 @@ import os
 
 
 load_dotenv('tests/dev.env')
-HOST = os.getenv('DB_HOST')
+HOST = os.getenv('GDB_HOST')
 USER = os.getenv('MISC_USER')
 PWD = os.getenv('MISC_PWD')
 

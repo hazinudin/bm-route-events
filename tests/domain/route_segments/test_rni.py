@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, text
 
 
 load_dotenv('tests/dev.env')
-HOST = os.getenv('DB_HOST')
+HOST = os.getenv('GDB_HOST')
 USER = os.getenv('SMD_USER')
 PWD = os.getenv('SMD_PWD')
 
