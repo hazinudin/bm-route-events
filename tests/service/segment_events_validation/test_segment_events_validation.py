@@ -148,6 +148,27 @@ class TestRouteRNIEventsValidation(unittest.TestCase):
         self.assertTrue(check.get_status() == 'error')
         self.assertFalse(check._events.pl_df.is_empty())
 
+    def test_updated_rows(self):
+        routeid = '44079'
+        lrs = LRSRoute.from_feature_service('localhost:50052', routeid)
+
+        check = RouteRNIValidation.validate_excel(
+            excel_path="/users/hannanazinuddin/Downloads/rni_10_21-08-2024_014838_3203.xlsx",
+            route=routeid,
+            survey_year=2025,
+            sql_engine=engine,
+            lrs=lrs,
+            ignore_review=False,
+            force_write=False,
+        )
+
+        check.updated_rows([
+            'ROAD_TYPE',
+            'LANE_WIDTH'
+        ])
+
+        self.assertTrue(True)
+
     def test_paved_to_unpaved_check(self):
         routeid = '15010'
         check = RouteRNIValidation.validate_excel(
