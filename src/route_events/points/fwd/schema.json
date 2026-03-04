@@ -1,0 +1,193 @@
+{
+    "column_details": {
+        "LINKID": {
+            "dtype": "string"
+        },
+        "STA": {
+            "dtype": "integer"
+        },
+        "LANE_CODE": {
+            "dtype": "string",
+            "domain": [
+                "L1",
+                "L2",
+                "L3",
+                "L4",
+                "L5",
+                "L6",
+                "L7",
+                "L8",
+                "L9",
+                "R1",
+                "R2",
+                "R3",
+                "R4",
+                "R5",
+                "R6",
+                "R7",
+                "R8",
+                "R9"
+            ]
+        },
+        "SURVEY_DIREC": {
+            "dtype": "string",
+            "domain": [
+                "O",
+                "N"
+            ]
+        },
+        "SURVEY_YEAR": {
+            "dtype": "integer",
+            "range": {
+                "upper": 2050,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": false,
+                "review": false
+            }
+        },
+        "SURVEY_DATE": {
+            "dtype": "date"
+        },
+        "DEFL_LONG": {
+            "dtype": "double",
+            "range": {
+                "upper": 142,
+                "lower": 95,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "DEFL_LAT": {
+            "dtype": "double",
+            "range": {
+                "upper": 6,
+                "lower": -11,
+                "eq_lower": true,
+                "eq_upper": true,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "ASPHALT_TEMP": {
+            "dtype": "double",
+            "range": {
+                "upper": 63,
+                "lower": 12,
+                "eq_upper": false,
+                "eq_lower": false,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "AIR_TEMP": {
+            "dtype": "double",
+            "range": {
+                "upper": 40,
+                "lower": 12,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "SURF_TEMP": {
+            "dtype": "double",
+            "range": {
+                "upper": 55,
+                "lower": 12,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "DROP_ID": {
+            "dtype": "integer",
+            "allow_null": true
+        },
+        "STRESS": {
+            "dtype": "double",
+            "range": {
+                "upper": null,
+                "lower": 0,
+                "eq_upper": false,
+                "eq_lower": false,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "SURF_THICKNESS": {
+            "dtype": "double",
+            "range": {
+                "upper": 350,
+                "lower": 70,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": true
+            },
+            "allow_null": false
+        },
+        "FORCE": {
+            "dtype": "double",
+            "range": {
+                "upper": 55,
+                "lower": 25,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": false
+        },
+        "FWD_D1": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D2": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D3": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D4": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D5": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D6": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D7": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D8": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "FWD_D9": {
+            "dtype": "double",
+            "allow_null": false
+        },
+        "CONSULTANT_ID": {
+            "dtype": "integer",
+            "allow_null": true
+        },
+        "TEAM_LEAD_ID": {
+            "dtype": "integer",
+            "allow_null": true
+        },
+        "SURV_TOOL_ID": {
+            "dtype": "integer",
+            "allow_null": true
+        }
+    }
+}
