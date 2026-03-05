@@ -323,3 +323,16 @@ class RouteFWDValidation(RoutePointEventsValidation):
         )
 
         return
+    
+    def base_validation(self):
+        """
+        Base validation function
+        """
+        self.d0_surface_check()
+        self.surface_thickness_check()
+        self.median_direction_check()
+        self.lrs_distance_check()
+        self.lrs_sta_check()
+        self.route_has_rni_check()
+        self.sta_not_in_rni_check()
+        
