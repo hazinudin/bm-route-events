@@ -79,8 +79,7 @@ class RouteFWD(RoutePointEvents):
         super().__init__(*args, **kwargs)
         self._d0_col:str = "FWD_D1"
 
-    @classmethod
-    def valid_d0_range(cls) -> ValidRange:
+    def valid_d0_range(self) -> ValidRange:
         """Return valid D0 ranges by surface type."""
         return ValidRange(
             rigid={'upper': 350, 'lower': 90},
