@@ -209,3 +209,77 @@ class RouteFWDValidation(RoutePointEventsValidation):
         )
 
         return
+
+    def d0_surface_check(self):
+        """
+        Validate D0 deflection values based on surface type from RNI.
+        - Rigid (surf_type=21): 90-350
+        - Asphalt (category='paved' and surf_type != 21): 0-5000
+        """
+        suffix = '_r' if self._events._d0_col == self.rni._surf_type_col else ''
+
+        # Get valid ranges
+        valid_ranges = self._events.valid_d0_range()
+        rigid_lower, rigid_upper = valid_ranges.rigid.lower, valid_ranges.rigid.upper
+        asphalt_lower, asphalt_upper = valid_ranges.asphalt.lower, valid_ranges.asphalt.upper
+
+        # Join FWD points with RNI segments to get surface type
+        joined = segments_points_join(
+            segments=self.rni,
+            points=self._events,
+            how='inner',
+            point_select=[self._events._d0_col],
+            segment_select=[self.rni._surf_type_col],
+            suffix='_r'
+        ).join(
+            self.rni.surface_types_mapping,
+            left_on=self.rni._surf_type_col + suffix,
+            right_on='surf_type',
+            how='left'
+        )
+
+        # Classify surfaces and filter for invalid D0 values
+        errors = joined.filter(
+            pl.col(self._events._d0_col).is_not_null()
+        ).with_columns(
+            surface_type=pl.when(
+                pl.col(self.rni._surf_type_col + suffix) == 21
+            ).then(
+                pl.lit('rigid')
+            ).when(
+                (pl.col('category') == 'paved') & (pl.col(self.rni._surf_type_col + suffix) != 21)
+            ).then(
+                pl.lit('asphal')
+            ).otherwise(None)
+        ).filter(
+            (pl.col('surface_type') == 'rigid') & (
+                (pl.col(self._events._d0_col) < rigid_lower) |
+                (pl.col(self._events._d0_col) > rigid_upper)
+            ) |
+            (pl.col('surface_type') == 'asphal') & (
+                (pl.col(self._events._d0_col) < asphalt_lower) |
+                (pl.col(self._events._d0_col) > asphalt_upper)
+            )
+        ).select(
+            msg=pl.format(
+                "Nilai D0 pada STA {} {} tidak sesuai dengan tipe perkerasan, yaitu {} sedangkan rentang yang valid untuk {} adalah {}-{}",
+                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64),
+                pl.col(self._events._lane_code_col),
+                pl.col(self._events._d0_col),
+                pl.col('surface_type'),
+                pl.when(pl.col('surface_type') == 'rigid')
+                    .then(pl.lit(rigid_lower))
+                    .otherwise(pl.lit(asphalt_lower)),
+                pl.when(pl.col('surface_type') == 'rigid')
+                    .then(pl.lit(rigid_upper))
+                    .otherwise(pl.lit(asphalt_upper))
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error',
+            'force'
+        )
+
+        return
