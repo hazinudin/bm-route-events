@@ -3,8 +3,20 @@ import os
 from ...schema import RouteEventsSchema
 from ...segments.rni import surface_types
 import polars as pl
-from pydantic import TypeAdapter
+from pydantic import BaseModel, TypeAdapter
 from typing import List
+
+
+class SurfaceTypeRange(BaseModel):
+    """D0 validation range for a specific surface type."""
+    upper: int
+    lower: int
+
+
+class ValidD0Range(BaseModel):
+    """Valid D0 ranges by surface type (only rigid or asphalt)."""
+    rigid: SurfaceTypeRange
+    asphalt: SurfaceTypeRange
 
 
 class RouteFWD(RoutePointEvents):
@@ -65,5 +77,14 @@ class RouteFWD(RoutePointEvents):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._d0_col:str = "FWD_D1"
+
+    @classmethod
+    def valid_d0_range(cls) -> ValidD0Range:
+        """Return valid D0 ranges by surface type."""
+        return ValidD0Range(
+            rigid={'upper': 350, 'lower': 90},
+            asphalt={'upper': 5000, 'lower': 0}
+        )
 
         
