@@ -135,3 +135,77 @@ class RouteFWDValidation(RoutePointEventsValidation):
 
         self._repo = RouteFWDRepo(self._engine)
         self._events: RouteFWD
+
+    def surface_thickness_check(self):
+        """
+        Validate surface thickness values based on surface type from RNI.
+        - Rigid (surf_type=21): 150-320 mm
+        - Asphalt (category='paved' and surf_type != 21): 70-350 mm
+        """
+        suffix = '_r' if self._events._surf_thickness_col == self.rni._surf_thickness_col else ''
+
+        # Get valid ranges
+        valid_ranges = self._events.valid_surface_thickness()
+        rigid_lower, rigid_upper = valid_ranges.rigid.lower, valid_ranges.rigid.upper
+        asphalt_lower, asphalt_upper = valid_ranges.asphalt.lower, valid_ranges.asphalt.upper
+
+        # Join FWD points with RNI segments to get surface type
+        joined = segments_points_join(
+            segments=self.rni,
+            points=self._events,
+            how='inner',
+            point_select=[self._events._surf_thickness_col],
+            segment_select=[self.rni._surf_type_col],
+            suffix='_r'
+        ).join(
+            self.rni.surface_types_mapping,
+            left_on=self.rni._surf_type_col + suffix,
+            right_on='surf_type',
+            how='left'
+        )
+
+        # Classify surfaces and filter for invalid thickness
+        errors = joined.filter(
+            pl.col(self._events._surf_thickness_col).is_not_null()
+        ).with_columns(
+            surface_type=pl.when(
+                pl.col(self.rni._surf_type_col + suffix) == 21
+            ).then(
+                pl.lit('rigid')
+            ).when(
+                (pl.col('category') == 'paved') & (pl.col(self.rni._surf_type_col + suffix) != 21)
+            ).then(
+                pl.lit('asphal')
+            ).otherwise(None)
+        ).filter(
+            (pl.col('surface_type') == 'rigid') & (
+                (pl.col(self._events._surf_thickness_col) < rigid_lower) |
+                (pl.col(self._events._surf_thickness_col) > rigid_upper)
+            ) |
+            (pl.col('surface_type') == 'asphal') & (
+                (pl.col(self._events._surf_thickness_col) < asphalt_lower) |
+                (pl.col(self._events._surf_thickness_col) > asphalt_upper)
+            )
+        ).select(
+            msg=pl.format(
+                "Ketebalan perkerasan pada STA {} {} tidak sesuai dengan tipe perkerasan, yaitu {} sedangkan rentang yang valid untuk {} adalah {}-{}",
+                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64),
+                pl.col(self._events._lane_code_col),
+                pl.col(self._events._surf_thickness_col),
+                pl.col('surface_type'),
+                pl.when(pl.col('surface_type') == 'rigid')
+                    .then(pl.lit(rigid_lower))
+                    .otherwise(pl.lit(asphalt_lower)),
+                pl.when(pl.col('surface_type') == 'rigid')
+                    .then(pl.lit(rigid_upper))
+                    .otherwise(pl.lit(asphalt_upper))
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error',
+            'force'
+        )
+
+        return
