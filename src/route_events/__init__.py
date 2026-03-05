@@ -16,6 +16,8 @@ from .points import(
     RouteDefectsRepo,
     RouteRTC,
     RouteRTCRepo,
+    RouteFWD,
+    RouteFWDRepo,
 )
 from .route import LRSRoute
 from .photo import SurveyPhoto
