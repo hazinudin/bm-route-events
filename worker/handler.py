@@ -1,13 +1,14 @@
 from pydantic import BaseModel, Field, ConfigDict
 from route_events import LRSRoute
 from route_events_service import (
-    RouteRNIValidation, 
-    RouteRoughnessValidation, 
+    RouteRNIValidation,
+    RouteRoughnessValidation,
     RoutePCIValidation,
     RouteDefectsValidation,
     BridgeInventoryValidation,
     RouteRTCValidation,
-    BridgeMasterValidation
+    BridgeMasterValidation,
+    RouteFWDValidation
 )
 from route_events_service.photo import gs
 from typing import List, Optional, Literal
@@ -322,7 +323,50 @@ class DefectValidation(ValidationHandler):
             span.set_status(StatusCode.OK)
 
             return check._result.to_job_event(self.job_id)
-        
+
+
+class FWDValidation(ValidationHandler):
+    def __init__(
+            self,
+            payload: PayloadSMD,
+            job_id: str,
+            validate: bool=True
+    ):
+        ValidationHandler.__init__(self, payload, job_id, validate)
+
+    def validate(self)->str:
+        """
+        Start validation
+        """
+        with tracer.start_as_current_span('fwd-validation-process') as span:
+            check = RouteFWDValidation.validate_excel(
+                excel_path=self.payload.file_name,
+                route=self.payload.routes[0],
+                survey_year=self.payload.year,
+                sql_engine=SMD_ENGINE,
+                lrs=self.get_lrs(),
+                ignore_review=self.ignore_review,
+                force_write=self.force_write
+            )
+
+            if check.get_status() == 'rejected':
+                return check._result.to_job_event(self.job_id)
+
+            if self._validate:
+                check.base_validation()
+
+            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+                check.put_data()
+
+            # Set span attribute and status
+            span.set_attribute("file_name", self.payload.file_name)
+            span.set_attribute("route", self.payload.routes[0])
+            span.set_attribute("validation.result.status", check.get_status())
+
+            span.set_status(StatusCode.OK)
+
+            return check._result.to_job_event(self.job_id)
+
 
 class BridgeMasterValidation_(ValidationHandler):
     def __init__(
