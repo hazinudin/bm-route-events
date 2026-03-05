@@ -323,7 +323,13 @@ class RouteFWDValidation(RoutePointEventsValidation):
         )
 
         return
-    
+
+    def put_data(self):
+        """
+        Delete and insert events data to geodatabase table.
+        """
+        self._repo.put(self._events, year=self._survey_year)
+
     def base_validation(self):
         """
         Base validation function
