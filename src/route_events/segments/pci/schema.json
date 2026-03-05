@@ -362,6 +362,132 @@
             ],
             "allow_null": true
         },
+        "VOL_AS_BLOCK_CRACK": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_BUMP_SAG": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_JOINT_CRACK": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_POLISH": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_RAILROAD": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_SHOVING": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_SLIPPAGE": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_SWELL": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "VOL_AS_SURFACE": {
+            "dtype": "double",
+            "allow_null": true
+        },
+        "SEV_AS_BLOCK_CRACK": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_BUMP_SAG": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_JOINT_CRACK": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_POLISH": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_RAILROAD": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_SHOVING": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_SLIPPAGE": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_SWELL": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_AS_SURFACE": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
         "SEV_RG_COBREAK": {
             "dtype": "string",
             "domain": [
@@ -473,6 +599,174 @@
             "allow_null": true
         },
         "SEV_RG_SH_DROPOFF": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "VOL_RG_BLOWUP": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_CRACK": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_PATCHING_L": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_PATCHING_S": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_POLISHED": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_POPOUT": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_RAILROAD": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "VOL_RG_SCALING": {
+            "dtype": "integer",
+            "range": {
+                "upper": 20,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
+            "allow_null": true
+        },
+        "SEV_RG_BLOWUP": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_CRACK": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_PATCHING_L": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_PATCHING_S": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_POLISHED": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_POPOUT": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_RAILROAD": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
+            "allow_null": true
+        },
+        "SEV_RG_SCALING": {
             "dtype": "string",
             "domain": [
                 "NA",
