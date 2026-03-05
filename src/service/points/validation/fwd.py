@@ -210,6 +210,46 @@ class RouteFWDValidation(RoutePointEventsValidation):
 
         return
 
+    def median_direction_check(self):
+        """
+        Ensure survey points at the same STA have both directions when the segment has a median.
+        """
+        # Join FWD points with RNI segments to get median information
+        joined = segments_points_join(
+            segments=self.rni,
+            points=self._events,
+            how='inner',
+            segment_select=[self.rni._med_width_col],
+            suffix='_r'
+        ).with_columns(
+            direction=pl.col(self._events._lane_code_col).str.head(1)
+        )
+
+        # Group by LINKID and STA to count directions
+        med_width_col_r = self.rni._med_width_col + '_r'
+        errors = joined.group_by(
+            self._events._linkid_col,
+            self._events._sta_col
+        ).agg(
+            med_width=pl.col(med_width_col_r).max(),
+            direction_count=pl.col('direction').n_unique(),
+            directions=pl.col('direction').unique()
+        ).filter(
+            (pl.col('med_width') > 0) & (pl.col('direction_count') == 1)
+        ).select(
+            msg=pl.format(
+                "Titik survey pada STA {} seharusnya memiliki data kedua arah karena segmen ini memiliki median",
+                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64)
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error',
+        )
+
+        return
+
     def d0_surface_check(self):
         """
         Validate D0 deflection values based on surface type from RNI.
