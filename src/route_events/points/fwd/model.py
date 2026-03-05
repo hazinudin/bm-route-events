@@ -86,4 +86,11 @@ class RouteFWD(RoutePointEvents):
             asphalt={'upper': 5000, 'lower': 0}
         )
 
+    def valid_surface_thickness(self) -> ValidRange:
+        """Return valid surface thickness ranges by surface type."""
+        return ValidRange(
+            rigid={'upper': 320, 'lower': 150},
+            asphalt={'upper': 350, 'lower': 70}
+        )
+
         
