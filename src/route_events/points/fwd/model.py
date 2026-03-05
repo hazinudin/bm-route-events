@@ -7,16 +7,16 @@ from pydantic import BaseModel, TypeAdapter
 from typing import List
 
 
-class SurfaceTypeRange(BaseModel):
+class SurfaceRange(BaseModel):
     """D0 validation range for a specific surface type."""
     upper: int
     lower: int
 
 
-class ValidD0Range(BaseModel):
+class ValidRange(BaseModel):
     """Valid D0 ranges by surface type (only rigid or asphalt)."""
-    rigid: SurfaceTypeRange
-    asphalt: SurfaceTypeRange
+    rigid: SurfaceRange
+    asphalt: SurfaceRange
 
 
 class RouteFWD(RoutePointEvents):
@@ -80,9 +80,9 @@ class RouteFWD(RoutePointEvents):
         self._d0_col:str = "FWD_D1"
 
     @classmethod
-    def valid_d0_range(cls) -> ValidD0Range:
+    def valid_d0_range(cls) -> ValidRange:
         """Return valid D0 ranges by surface type."""
-        return ValidD0Range(
+        return ValidRange(
             rigid={'upper': 350, 'lower': 90},
             asphalt={'upper': 5000, 'lower': 0}
         )
