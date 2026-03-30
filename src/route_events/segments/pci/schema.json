@@ -394,8 +394,18 @@
             "dtype": "double",
             "allow_null": true
         },
-        "VOL_AS_SURFACE": {
+"VOL_AS_SURFACE_WEAR": {
             "dtype": "double",
+            "allow_null": true
+        },
+        "SEV_AS_SURFACE_WEAR": {
+            "dtype": "string",
+            "domain": [
+                "NA",
+                "R",
+                "S",
+                "T"
+            ],
             "allow_null": true
         },
         "SEV_AS_BLOCK_CRACK": {
@@ -619,7 +629,7 @@
             },
             "allow_null": true
         },
-        "VOL_RG_CRACK": {
+        "VOL_RG_CRACK_D": {
             "dtype": "integer",
             "range": {
                 "upper": 20,
@@ -706,7 +716,7 @@
             ],
             "allow_null": true
         },
-        "SEV_RG_CRACK": {
+        "SEV_RG_CRACK_D": {
             "dtype": "string",
             "domain": [
                 "NA",
