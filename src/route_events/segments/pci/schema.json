@@ -794,6 +794,13 @@
         },
         "PCI": {
             "dtype": "double",
+            "range": {
+                "upper": 100,
+                "lower": 0,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": false
+            },
             "allow_null": true
         },
         "CONSULTANT_ID": {
