@@ -74,10 +74,6 @@
             "dtype": "double",
             "allow_null": true
         },
-        "VOL_AS_OTHER_CRACK": {
-            "dtype": "double",
-            "allow_null": true
-        },
         "VOL_AS_POTHOLE": {
             "dtype": "integer",
             "allow_null": true
@@ -220,17 +216,6 @@
             },
             "allow_null": true
         },
-        "VOL_RG_PATCHING": {
-            "dtype": "integer",
-            "range": {
-                "upper": 20,
-                "lower": 0,
-                "eq_upper": true,
-                "eq_lower": true,
-                "review": false
-            },
-            "allow_null": true
-        },
         "VOL_RG_SH_DROPOFF": {
             "dtype": "integer",
             "range": {
@@ -263,16 +248,6 @@
             "allow_null": true
         },
         "SEV_AS_LONG_CRACK": {
-            "dtype": "string",
-            "domain": [
-                "NA",
-                "R",
-                "S",
-                "T"
-            ],
-            "allow_null": true
-        },
-        "SEV_AS_OTHER_CRACK": {
             "dtype": "string",
             "domain": [
                 "NA",
@@ -488,16 +463,6 @@
             ],
             "allow_null": true
         },
-        "SEV_AS_SURFACE": {
-            "dtype": "string",
-            "domain": [
-                "NA",
-                "R",
-                "S",
-                "T"
-            ],
-            "allow_null": true
-        },
         "SEV_RG_COBREAK": {
             "dtype": "string",
             "domain": [
@@ -589,16 +554,6 @@
             "allow_null": true
         },
         "SEV_RG_JSEAL": {
-            "dtype": "string",
-            "domain": [
-                "NA",
-                "R",
-                "S",
-                "T"
-            ],
-            "allow_null": true
-        },
-        "SEV_RG_PATCHING": {
             "dtype": "string",
             "domain": [
                 "NA",

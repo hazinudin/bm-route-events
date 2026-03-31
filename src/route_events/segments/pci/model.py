@@ -10,100 +10,108 @@ class RoutePCI(RouteSegmentEvents):
     """
     Route segment PCI model.
     """
+
     @classmethod
     def from_excel(
         cls,
         excel_path: str,
         linkid: str,
-        linkid_col: str = 'LINKID',
+        linkid_col: str = "LINKID",
         ignore_review: bool = False,
         data_year: int = None,
-        segment_length: float = 0.05
+        segment_length: float = 0.05,
     ):
         """
         Parse data from Excel file to Arrow format and load it into PCI object.
         """
-        config_path = os.path.dirname(__file__) + '/schema.json'
+        config_path = os.path.dirname(__file__) + "/schema.json"
         segment_length = segment_length
 
         schema = RouteSegmentEventSchema(
-            config_path=config_path,
-            ignore_review_err=ignore_review
+            config_path=config_path, ignore_review_err=ignore_review
         )
 
         df_str = pl.read_excel(
             excel_path,
-            engine='calamine',
+            engine="calamine",
             infer_schema_length=None,
-            read_options={
-                "dtypes": "string"
-            }
-        ).rename(
-            str.upper
-        )
+            read_options={"dtypes": "string"},
+        ).rename(str.upper)
 
         # Pydantic validation
         ta = TypeAdapter(List[schema.model])
         df = pl.DataFrame(
-            ta.validate_python(df_str.to_dicts()),
-            infer_schema_length=None
-        ).filter(
-            pl.col(linkid_col) == linkid
-        )
+            ta.validate_python(df_str.to_dicts()), infer_schema_length=None
+        ).filter(pl.col(linkid_col) == linkid)
 
         return cls(
             artable=df.to_arrow(),
             route=linkid,
             segment_length=segment_length,
-            data_year=data_year
+            data_year=data_year,
         )
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         # Default columns
-        self._pci_col = 'PCI'
+        self._pci_col = "PCI"
 
         # Damage column prefix
-        self._dvol = 'VOL_'  # Damage volume
-        self._dsev = 'SEV_'  # Damage severity
-        
+        self._dvol = "VOL_"  # Damage volume
+        self._dsev = "SEV_"  # Damage severity
+
         # PCI max and min value
         self._pci_max = 100
         self._pci_min = 0
 
         # Asphalt damages
         self._as_damages = [
-            'AS_ALG_CRACK',
-            'AS_EDGE_CRACK',
-            'AS_LONG_CRACK',
-            'AS_OTHER_CRACK',
-            'AS_POTHOLE',
-            'AS_PATCHING',
-            'AS_RUTTING',
-            'AS_CORRUGATION',
-            'AS_DEPRESSION',
-            'AS_RAVELING',
-            'AS_BLEEDING',
-            'AS_SH_DROPOFF',
+            "AS_ALG_CRACK",
+            "AS_EDGE_CRACK",
+            "AS_LONG_CRACK",
+            "AS_POTHOLE",
+            "AS_PATCHING",
+            "AS_RUTTING",
+            "AS_CORRUGATION",
+            "AS_DEPRESSION",
+            "AS_RAVELING",
+            "AS_BLEEDING",
+            "AS_SH_DROPOFF",
+            "AS_BLOCK_CRACK",
+            "AS_BUMP_SAG",
+            "AS_JOINT_CRACK",
+            "AS_POLISH",
+            "AS_RAILROAD",
+            "AS_SHOVING",
+            "AS_SLIPPAGE",
+            "AS_SWELL",
+            "AS_SURFACE_WEAR",
         ]
 
         # Rigid damages
         self._rg_damages = [
-            'RG_COBREAK',
-            'RG_DIV_SLAB',
-            'RG_FAULTING',
-            'RG_LINE_CRACK',
-            'RG_PUNCH_OUT',
-            'RG_SHRINKAGE',
-            'RG_PUMPING',
-            'RG_COSPALLING',
-            'RG_JSPALLING',
-            'RG_JSEAL',
-            'RG_PATCHING',
-            'RG_SH_DROPOFF'
+            "RG_COBREAK",
+            "RG_DIV_SLAB",
+            "RG_FAULTING",
+            "RG_LINE_CRACK",
+            "RG_PUNCH_OUT",
+            "RG_SHRINKAGE",
+            "RG_PUMPING",
+            "RG_COSPALLING",
+            "RG_JSPALLING",
+            "RG_JSEAL",
+            "RG_SH_DROPOFF",
+            "RG_BLOWUP",
+            "RG_CRACK_D",
+            "RG_PATCHING_L",
+            "RG_PATCHING_S",
+            "RG_POLISHED",
+            "RG_POPOUT",
+            "RG_RAILROAD",
+            "RG_SCALING",
         ]
-    
+
     @property
     def asphalt_damages(self) -> list:
         """
@@ -117,14 +125,14 @@ class RoutePCI(RouteSegmentEvents):
         Return the list of all rigid damages.
         """
         return self._rg_damages
-    
+
     @property
     def all_damages(self) -> list:
         """
         Return the list of all damages.
         """
         return self._as_damages + self._rg_damages
-    
+
     @property
     def all_severity(self) -> list:
         """
@@ -132,7 +140,7 @@ class RoutePCI(RouteSegmentEvents):
         """
         damages = self._as_damages + self._rg_damages
         return [self._dsev + damage for damage in damages]
-    
+
     @property
     def all_volume(self) -> list:
         """
@@ -145,81 +153,94 @@ class RoutePCI(RouteSegmentEvents):
         """
         Segment with invalid PCI value if compared to its damage columns.
         """
-        segments = self.pl_df.select(
-            self._linkid_col,
-            self._from_sta_col,
-            self._to_sta_col,
-            self._lane_code_col,
-            pl.col(self._pci_col).fill_null(-1),  # For easier comparison
-            *[ 
-                # OLD Damage volume columns is null or equal to zero.
-                # REVISION 1: No damage is when the VOLUME = 0.
-                # REVISION 2: For EQ0 set the null value to 0
-                pl.col(f"{self._dvol}{dcol}").fill_null(0).eq(0).alias(f"{self._dvol}{dcol}_EQ0") for dcol in self.all_damages
-            ] + [
-                # Separate for detecting Null
-                pl.col(f"{self._dvol}{dcol}").is_null().alias(f"{self._dvol}{dcol}_ISNULL") for dcol in self.all_damages
-            ]
-        ).filter(
-            pl.all_horizontal(
-                *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
-            ).not_().and_(
-                pl.col(self._pci_col).eq(self._pci_max).or_(pl.col(self._pci_col).eq(-1))
-            ) 
-            |
-            pl.all_horizontal(
-                *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
-            ).and_(
-                pl.col(self._pci_col).ne(self._pci_max).and_(pl.col(self._pci_col).ne(-1))
+        segments = (
+            self.pl_df.select(
+                self._linkid_col,
+                self._from_sta_col,
+                self._to_sta_col,
+                self._lane_code_col,
+                pl.col(self._pci_col).fill_null(-1),  # For easier comparison
+                *[
+                    # OLD Damage volume columns is null or equal to zero.
+                    # REVISION 1: No damage is when the VOLUME = 0.
+                    # REVISION 2: For EQ0 set the null value to 0
+                    pl.col(f"{self._dvol}{dcol}")
+                    .fill_null(0)
+                    .eq(0)
+                    .alias(f"{self._dvol}{dcol}_EQ0")
+                    for dcol in self.all_damages
+                ]
+                + [
+                    # Separate for detecting Null
+                    pl.col(f"{self._dvol}{dcol}")
+                    .is_null()
+                    .alias(f"{self._dvol}{dcol}_ISNULL")
+                    for dcol in self.all_damages
+                ],
             )
-            # REVISION 3: Disable ISNULL check, the unpaved case is covered in the PCI-RNI comparison.
-            # |
-            # pl.all_horizontal(
-            #     *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
-            # ).and_(pl.col(self._pci_col).ne(-1))
-            # |
-            # pl.all_horizontal(
-            #     *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
-            # ).not_().and_(pl.col(self._pci_col).eq(-1))
-        ).with_columns(
-            # Revert back the -1 value to Null/None
-            pl.when(
-                pl.col(self._pci_col).eq(-1)
-            ).then(
-                pl.lit(None)
-            ).otherwise(
-                pl.col(self._pci_col)
-            ).alias(self._pci_col)
+            .filter(
+                pl.all_horizontal(
+                    *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
+                )
+                .not_()
+                .and_(
+                    pl.col(self._pci_col)
+                    .eq(self._pci_max)
+                    .or_(pl.col(self._pci_col).eq(-1))
+                )
+                | pl.all_horizontal(
+                    *[f"{self._dvol}{dcol}_EQ0" for dcol in self.all_damages]
+                ).and_(
+                    pl.col(self._pci_col)
+                    .ne(self._pci_max)
+                    .and_(pl.col(self._pci_col).ne(-1))
+                )
+                # REVISION 3: Disable ISNULL check, the unpaved case is covered in the PCI-RNI comparison.
+                # |
+                # pl.all_horizontal(
+                #     *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
+                # ).and_(pl.col(self._pci_col).ne(-1))
+                # |
+                # pl.all_horizontal(
+                #     *[f"{self._dvol}{dcol}_ISNULL" for dcol in self.all_damages]
+                # ).not_().and_(pl.col(self._pci_col).eq(-1))
+            )
+            .with_columns(
+                # Revert back the -1 value to Null/None
+                pl.when(pl.col(self._pci_col).eq(-1))
+                .then(pl.lit(None))
+                .otherwise(pl.col(self._pci_col))
+                .alias(self._pci_col)
+            )
         )
-        
+
         return segments
-    
+
     def invalid_volume_with_severity(self) -> dict:
         """
-        Segment with inconsistent volume and severity, segment should have 0/None volume 
+        Segment with inconsistent volume and severity, segment should have 0/None volume
         and also NA/None severity. Segment with greater than 0 damage volume should have not None and not NA severity.
         """
         ldf = []  # For storing lazyframes.
 
         for dcol in self.all_damages:
-            col_error = self.pl_df.lazy().select(
-                self._linkid_col,
-                self._from_sta_col,
-                self._to_sta_col,
-                self._lane_code_col,
-                pl.lit(dcol).alias('DAMAGE_COLUMN'),
-
-                pl.col(f"{self._dvol}{dcol}").gt(0).alias("HAS_DAMAGE"),
-
-                pl.col(f"{self._dsev}{dcol}").ne("NA").and_(
-                    pl.col(f"{self._dsev}{dcol}").is_not_null()
-                ).alias("HAS_SEVERITY")
-            ).filter(
-                pl.col('HAS_DAMAGE').and_(
-                    pl.col('HAS_SEVERITY').not_()
-                ) |
-                pl.col('HAS_DAMAGE').not_().and_(
-                    pl.col('HAS_SEVERITY')
+            col_error = (
+                self.pl_df.lazy()
+                .select(
+                    self._linkid_col,
+                    self._from_sta_col,
+                    self._to_sta_col,
+                    self._lane_code_col,
+                    pl.lit(dcol).alias("DAMAGE_COLUMN"),
+                    pl.col(f"{self._dvol}{dcol}").gt(0).alias("HAS_DAMAGE"),
+                    pl.col(f"{self._dsev}{dcol}")
+                    .ne("NA")
+                    .and_(pl.col(f"{self._dsev}{dcol}").is_not_null())
+                    .alias("HAS_SEVERITY"),
+                )
+                .filter(
+                    pl.col("HAS_DAMAGE").and_(pl.col("HAS_SEVERITY").not_())
+                    | pl.col("HAS_DAMAGE").not_().and_(pl.col("HAS_SEVERITY"))
                 )
             )
 
@@ -227,5 +248,8 @@ class RoutePCI(RouteSegmentEvents):
 
         errors = pl.concat(ldf).collect()
 
-        return self._segment_dto_mapper(errors, dump=True, additional_cols=['DAMAGE_COLUMN', 'HAS_DAMAGE', 'HAS_SEVERITY'])
-
+        return self._segment_dto_mapper(
+            errors,
+            dump=True,
+            additional_cols=["DAMAGE_COLUMN", "HAS_DAMAGE", "HAS_SEVERITY"],
+        )
