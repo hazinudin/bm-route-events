@@ -386,10 +386,10 @@ class TestRoutePCIEventsValidation(unittest.TestCase):
         Test the base validation.
         """
         # routeid = '52013'
-        routeid = '56039'
+        routeid = '24038'
 
         lrs = LRSRoute.from_feature_service("localhost:50052", routeid)
-        file_name = "tests/domain/route_segments/input_excels/pci_14_31-07-2025_020817_9581.xlsx"
+        file_name = "tests/domain/route_segments/input_excels/pci_new_format_24038_2404611_converted.xlsx"
 
         check = RoutePCIValidation.validate_excel(
             file_name,
