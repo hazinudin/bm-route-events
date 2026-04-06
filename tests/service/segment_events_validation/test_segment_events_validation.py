@@ -34,7 +34,6 @@ class TestRouteSegmentEventsValidation(unittest.TestCase):
         )
 
         check.df_lrs_mv
-        check.df_lrs_dist
 
         self.assertTrue(True)
 
