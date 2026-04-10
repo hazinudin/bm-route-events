@@ -9,12 +9,14 @@ from sqlalchemy import Engine
 from ...validation_result.result import ValidationResult
 import polars as pl
 from pydantic import ValidationError
+from typing import Literal
 
 
 class RouteFWDValidation(RoutePointEventsValidation):
     """
     Route FWD Events validation class.
     """
+
     @classmethod
     def validate_excel(
         cls,
@@ -23,9 +25,10 @@ class RouteFWDValidation(RoutePointEventsValidation):
         survey_year: int,
         sql_engine: Engine,
         lrs: LRSRoute,
-        linkid_col: str = 'LINKID',
+        linkid_col: str = "LINKID",
         ignore_review: bool = False,
         force_write: bool = False,
+        survey_semester: Literal[1, 2] = None,
     ):
         """
         Validate FWD data in Excel file.
@@ -33,10 +36,10 @@ class RouteFWDValidation(RoutePointEventsValidation):
         ignored_tag = []
 
         if force_write:
-            ignored_tag.append('force')
+            ignored_tag.append("force")
 
         if ignore_review:
-            ignored_tag.append('review')
+            ignored_tag.append("review")
 
         result = ValidationResult(route, ignore_in=ignored_tag)
 
@@ -48,7 +51,8 @@ class RouteFWDValidation(RoutePointEventsValidation):
                 linkid=route,
                 linkid_col=linkid_col,
                 ignore_review=ignore_review,
-                data_year=survey_year
+                data_year=survey_year,
+                data_semester=survey_semester,
             )
 
             obj = cls(
@@ -58,18 +62,19 @@ class RouteFWDValidation(RoutePointEventsValidation):
                 sql_engine=sql_engine,
                 results=result,
                 survey_year=survey_year,
+                survey_semester=survey_semester,
             )
 
             return obj
 
         except ValidationError as e:
             for error in e.errors():
-                if 'review' in error['type']:
-                    result.add_message(error['msg'], 'review', 'review')
+                if "review" in error["type"]:
+                    result.add_message(error["msg"], "review", "review")
                 else:
-                    result.add_message(error['msg'], 'rejected')
+                    result.add_message(error["msg"], "rejected")
 
-            if result.status == 'rejected':
+            if result.status == "rejected":
                 obj = cls(
                     route=route,
                     events=pl.DataFrame(),
@@ -77,6 +82,7 @@ class RouteFWDValidation(RoutePointEventsValidation):
                     sql_engine=sql_engine,
                     results=result,
                     survey_year=survey_year,
+                    survey_semester=survey_semester,
                 )
 
                 return obj
@@ -87,7 +93,8 @@ class RouteFWDValidation(RoutePointEventsValidation):
                     linkid=route,
                     linkid_col=linkid_col,
                     ignore_review=True,
-                    data_year=survey_year
+                    data_year=survey_year,
+                    data_semester=survey_semester,
                 )
 
                 obj = cls(
@@ -97,12 +104,15 @@ class RouteFWDValidation(RoutePointEventsValidation):
                     sql_engine=sql_engine,
                     results=result,
                     survey_year=survey_year,
+                    survey_semester=survey_semester,
                 )
 
                 return obj
 
         except IndexError:
-            result.add_message(f"File '{excel_path}' tidak dapat ditemukan.", 'rejected')
+            result.add_message(
+                f"File '{excel_path}' tidak dapat ditemukan.", "rejected"
+            )
 
             obj = cls(
                 route=route,
@@ -111,18 +121,20 @@ class RouteFWDValidation(RoutePointEventsValidation):
                 sql_engine=sql_engine,
                 results=result,
                 survey_year=survey_year,
+                survey_semester=survey_semester,
             )
 
             return obj
 
     def __init__(
-            self,
-            route: str,
-            events: RouteFWD,
-            lrs: LRSRoute,
-            sql_engine: Engine,
-            results: ValidationResult,
-            survey_year: int = None
+        self,
+        route: str,
+        events: RouteFWD,
+        lrs: LRSRoute,
+        sql_engine: Engine,
+        results: ValidationResult,
+        survey_year: int = None,
+        survey_semester: Literal[1, 2] = None,
     ):
         super().__init__(
             events=events,
@@ -130,7 +142,8 @@ class RouteFWDValidation(RoutePointEventsValidation):
             sql_engine=sql_engine,
             results=results,
             route=route,
-            survey_year=survey_year
+            survey_year=survey_year,
+            survey_semester=survey_semester,
         )
 
         self._repo = RouteFWDRepo(self._engine)
@@ -142,71 +155,78 @@ class RouteFWDValidation(RoutePointEventsValidation):
         - Rigid (surf_type=21): 150-320 mm
         - Asphalt (category='paved' and surf_type != 21): 70-350 mm
         """
-        suffix = '_r' if self._events._surf_thickness_col == self.rni._surf_thickness_col else ''
+        suffix = (
+            "_r" if self._events._surf_thickness_col == self.rni._surf_type_col else ""
+        )
 
         # Get valid ranges
         valid_ranges = self._events.valid_surface_thickness()
         rigid_lower, rigid_upper = valid_ranges.rigid.lower, valid_ranges.rigid.upper
-        asphalt_lower, asphalt_upper = valid_ranges.asphalt.lower, valid_ranges.asphalt.upper
+        asphalt_lower, asphalt_upper = (
+            valid_ranges.asphalt.lower,
+            valid_ranges.asphalt.upper,
+        )
 
         # Join FWD points with RNI segments to get surface type
         joined = segments_points_join(
             segments=self.rni,
             points=self._events,
-            how='inner',
+            how="inner",
             point_select=[self._events._surf_thickness_col],
             segment_select=[self.rni._surf_type_col],
-            suffix='_r'
+            suffix="_r",
         ).join(
             self.rni.surface_types_mapping,
             left_on=self.rni._surf_type_col + suffix,
-            right_on='surf_type',
-            how='left'
+            right_on="surf_type",
+            how="left",
         )
 
         # Classify surfaces and filter for invalid thickness
-        errors = joined.filter(
-            pl.col(self._events._surf_thickness_col).is_not_null()
-        ).with_columns(
-            surface_type=pl.when(
-                pl.col(self.rni._surf_type_col + suffix) == 21
-            ).then(
-                pl.lit('rigid')
-            ).when(
-                (pl.col('category') == 'paved') & (pl.col(self.rni._surf_type_col + suffix) != 21)
-            ).then(
-                pl.lit('asphal')
-            ).otherwise(None)
-        ).filter(
-            (pl.col('surface_type') == 'rigid') & (
-                (pl.col(self._events._surf_thickness_col) < rigid_lower) |
-                (pl.col(self._events._surf_thickness_col) > rigid_upper)
-            ) |
-            (pl.col('surface_type') == 'asphal') & (
-                (pl.col(self._events._surf_thickness_col) < asphalt_lower) |
-                (pl.col(self._events._surf_thickness_col) > asphalt_upper)
+        errors = (
+            joined.filter(pl.col(self._events._surf_thickness_col).is_not_null())
+            .with_columns(
+                surface_type=pl.when(pl.col(self.rni._surf_type_col + suffix) == 21)
+                .then(pl.lit("rigid"))
+                .when(
+                    (pl.col("category") == "paved")
+                    & (pl.col(self.rni._surf_type_col + suffix) != 21)
+                )
+                .then(pl.lit("asphal"))
+                .otherwise(None)
             )
-        ).select(
-            msg=pl.format(
-                "Ketebalan perkerasan pada STA {} {} tidak sesuai dengan tipe perkerasan, yaitu {} sedangkan rentang yang valid untuk {} adalah {}-{}",
-                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64),
-                pl.col(self._events._lane_code_col),
-                pl.col(self._events._surf_thickness_col),
-                pl.col('surface_type'),
-                pl.when(pl.col('surface_type') == 'rigid')
+            .filter(
+                (pl.col("surface_type") == "rigid")
+                & (
+                    (pl.col(self._events._surf_thickness_col) < rigid_lower)
+                    | (pl.col(self._events._surf_thickness_col) > rigid_upper)
+                )
+                | (pl.col("surface_type") == "asphal")
+                & (
+                    (pl.col(self._events._surf_thickness_col) < asphalt_lower)
+                    | (pl.col(self._events._surf_thickness_col) > asphalt_upper)
+                )
+            )
+            .select(
+                msg=pl.format(
+                    "Ketebalan perkerasan pada STA {} {} tidak sesuai dengan tipe perkerasan, yaitu {} sedangkan rentang yang valid untuk {} adalah {}-{}",
+                    pl.col(self._events._sta_col)
+                    .truediv(self._events.sta_conversion)
+                    .cast(pl.Int64),
+                    pl.col(self._events._lane_code_col),
+                    pl.col(self._events._surf_thickness_col),
+                    pl.col("surface_type"),
+                    pl.when(pl.col("surface_type") == "rigid")
                     .then(pl.lit(rigid_lower))
                     .otherwise(pl.lit(asphalt_lower)),
-                pl.when(pl.col('surface_type') == 'rigid')
+                    pl.when(pl.col("surface_type") == "rigid")
                     .then(pl.lit(rigid_upper))
-                    .otherwise(pl.lit(asphalt_upper))
+                    .otherwise(pl.lit(asphalt_upper)),
+                )
             )
         )
 
-        self._result.add_messages(
-            errors,
-            'error',
-            'force'
-        )
+        self._result.add_messages(errors, "error", "force")
 
         return
 
@@ -218,34 +238,34 @@ class RouteFWDValidation(RoutePointEventsValidation):
         joined = segments_points_join(
             segments=self.rni,
             points=self._events,
-            how='inner',
+            how="inner",
             segment_select=[self.rni._med_width_col],
-            suffix='_r'
-        ).with_columns(
-            direction=pl.col(self._events._lane_code_col).str.head(1)
-        )
+            suffix="_r",
+        ).with_columns(direction=pl.col(self._events._lane_code_col).str.head(1))
 
         # Group by LINKID and STA to count directions
-        med_width_col_r = self.rni._med_width_col + '_r'
-        errors = joined.group_by(
-            self._events._linkid_col,
-            self._events._sta_col
-        ).agg(
-            med_width=pl.col(med_width_col_r).max(),
-            direction_count=pl.col('direction').n_unique(),
-            directions=pl.col('direction').unique()
-        ).filter(
-            (pl.col('med_width') > 0) & (pl.col('direction_count') == 1)
-        ).select(
-            msg=pl.format(
-                "Titik survey pada STA {} seharusnya memiliki data kedua arah karena segmen ini memiliki median",
-                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64)
+        med_width_col_r = self.rni._med_width_col + "_r"
+        errors = (
+            joined.group_by(self._events._linkid_col, self._events._sta_col)
+            .agg(
+                med_width=pl.col(med_width_col_r).max(),
+                direction_count=pl.col("direction").n_unique(),
+                directions=pl.col("direction").unique(),
+            )
+            .filter((pl.col("med_width") > 0) & (pl.col("direction_count") == 1))
+            .select(
+                msg=pl.format(
+                    "Titik survey pada STA {} seharusnya memiliki data kedua arah karena segmen ini memiliki median",
+                    pl.col(self._events._sta_col)
+                    .truediv(self._events.sta_conversion)
+                    .cast(pl.Int64),
+                )
             )
         )
 
         self._result.add_messages(
             errors,
-            'error',
+            "error",
         )
 
         return
@@ -256,71 +276,76 @@ class RouteFWDValidation(RoutePointEventsValidation):
         - Rigid (surf_type=21): 90-350
         - Asphalt (category='paved' and surf_type != 21): 0-5000
         """
-        suffix = '_r' if self._events._d0_col == self.rni._surf_type_col else ''
+        suffix = "_r" if self._events._d0_col == self.rni._surf_type_col else ""
 
         # Get valid ranges
         valid_ranges = self._events.valid_d0_range()
         rigid_lower, rigid_upper = valid_ranges.rigid.lower, valid_ranges.rigid.upper
-        asphalt_lower, asphalt_upper = valid_ranges.asphalt.lower, valid_ranges.asphalt.upper
+        asphalt_lower, asphalt_upper = (
+            valid_ranges.asphalt.lower,
+            valid_ranges.asphalt.upper,
+        )
 
         # Join FWD points with RNI segments to get surface type
         joined = segments_points_join(
             segments=self.rni,
             points=self._events,
-            how='inner',
+            how="inner",
             point_select=[self._events._d0_col],
             segment_select=[self.rni._surf_type_col],
-            suffix='_r'
+            suffix="_r",
         ).join(
             self.rni.surface_types_mapping,
             left_on=self.rni._surf_type_col + suffix,
-            right_on='surf_type',
-            how='left'
+            right_on="surf_type",
+            how="left",
         )
 
         # Classify surfaces and filter for invalid D0 values
-        errors = joined.filter(
-            pl.col(self._events._d0_col).is_not_null()
-        ).with_columns(
-            surface_type=pl.when(
-                pl.col(self.rni._surf_type_col + suffix) == 21
-            ).then(
-                pl.lit('rigid')
-            ).when(
-                (pl.col('category') == 'paved') & (pl.col(self.rni._surf_type_col + suffix) != 21)
-            ).then(
-                pl.lit('asphal')
-            ).otherwise(None)
-        ).filter(
-            (pl.col('surface_type') == 'rigid') & (
-                (pl.col(self._events._d0_col) < rigid_lower) |
-                (pl.col(self._events._d0_col) > rigid_upper)
-            ) |
-            (pl.col('surface_type') == 'asphal') & (
-                (pl.col(self._events._d0_col) < asphalt_lower) |
-                (pl.col(self._events._d0_col) > asphalt_upper)
+        errors = (
+            joined.filter(pl.col(self._events._d0_col).is_not_null())
+            .with_columns(
+                surface_type=pl.when(pl.col(self.rni._surf_type_col + suffix) == 21)
+                .then(pl.lit("rigid"))
+                .when(
+                    (pl.col("category") == "paved")
+                    & (pl.col(self.rni._surf_type_col + suffix) != 21)
+                )
+                .then(pl.lit("asphal"))
+                .otherwise(None)
             )
-        ).select(
-            msg=pl.format(
-                "Nilai D0 pada STA {} {} tidak sesuai dengan tipe perkerasan, yaitu {} sedangkan rentang yang valid untuk {} adalah {}-{}",
-                pl.col(self._events._sta_col).truediv(self._events.sta_conversion).cast(pl.Int64),
-                pl.col(self._events._lane_code_col),
-                pl.col(self._events._d0_col),
-                pl.col('surface_type'),
-                pl.when(pl.col('surface_type') == 'rigid')
+            .filter(
+                (pl.col("surface_type") == "rigid")
+                & (
+                    (pl.col(self._events._d0_col) < rigid_lower)
+                    | (pl.col(self._events._d0_col) > rigid_upper)
+                )
+                | (pl.col("surface_type") == "asphal")
+                & (
+                    (pl.col(self._events._d0_col) < asphalt_lower)
+                    | (pl.col(self._events._d0_col) > asphalt_upper)
+                )
+            )
+            .select(
+                msg=pl.format(
+                    "Nilai D0 pada STA {} {} tidak sesuai dengan tipe perkerasan, yaitu {} sedangkan rentang yang valid untuk {} adalah {}-{}",
+                    pl.col(self._events._sta_col)
+                    .truediv(self._events.sta_conversion)
+                    .cast(pl.Int64),
+                    pl.col(self._events._lane_code_col),
+                    pl.col(self._events._d0_col),
+                    pl.col("surface_type"),
+                    pl.when(pl.col("surface_type") == "rigid")
                     .then(pl.lit(rigid_lower))
                     .otherwise(pl.lit(asphalt_lower)),
-                pl.when(pl.col('surface_type') == 'rigid')
+                    pl.when(pl.col("surface_type") == "rigid")
                     .then(pl.lit(rigid_upper))
-                    .otherwise(pl.lit(asphalt_upper))
+                    .otherwise(pl.lit(asphalt_upper)),
+                )
             )
         )
 
-        self._result.add_messages(
-            errors,
-            'error',
-            'force'
-        )
+        self._result.add_messages(errors, "error", "force")
 
         return
 
@@ -328,7 +353,9 @@ class RouteFWDValidation(RoutePointEventsValidation):
         """
         Delete and insert events data to geodatabase table.
         """
-        self._repo.put(self._events, year=self._survey_year)
+        self._repo.put(
+            self._events, year=self._survey_year, semester=self._survey_semester
+        )
 
     def base_validation(self):
         """
@@ -341,4 +368,3 @@ class RouteFWDValidation(RoutePointEventsValidation):
         self.lrs_sta_check()
         self.route_has_rni_check()
         self.sta_not_in_rni_check()
-        
