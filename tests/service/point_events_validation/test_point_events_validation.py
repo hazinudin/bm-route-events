@@ -2,23 +2,26 @@ import unittest
 from dotenv import load_dotenv
 import os
 from sqlalchemy import create_engine
-from route_events import RouteDefects, LRSRoute
+from route_events import RouteDefects, LRSRoute, RouteFWD, RouteFWDRepo
 from src.service.points.validation.defects import RouteDefectsValidation
 from src.service.points.validation.rtc import RouteRTCValidation, RouteRTC
+from src.service.points.validation.fwd import RouteFWDValidation
 from src.service.validation_result.result import ValidationResult
 from src.service.photo import gs
 from google.cloud import storage
 from google.oauth2 import service_account
 
 
-load_dotenv('tests/dev.env')
-HOST = os.getenv('GDB_HOST')
-USER = os.getenv('SMD_USER')
-PWD = os.getenv('SMD_PWD')
-SERVICE_ACCOUNT_JSON = os.getenv('SERVICE_ACCOUNT_JSON')
+load_dotenv("tests/dev.env")
+HOST = os.getenv("GDB_HOST")
+USER = os.getenv("SMD_USER")
+PWD = os.getenv("SMD_PWD")
+SERVICE_ACCOUNT_JSON = os.getenv("SERVICE_ACCOUNT_JSON")
 
 engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
-cred = service_account.Credentials.from_service_account_file('tests/' + SERVICE_ACCOUNT_JSON)
+cred = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_JSON
+)
 
 
 class TestRouteRTCValidation(unittest.TestCase):
@@ -30,8 +33,8 @@ class TestRouteRTCValidation(unittest.TestCase):
             excel_path=excel_path,
             linkid=route_id,
         )
-        
-        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
         results = ValidationResult(route_id)
 
         check = RouteRTCValidation(
@@ -49,7 +52,7 @@ class TestRouteRTCValidation(unittest.TestCase):
         excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
         route_id = "22040"
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
 
         check = RouteRTCValidation.validate_excel(
             excel_path=excel_path,
@@ -65,7 +68,7 @@ class TestRouteRTCValidation(unittest.TestCase):
         excel_path = "~/Downloads/rtc_6_16-10-2025_091412_6344.xlsx"
         route_id = "22040"
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
 
         check = RouteRTCValidation.validate_excel(
             excel_path=excel_path,
@@ -82,26 +85,24 @@ class TestRouteRTCValidation(unittest.TestCase):
 class TestRouteDefectsValidation(unittest.TestCase):
     def test_init(self):
         excel_path = "tests/domain/route_points/defect_010362.xlsx"
-        route_id = '010362'
+        route_id = "010362"
 
-        events = RouteDefects.from_excel(
-            excel_path,
-            route_id,
-            data_year=2025
-        )
+        events = RouteDefects.from_excel(excel_path, route_id, data_year=2025)
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', route_id)
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
         results = ValidationResult(route_id)
 
         client = storage.Client()
-        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+        sp = gs.SurveyPhotoStorage(
+            bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
+        )
 
         check = RouteDefectsValidation(
             route=route_id,
             events=events,
             lrs=lrs,
             sql_engine=engine,
-            results = results,
+            results=results,
             photo_storage=sp,
             survey_year=2025,
         )
@@ -114,26 +115,24 @@ class TestRouteDefectsValidation(unittest.TestCase):
     def test_validation(self):
         excel_path = "tests/domain/route_points/defect_010362.xlsx"
 
-        events = RouteDefects.from_excel(
-            excel_path,
-            '010362',
-            data_year=2024
-        )
+        events = RouteDefects.from_excel(excel_path, "010362", data_year=2024)
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', '010362')
-        results = ValidationResult('010362')
+        lrs = LRSRoute.from_feature_service("localhost:50052", "010362")
+        results = ValidationResult("010362")
 
         client = storage.Client(credentials=cred)
-        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+        sp = gs.SurveyPhotoStorage(
+            bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
+        )
 
         check = RouteDefectsValidation(
-            route='010362',
+            route="010362",
             events=events,
             lrs=lrs,
             sql_engine=engine,
-            results = results,
+            results=results,
             survey_year=2024,
-            photo_storage=sp
+            photo_storage=sp,
         )
 
         check.lrs_sta_check()
@@ -144,35 +143,33 @@ class TestRouteDefectsValidation(unittest.TestCase):
         check.surface_type_check()
         check.damage_surface_type_check()
 
-        self.assertTrue(check.get_status() == 'error')
+        self.assertTrue(check.get_status() == "error")
 
     def test_survey_photos(self):
         """
         Test survey photo object conversion.
         """
         excel_path = "C:/Users/hazin/Downloads/defect_21_08-09-2025_021224_9367.xlsx"
-        linkid = '56027'
+        linkid = "56027"
 
-        events = RouteDefects.from_excel(
-            excel_path,
-            linkid,
-            data_year=2025
-        )
+        events = RouteDefects.from_excel(excel_path, linkid, data_year=2025)
 
-        lrs = LRSRoute.from_feature_service('localhost:50052', linkid)
+        lrs = LRSRoute.from_feature_service("localhost:50052", linkid)
         results = ValidationResult(linkid)
 
         client = storage.Client()
-        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+        sp = gs.SurveyPhotoStorage(
+            bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
+        )
 
         check = RouteDefectsValidation(
             route=linkid,
             events=events,
             lrs=lrs,
             sql_engine=engine,
-            results = results,
+            results=results,
             survey_year=2025,
-            photo_storage=sp
+            photo_storage=sp,
         )
 
         check.sta_not_in_rni_check()
@@ -187,22 +184,134 @@ class TestRouteDefectsValidation(unittest.TestCase):
         """
         excel_path = "tests/domain/route_points/defect_010362.xlsx"
 
-        events = RouteDefects.from_excel(
-            excel_path,
-            '010362',
-            data_year=2024
-        )
+        events = RouteDefects.from_excel(excel_path, "010362", data_year=2024)
 
         check = RouteDefectsValidation(
-            route='010362',
+            route="010362",
             events=events,
             lrs=None,
             sql_engine=engine,
             results=None,
             survey_year=2024,
-            photo_storage=None
+            photo_storage=None,
         )
 
         check.put()
+
+        self.assertTrue(True)
+
+
+class TestRouteFWDValidation(unittest.TestCase):
+    def test_init(self):
+        route_id = "28134"
+        survey_year = 2025
+
+        repo = RouteFWDRepo(engine)
+        events = repo.get_by_linkid(route_id, year=survey_year)
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
+        results = ValidationResult(route_id)
+
+        check = RouteFWDValidation(
+            route=route_id,
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results,
+            survey_year=survey_year,
+        )
+
+        self.assertFalse(check.df_lrs_mv.is_empty())
+        self.assertTrue(True)
+
+    def test_base_validation(self):
+        route_id = "28134"
+        survey_year = 2025
+
+        repo = RouteFWDRepo(engine)
+        events = repo.get_by_linkid(route_id, year=survey_year)
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
+        results = ValidationResult(route_id)
+
+        check = RouteFWDValidation(
+            route=route_id,
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results,
+            survey_year=survey_year,
+        )
+
+        check.base_validation()
+
+        self.assertTrue(True)
+
+    def test_surface_thickness_check(self):
+        route_id = "28134"
+        survey_year = 2025
+
+        repo = RouteFWDRepo(engine)
+        events = repo.get_by_linkid(route_id, year=survey_year)
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
+        results = ValidationResult(route_id)
+
+        check = RouteFWDValidation(
+            route=route_id,
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results,
+            survey_year=survey_year,
+        )
+
+        check.surface_thickness_check()
+
+        self.assertTrue(True)
+
+    def test_median_direction_check(self):
+        route_id = "28134"
+        survey_year = 2025
+
+        repo = RouteFWDRepo(engine)
+        events = repo.get_by_linkid(route_id, year=survey_year)
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
+        results = ValidationResult(route_id)
+
+        check = RouteFWDValidation(
+            route=route_id,
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results,
+            survey_year=survey_year,
+        )
+
+        check.median_direction_check()
+
+        self.assertTrue(True)
+
+    def test_d0_surface_check(self):
+        route_id = "28134"
+        survey_year = 2025
+
+        repo = RouteFWDRepo(engine)
+        events = repo.get_by_linkid(route_id, year=survey_year)
+
+        lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
+        results = ValidationResult(route_id)
+
+        check = RouteFWDValidation(
+            route=route_id,
+            events=events,
+            lrs=lrs,
+            sql_engine=engine,
+            results=results,
+            survey_year=survey_year,
+        )
+
+        check.d0_surface_check()
 
         self.assertTrue(True)
