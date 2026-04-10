@@ -104,15 +104,16 @@ def segments_points_join(
 
     else:
         # Joint using STA + LANE_CODE and FROM/TO_STA + LANE_CODE
-        select = f"""
-        select {points._linkid_col}, {points._sta_col}, {points._lane_code_col}, {segments._from_sta_col}, {segments._to_sta_col},
-        """
+        select = f"""select {points._linkid_col}, {points._sta_col}, {points._lane_code_col}, {segments._from_sta_col}, {segments._to_sta_col},"""
 
         if len(l_cols) > 0:
             select = select + f"{', '.join(l_cols)}"
 
         if len(r_cols) > 0:
-            select = select + f"{', '.join(r_cols)}"
+            if select[-1:] != ',':
+                select = select + f", {', '.join(r_cols)}"
+            else:
+                select = select + f"{', '.join(r_cols)}"
 
         query = (
             select
