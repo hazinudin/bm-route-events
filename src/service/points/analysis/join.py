@@ -112,7 +112,7 @@ def segments_points_join(
             select = select + f"{', '.join(l_cols)}"
 
         if len(r_cols) > 0:
-            select = select + f", {', '.join(r_cols)}"
+            select = select + f"{', '.join(r_cols)}"
 
         query = (
             select
