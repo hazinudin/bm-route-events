@@ -244,7 +244,7 @@ class RouteFWDValidation(RoutePointEventsValidation):
         ).with_columns(direction=pl.col(self._events._lane_code_col).str.head(1))
 
         # Group by LINKID and STA to count directions
-        med_width_col_r = self.rni._med_width_col + "_r"
+        med_width_col_r = self.rni._med_width_col
         errors = (
             joined.group_by(self._events._linkid_col, self._events._sta_col)
             .agg(
