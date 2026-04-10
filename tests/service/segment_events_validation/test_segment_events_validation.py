@@ -9,6 +9,7 @@ import cProfile
 import pstats
 from dotenv import load_dotenv
 import os
+from bm_lrs_client import LRSClient, ColumnMapping
 
 
 load_dotenv('tests/dev.env')
@@ -24,13 +25,16 @@ class TestRouteSegmentEventsValidation(unittest.TestCase):
         repo = RouteSegmentEventsRepo(engine, 'smd.rni_2_2024')
         events = repo.get_by_linkid('44082')
         results = ValidationResult('44082')
-        lrs = LRSRoute.from_feature_service('localhost:50052', '44082')
+        
+        lrs = LRSRoute.from_feature_service('localhost:50052', route='44082')
+        lrs_client = LRSClient('grpc://localhost:50053')
 
         check = RouteSegmentEventsValidation(
             events=events,
             lrs=lrs,
             sql_engine=engine,
-            results=results
+            results=results,
+            lrs_client=None,
         )
 
         check.df_lrs_mv
