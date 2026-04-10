@@ -5,6 +5,7 @@ from route_events import (
     RouteRNIRepo,
     RouteRNI
 )
+from bm_lrs_client import LRSClient, ColumnMapping
 from ...validation_result.result import ValidationResult
 from ..analysis import segments_points_join
 from sqlalchemy import Engine
@@ -23,7 +24,8 @@ class RoutePointEventsValidation(object):
             results: ValidationResult,
             route: str = None,
             survey_year: int = None,
-            survey_semester: Literal[1,2] = None
+            survey_semester: Literal[1,2] = None,
+            lrs_client: LRSClient = None
     ):
         self._events = events
         self._lrs = lrs
@@ -33,6 +35,9 @@ class RoutePointEventsValidation(object):
 
         self._survey_year = survey_year
         self._survey_semester = survey_semester
+
+        # LRS Client
+        self._lrs_client = lrs_client
 
         # M Value DataFrame
         self._df_lrs_mv = None
@@ -88,10 +93,28 @@ class RoutePointEventsValidation(object):
         Calculate M-Value for every input points.
         """
         if self._df_lrs_mv is None:
+            if self._lrs is not None and self._lrs_client is None:
+                # OLD METHOD
+                self._df_lrs_mv = self._lrs.get_points_m_value(
+                    self._events.points_lambert
+                )
 
-            self._df_lrs_mv = self._lrs.get_points_m_value(
-                self._events.points_lambert
-            )
+            elif self._lrs_client is None:
+                raise ValueError("self._lrs is None and self._lrs_client is also None.")
+
+            else:
+                # NEW METHOD using LRS Client
+                df = self._lrs_client.calculate_m_value(
+                    self._events.pl_df,
+                    column_mapping=ColumnMapping(
+                        route_id=self._events._linkid_col,
+                        latitude=self._events._lat_col,
+                        longitude=self._events._long_col,
+                        m_value='m_val',
+                        distance='dist',
+                    ),
+                    crs=self._events.points_4326.origin_wkt
+                )
 
             return self._df_lrs_mv
         else:

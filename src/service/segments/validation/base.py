@@ -1,6 +1,7 @@
 from route_events.segments import RouteSegmentEvents
 from route_events import LRSRoute
 from ...validation_result.result import ValidationResult
+from bm_lrs_client import LRSClient, ColumnMapping
 from sqlalchemy import Engine
 from typing import Type, Literal, Union
 import polars as pl
@@ -19,7 +20,8 @@ class RouteSegmentEventsValidation(object):
             results: ValidationResult,
             route: str = None,
             survey_year: int = None,
-            survey_semester: Literal[1,2] = None
+            survey_semester: Literal[1,2] = None,
+            lrs_client: LRSClient = None
     ):
         self._events = events
         self._lrs = lrs
@@ -29,6 +31,9 @@ class RouteSegmentEventsValidation(object):
 
         self._survey_year = survey_year
         self._survey_sem = survey_semester
+
+        # LRS Client
+        self._lrs_client = lrs_client
 
         # M Value DataFrame
         self._df_lrs_mv = None
@@ -54,16 +59,35 @@ class RouteSegmentEventsValidation(object):
         Calculate M-Value for every input point and segment M-Value diff to the next segment.
         """
         if self._df_lrs_mv is None:
-            df = self._lrs.get_points_m_value(
-                self._events._points_lambert
-            ).sort(
-                [
-                    self._events._linkid_col,
-                    self._events._from_sta_col,
-                    self._events._to_sta_col,
-                    self._events._lane_code_col
-                ]
-            )
+            if self._lrs is not None and self._lrs_client is None:
+                # OLD METHOD using LRS class from GeoJSON
+                df = self._lrs.get_points_m_value(
+                    self._events._points_lambert
+                ).sort(
+                    [
+                        self._events._linkid_col,
+                        self._events._from_sta_col,
+                        self._events._to_sta_col,
+                        self._events._lane_code_col
+                    ]
+                )
+
+            elif self._lrs_client is None:
+                raise ValueError("self._lrs is None and self._lrs_client is also None.")
+            
+            else:
+                # NEW METHOD using LRS Client
+                df = self._lrs_client.calculate_m_value(
+                    self._events.pl_df,
+                    column_mapping=ColumnMapping(
+                        route_id=self._events._linkid_col,
+                        latitude=self._events._lat_col,
+                        longitude=self._events._long_col,
+                        m_value='m_val',
+                        distance='dist'
+                    ),
+                    crs=self._events._points_4326.origin_wkt
+                )
 
             lanes = []
 
