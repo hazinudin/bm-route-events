@@ -92,7 +92,7 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
         results = ValidationResult(route_id)
 
-        client = storage.Client()
+        client = storage.Client(credentials=cred)
         sp = gs.SurveyPhotoStorage(
             bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
         )
