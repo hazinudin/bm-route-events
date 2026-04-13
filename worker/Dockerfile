@@ -4,8 +4,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
+COPY ../wheels ./wheels
+RUN pip install ./wheels/*.whl
+
 COPY ../requirements.txt .
-RUN pip install -r requirements.txt
+RUN grep -v '^\.\.\/bm-lrs\/lrs-client' requirements.txt > requirements_docker.txt && \
+    pip install -r requirements_docker.txt && \
+    rm requirements_docker.txt
 
 COPY ../src ./src
 COPY ../setup.py .
