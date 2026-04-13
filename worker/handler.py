@@ -8,16 +8,15 @@ from route_events_service import (
     BridgeInventoryValidation,
     RouteRTCValidation,
     BridgeMasterValidation,
-    RouteFWDValidation
+    RouteFWDValidation,
 )
-from route_events_service.photo import gs
+from route_events_service.photo.client import SurveyPhotoStorage
+from bm_photo_client import BMPhotoClient
 from typing import List, Optional, Literal
 from dotenv import load_dotenv
 import os
 from sqlalchemy import create_engine
 from abc import ABC, abstractmethod
-from google.cloud import storage
-from google.oauth2 import service_account
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import StatusCode, Status
@@ -28,86 +27,91 @@ class PayloadSMD(BaseModel):
     file_name: str
     balai: str
     year: int
-    semester: Optional[Literal[1,2]]
+    semester: Optional[Literal[1, 2]]
     routes: List[str]
     show_all_msg: Optional[bool] = False
 
+
 class BridgeValidationParams(BaseModel):
-    validate_length: Optional[bool] = Field(default=True, validation_alias="length_validate")
-    validate_width: Optional[bool] = Field(default=True, validation_alias="width_validate")
+    validate_length: Optional[bool] = Field(
+        default=True, validation_alias="length_validate"
+    )
+    validate_width: Optional[bool] = Field(
+        default=True, validation_alias="width_validate"
+    )
+
 
 class BridgeValidationPayloadFormat(BaseModel):
-    model_config = ConfigDict(extra='allow')
-    validation_params: Optional[BridgeValidationParams] = Field(default=BridgeValidationParams(), exclude=True)
+    model_config = ConfigDict(extra="allow")
+    validation_params: Optional[BridgeValidationParams] = Field(
+        default=BridgeValidationParams(), exclude=True
+    )
 
 
-load_dotenv(os.path.dirname(__file__) + '/.env')
+load_dotenv(os.path.dirname(__file__) + "/.env")
 
-DB_HOST = os.getenv('DB_HOST')
-SMD_USER = os.getenv('SMD_USER')
-SMD_PWD = os.getenv('SMD_PWD')
+DB_HOST = os.getenv("DB_HOST")
+SMD_USER = os.getenv("SMD_USER")
+SMD_PWD = os.getenv("SMD_PWD")
 
-MISC_USER = os.getenv('MISC_USER')
-MISC_PWD = os.getenv('MISC_PWD')
+MISC_USER = os.getenv("MISC_USER")
+MISC_PWD = os.getenv("MISC_PWD")
 
-LRS_HOST = os.getenv('LRS_HOST')
+LRS_HOST = os.getenv("LRS_HOST")
 
-SERVICE_ACCOUNT_JSON = os.getenv('SERVICE_ACCOUNT_JSON')
+BM_PHOTO_BASE_URL = os.getenv("BM_PHOTO_BASE_URL")
+BM_PHOTO_API_KEY = os.getenv("BM_PHOTO_API_KEY")
 
-SMD_ENGINE = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{DB_HOST}:1521/geodbbm")
-MISC_ENGINE = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{DB_HOST}:1521/geodbbm")
+SMD_ENGINE = create_engine(
+    f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{DB_HOST}:1521/geodbbm"
+)
+MISC_ENGINE = create_engine(
+    f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{DB_HOST}:1521/geodbbm"
+)
 
-WRITE_VERIFIED_DATA = int(os.getenv('WRITE_VERIFIED_DATA'))
+WRITE_VERIFIED_DATA = int(os.getenv("WRITE_VERIFIED_DATA"))
 
 tracer = trace.get_tracer(__name__)
 
 
 class ValidationHandler(ABC):
     def __init__(
-            self,
-            payload: BridgeValidationPayloadFormat | PayloadSMD | dict,
-            job_id: str,
-            validate: bool = True
+        self,
+        payload: BridgeValidationPayloadFormat | PayloadSMD | dict,
+        job_id: str,
+        validate: bool = True,
     ):
         if validate:
-            self.ignore_review=False
-            self.force_write=False
+            self.ignore_review = False
+            self.force_write = False
         else:
-            self.ignore_review=True
-            self.force_write=True
+            self.ignore_review = True
+            self.force_write = True
 
-        self.payload=payload
-        self.job_id=job_id
-        self._validate=validate
+        self.payload = payload
+        self.job_id = job_id
+        self._validate = validate
 
     def get_lrs(self) -> LRSRoute | None:
         """
         Get LRSRoute object from GRPC service.
         """
-        return LRSRoute.from_feature_service(
-            LRS_HOST,
-            self.payload.routes[0]
-        )
-    
+        return LRSRoute.from_feature_service(LRS_HOST, self.payload.routes[0])
+
     @abstractmethod
-    def validate(self)->str:
+    def validate(self) -> str:
         pass
-    
+
 
 class RNIValidation(ValidationHandler):
-    def __init__(
-            self,
-            payload: PayloadSMD,
-            job_id: str,
-            validate: bool=True
-    ):
+    def __init__(self, payload: PayloadSMD, job_id: str, validate: bool = True):
         ValidationHandler.__init__(self, payload, job_id, validate)
 
-    def validate(self)->str:
+    def validate(self) -> str:
         """
         Start validation
         """
-        with tracer.start_as_current_span('rni-validation-process') as span:
+        with tracer.start_as_current_span("rni-validation-process") as span:
             check = RouteRNIValidation.validate_excel(
                 excel_path=self.payload.file_name,
                 route=self.payload.routes[0],
@@ -115,19 +119,21 @@ class RNIValidation(ValidationHandler):
                 sql_engine=SMD_ENGINE,
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
-                force_write=self.force_write
+                force_write=self.force_write,
             )
 
             span.set_attribute("partial_update", check._events.is_partial)
 
-            if check.get_status() == 'rejected':
+            if check.get_status() == "rejected":
                 return check._result.to_job_event(self.job_id)
 
             if self._validate:
                 check.base_validation()
 
-            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
-                if check._events.is_partial:  # If its still partial, then merge with previous data
+            if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
+                if (
+                    check._events.is_partial
+                ):  # If its still partial, then merge with previous data
                     check.merge_previous_data()
 
                 check.put_data(semester=self.payload.semester)
@@ -138,24 +144,19 @@ class RNIValidation(ValidationHandler):
             span.set_attribute("validation.result.status", check.get_status())
 
             span.set_status(StatusCode.OK)
-            
+
             return check._result.to_job_event(self.job_id)
-    
+
 
 class IRIValidation(ValidationHandler):
-    def __init__(
-            self,
-            payload: PayloadSMD,
-            job_id: str,
-            validate: bool=True
-    ):
+    def __init__(self, payload: PayloadSMD, job_id: str, validate: bool = True):
         ValidationHandler.__init__(self, payload, job_id, validate)
 
-    def validate(self)->str:
+    def validate(self) -> str:
         """
         Start validation
         """
-        with tracer.start_as_current_span('iri-validation-process') as span:        
+        with tracer.start_as_current_span("iri-validation-process") as span:
             check = RouteRoughnessValidation.validate_excel(
                 excel_path=self.payload.file_name,
                 route=self.payload.routes[0],
@@ -164,16 +165,16 @@ class IRIValidation(ValidationHandler):
                 sql_engine=SMD_ENGINE,
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
-                force_write=self.force_write
+                force_write=self.force_write,
             )
 
-            if check.get_status() == 'rejected':
+            if check.get_status() == "rejected":
                 return check._result.to_job_event(self.job_id)
 
             if self._validate:
                 check.base_validation()
 
-            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+            if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 check.put_data()
 
             # Set span attribute and status
@@ -184,22 +185,17 @@ class IRIValidation(ValidationHandler):
             span.set_status(StatusCode.OK)
 
             return check._result.to_job_event(self.job_id)
-    
+
 
 class PCIValidation(ValidationHandler):
-    def __init__(
-            self,
-            payload: PayloadSMD,
-            job_id: str,
-            validate: bool=True
-    ):
+    def __init__(self, payload: PayloadSMD, job_id: str, validate: bool = True):
         ValidationHandler.__init__(self, payload, job_id, validate)
 
-    def validate(self)->str:
+    def validate(self) -> str:
         """
         Start validation
         """
-        with tracer.start_as_current_span('pci-validation-process') as span:        
+        with tracer.start_as_current_span("pci-validation-process") as span:
             check = RoutePCIValidation.validate_excel(
                 excel_path=self.payload.file_name,
                 route=self.payload.routes[0],
@@ -207,16 +203,16 @@ class PCIValidation(ValidationHandler):
                 sql_engine=SMD_ENGINE,
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
-                force_write=self.force_write
+                force_write=self.force_write,
             )
 
-            if check.get_status() == 'rejected':
+            if check.get_status() == "rejected":
                 return check._result.to_job_event(self.job_id)
 
             if self._validate:
                 check.base_validation()
 
-            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+            if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 check.put_data(semester=self.payload.semester)
 
             # Set span attribute and status
@@ -230,19 +226,14 @@ class PCIValidation(ValidationHandler):
 
 
 class RTCValidation(ValidationHandler):
-    def __init__(
-            self,
-            payload: PayloadSMD,
-            job_id: str,
-            validate: bool=True
-    ):
+    def __init__(self, payload: PayloadSMD, job_id: str, validate: bool = True):
         ValidationHandler.__init__(self, payload, job_id, validate)
 
-    def validate(self)->str:
+    def validate(self) -> str:
         """
         Start validation.
         """
-        with tracer.start_as_current_span('rtc-validation-process') as span:
+        with tracer.start_as_current_span("rtc-validation-process") as span:
             check = RouteRTCValidation.validate_excel(
                 excel_path=self.payload.file_name,
                 route=self.payload.routes[0],
@@ -250,49 +241,43 @@ class RTCValidation(ValidationHandler):
                 sql_engine=SMD_ENGINE,
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
-                force_write=self.force_write
+                force_write=self.force_write,
             )
 
-            if check.get_status() == 'rejected':
+            if check.get_status() == "rejected":
                 return check._result.to_job_event(self.job_id)
-            
+
             if self._validate:
                 check.base_validation()
 
-            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+            if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 check.put_data()
-            
+
             ## Set span attributes and status
-            span.set_attribute('file_name', self.payload.file_name)
-            span.set_attribute('route', self.payload.routes[0])
-            span.set_attribute('validation.result.status', check.get_status())
+            span.set_attribute("file_name", self.payload.file_name)
+            span.set_attribute("route", self.payload.routes[0])
+            span.set_attribute("validation.result.status", check.get_status())
 
             return check._result.to_job_event(self.job_id)
 
 
 class DefectValidation(ValidationHandler):
-    def __init__(
-            self,
-            payload: PayloadSMD,
-            job_id: str,
-            validate: bool=True
-    ):
+    def __init__(self, payload: PayloadSMD, job_id: str, validate: bool = True):
         ValidationHandler.__init__(self, payload, job_id, validate)
 
-        # Google Cloud Storage client
-        self.cred = service_account.Credentials.from_service_account_file(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
-
-    def validate(self)->str:
+    def validate(self) -> str:
         """
         Start validation
         """
-        with tracer.start_as_current_span('defect-validation-process') as span:        
-            gs_client = storage.Client(credentials=self.cred)
-            
-            sp = gs.SurveyPhotoStorage(
-                gs_client=gs_client,
-                bucket_name='sidako-bucket',
-                sql_engine=SMD_ENGINE
+        with tracer.start_as_current_span("defect-validation-process") as span:
+            photo_client = BMPhotoClient(
+                base_url=BM_PHOTO_BASE_URL, api_key=BM_PHOTO_API_KEY
+            )
+
+            sp = SurveyPhotoStorage(
+                photo_client=photo_client,
+                route_id=self.payload.routes[0],
+                survey_year=self.payload.year,
             )
             check = RouteDefectsValidation.validate_excel(
                 excel_path=self.payload.file_name,
@@ -302,18 +287,17 @@ class DefectValidation(ValidationHandler):
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
                 force_write=self.force_write,
-                photo_storage=sp
+                photo_storage=sp,
             )
 
-            if check.get_status() == 'rejected':
+            if check.get_status() == "rejected":
                 return check._result.to_job_event(self.job_id)
 
             if self._validate:
                 check.base_validation()
 
-            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+            if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 check.put_data()
-                check.put_photos()
 
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)
@@ -326,19 +310,14 @@ class DefectValidation(ValidationHandler):
 
 
 class FWDValidation(ValidationHandler):
-    def __init__(
-            self,
-            payload: PayloadSMD,
-            job_id: str,
-            validate: bool=True
-    ):
+    def __init__(self, payload: PayloadSMD, job_id: str, validate: bool = True):
         ValidationHandler.__init__(self, payload, job_id, validate)
 
-    def validate(self)->str:
+    def validate(self) -> str:
         """
         Start validation
         """
-        with tracer.start_as_current_span('fwd-validation-process') as span:
+        with tracer.start_as_current_span("fwd-validation-process") as span:
             check = RouteFWDValidation.validate_excel(
                 excel_path=self.payload.file_name,
                 route=self.payload.routes[0],
@@ -347,16 +326,16 @@ class FWDValidation(ValidationHandler):
                 sql_engine=SMD_ENGINE,
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
-                force_write=self.force_write
+                force_write=self.force_write,
             )
 
-            if check.get_status() == 'rejected':
+            if check.get_status() == "rejected":
                 return check._result.to_job_event(self.job_id)
 
             if self._validate:
                 check.base_validation()
 
-            if (check.get_status() == 'verified') and (WRITE_VERIFIED_DATA):
+            if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 check.put_data()
 
             # Set span attribute and status
@@ -371,20 +350,20 @@ class FWDValidation(ValidationHandler):
 
 class BridgeMasterValidation_(ValidationHandler):
     def __init__(
-            self,
-            payload: BridgeValidationPayloadFormat,
-            job_id: str,
-            validate: bool=True,
+        self,
+        payload: BridgeValidationPayloadFormat,
+        job_id: str,
+        validate: bool = True,
     ):
         ValidationHandler.__init__(self, payload, job_id, validate)
         self.payload: BridgeValidationPayloadFormat
-    
+
     def validate(self) -> str:
         """
         Start validation
         """
-        with tracer.start_as_current_span('bridge.master-validation-process') as span:
-            val_mode = self.payload.model_dump().get('mode')
+        with tracer.start_as_current_span("bridge.master-validation-process") as span:
+            val_mode = self.payload.model_dump().get("mode")
 
             if val_mode is None:
                 span.set_status(StatusCode.ERROR)
@@ -392,11 +371,13 @@ class BridgeMasterValidation_(ValidationHandler):
             else:
                 span.set_attribute("validation.mode", val_mode)
 
-            span.set_attribute('master.val_history', self.payload.model_dump().get('val_history'))
-            if 'review' in self.payload.model_dump().get('val_history'):
+            span.set_attribute(
+                "master.val_history", self.payload.model_dump().get("val_history")
+            )
+            if "review" in self.payload.model_dump().get("val_history"):
                 self.ignore_review = True
-            
-            if 'force' in self.payload.model_dump().get('val_history'):
+
+            if "force" in self.payload.model_dump().get("val_history"):
                 self.force_write = True
 
             check = BridgeMasterValidation(
@@ -405,20 +386,20 @@ class BridgeMasterValidation_(ValidationHandler):
                 lrs_grpc_host=LRS_HOST,
                 sql_engine=MISC_ENGINE,
                 ignore_review=self.ignore_review,
-                ignore_force=self.force_write
+                ignore_force=self.force_write,
             )
 
-            if check.get_status() in ['rejected', 'error']:
+            if check.get_status() in ["rejected", "error"]:
                 return check._result.to_job_event(self.job_id)
 
-            if self.validate:            
-                if check.validation_mode == 'UPDATE':
+            if self.validate:
+                if check.validation_mode == "UPDATE":
                     check.update_check()
 
-                if check.validation_mode == 'INSERT':
+                if check.validation_mode == "INSERT":
                     check.insert_check()
 
-            if check.get_status() == 'verified':
+            if check.get_status() == "verified":
                 check.put_data()
 
             span.set_attribute("validation.result.status", check.get_status())
@@ -426,13 +407,14 @@ class BridgeMasterValidation_(ValidationHandler):
 
         return check._result.to_job_event(self.job_id)
 
+
 class BridgeInventoryValidation_(ValidationHandler):
     def __init__(
-            self,
-            payload: BridgeValidationPayloadFormat,
-            job_id: str,
-            validate: bool=True,
-            popup: bool=False,
+        self,
+        payload: BridgeValidationPayloadFormat,
+        job_id: str,
+        validate: bool = True,
+        popup: bool = False,
     ):
         ValidationHandler.__init__(self, payload, job_id, validate)
         self.payload: BridgeValidationPayloadFormat
@@ -442,8 +424,10 @@ class BridgeInventoryValidation_(ValidationHandler):
         """
         Start validation
         """
-        with tracer.start_as_current_span('bridge.inventory-validation-process') as span:
-            val_mode = self.payload.model_dump().get('mode')
+        with tracer.start_as_current_span(
+            "bridge.inventory-validation-process"
+        ) as span:
+            val_mode = self.payload.model_dump().get("mode")
 
             if val_mode is None:
                 span.set_status(StatusCode.ERROR)
@@ -451,9 +435,13 @@ class BridgeInventoryValidation_(ValidationHandler):
             else:
                 span.set_attribute("validation.mode", val_mode)
 
-            span.set_attribute("validation.length", self.payload.validation_params.validate_length)
-            span.set_attribute("validation.width", self.payload.validation_params.validate_width)
-            
+            span.set_attribute(
+                "validation.length", self.payload.validation_params.validate_length
+            )
+            span.set_attribute(
+                "validation.width", self.payload.validation_params.validate_width
+            )
+
             check = BridgeInventoryValidation(
                 data=self.payload.model_dump(),
                 validation_mode=str(val_mode).upper(),
@@ -466,28 +454,28 @@ class BridgeInventoryValidation_(ValidationHandler):
             )
 
             if self.validate:
-                if check.get_status() == 'rejected':
+                if check.get_status() == "rejected":
                     span.set_attribute("validation.final_status", check.get_status())
                     return check._result.to_job_event(self.job_id)
 
-                if check.validation_mode == 'UPDATE':
+                if check.validation_mode == "UPDATE":
                     check.update_check()
 
-                if check.validation_mode == 'INSERT':
+                if check.validation_mode == "INSERT":
                     check.insert_check(
                         validate_length=self.payload.validation_params.validate_length,
-                        validate_width=self.payload.validation_params.validate_width
+                        validate_width=self.payload.validation_params.validate_width,
                     )
-            
+
             if (
-                check.get_status() == 'verified'
-            ) and WRITE_VERIFIED_DATA and (
-                self.payload.validation_params.validate_length
+                (check.get_status() == "verified")
+                and WRITE_VERIFIED_DATA
+                and (self.payload.validation_params.validate_length)
             ):
                 check.merge_master_data()
                 check.update_master_data()
-            
-            if check.get_status() == 'verified':    
+
+            if check.get_status() == "verified":
                 check.put_data()
 
             span.set_attribute("validation.result.status", check.get_status())
@@ -501,6 +489,6 @@ class BridgePopUpInventoryValidation(BridgeInventoryValidation_):
         self,
         payload: BridgeValidationPayloadFormat,
         job_id: str,
-        validate: bool=True,
+        validate: bool = True,
     ):
         BridgeInventoryValidation_.__init__(self, payload, job_id, validate, popup=True)
