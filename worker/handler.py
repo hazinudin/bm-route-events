@@ -343,6 +343,7 @@ class FWDValidation(ValidationHandler):
                 excel_path=self.payload.file_name,
                 route=self.payload.routes[0],
                 survey_year=self.payload.year,
+                survey_semester=self.payload.semester,
                 sql_engine=SMD_ENGINE,
                 lrs=self.get_lrs(),
                 ignore_review=self.ignore_review,
