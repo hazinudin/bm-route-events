@@ -19,7 +19,7 @@ class RouteDefects(RoutePointEvents):
         linkid_col: str = 'LINKID',
         ignore_review: bool = False,
         data_year: int = None,
-        photo_url_col: str = 'URL_PHOTO'
+        photo_url_col: str = 'PHOTO_ID'
     ):
         """
         Parse data from Excel file to Arrow format and load it into Route Defect object.
@@ -70,7 +70,7 @@ class RouteDefects(RoutePointEvents):
         super().__init__(*args, **kwargs)
         
         # Columns
-        self._photo_url_cols = 'URL_PHOTO'
+        self._photo_url_cols = 'PHOTO_ID'
         self._surf_type_col = 'SURF_TYPE'
         self._defects_type_col = 'DEFECTS_TYPE'
         self._defects_dimension_col = 'DEFECTS_DIMENSION'

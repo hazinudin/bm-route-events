@@ -49,7 +49,7 @@
             "dtype": "string",
             "allow_null": true
         },
-        "URL_PHOTO": {
+        "PHOTO_ID": {
             "dtype": "string",
             "uppercase": false
         },
