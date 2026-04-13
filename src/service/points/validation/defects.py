@@ -314,6 +314,12 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         """
         self._repo.put(self._events, year=self._survey_year)
 
+    def update_photos(self):
+        """
+        Update photo coordinates and STA from defect survey data to the bm-photo service.
+        """
+        self._storage.update_photos(self.survey_photos)
+
     def base_validation(self):
         """
         Base validation function

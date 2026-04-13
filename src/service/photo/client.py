@@ -57,3 +57,27 @@ class SurveyPhotoStorage(object):
             return invalid
         else:
             return valid
+
+    def update_photos(self, photos: List[SurveyPhoto]) -> None:
+        """
+        Update photo metadata (latitude, longitude, sta_value) in the bm-photo service
+        for all valid photos in the list.
+
+        Only updates photos whose photo_id exists in the bm-photo service.
+        Photos not found in the service are silently skipped.
+
+        Args:
+            photos: List of SurveyPhoto objects containing photo_id and updated attributes.
+        """
+        valid_ids = self.valid_photo_ids
+
+        for photo in photos:
+            if photo.photo_id not in valid_ids:
+                continue
+
+            self._client.update_photo(
+                photo_id=photo.photo_id,
+                latitude=photo.latitude,
+                longitude=photo.longitude,
+                sta_value=photo.sta_meters,
+            )

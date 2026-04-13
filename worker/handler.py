@@ -298,6 +298,7 @@ class DefectValidation(ValidationHandler):
 
             if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 check.put_data()
+                check.update_photos()
 
             # Set span attribute and status
             span.set_attribute("file_name", self.payload.file_name)

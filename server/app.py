@@ -305,6 +305,7 @@ class DataValidation:
 
         if write and (check.get_status() == "verified"):
             check.put_data()
+            check.update_photos()
 
         return check.smd_output_msg(
             show_all_msg=payload.input_json.show_all_msg, as_dict=True
