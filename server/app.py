@@ -1,8 +1,6 @@
 from ray import serve, init
 from fastapi import FastAPI
 from sqlalchemy import create_engine
-from google.cloud import storage
-from google.oauth2 import service_account
 from pydantic import BaseModel, ConfigDict, Field
 from route_events_service import (
     BridgeMasterValidation,
@@ -12,7 +10,8 @@ from route_events_service import (
     RouteDefectsValidation,
     RoutePCIValidation,
 )
-from route_events_service.photo import gs
+from route_events_service.photo.client import SurveyPhotoStorage
+from bm_photo_client import BMPhotoClient
 from route_events import LRSRoute
 import json
 import os
@@ -20,72 +19,87 @@ from dotenv import load_dotenv
 from typing import Literal, Optional, List
 
 
-init(address='auto')
+init(address="auto")
 
 app = FastAPI()
 
+
 class BridgeValidationParams(BaseModel):
-    validate_length: Optional[bool] = Field(default=False, validation_alias="length_validate")
-    validate_width: Optional[bool] = Field(default=False, validation_alias="width_validate")
+    validate_length: Optional[bool] = Field(
+        default=False, validation_alias="length_validate"
+    )
+    validate_width: Optional[bool] = Field(
+        default=False, validation_alias="width_validate"
+    )
+
 
 class BridgeValidationPayloadFormat(BaseModel):
-    model_config = ConfigDict(extra='allow')
-    validation_params: Optional[BridgeValidationParams] = Field(default=BridgeValidationParams(), exclude=True)
+    model_config = ConfigDict(extra="allow")
+    validation_params: Optional[BridgeValidationParams] = Field(
+        default=BridgeValidationParams(), exclude=True
+    )
+
 
 class BridgeValidationPayload(BaseModel):
     input_json: BridgeValidationPayloadFormat
+
 
 class _Payload(BaseModel):
     file_name: str
     balai: str
     year: int
-    semester: Optional[Literal[1,2]]
+    semester: Optional[Literal[1, 2]]
     routes: List[str]
     show_all_msg: Optional[bool] = False
+
 
 class RoadSurveyValidationInput(BaseModel):
     input_json: _Payload
 
-load_dotenv(os.path.dirname(__file__) + '/.env')
 
-@serve.deployment(num_replicas=int(os.getenv('RAY_SERVE_NUM_REPLICAS')))
+load_dotenv(os.path.dirname(__file__) + "/.env")
+
+
+@serve.deployment(num_replicas=int(os.getenv("RAY_SERVE_NUM_REPLICAS")))
 @serve.ingress(app)
 class DataValidation:
     def __init__(self):
-        load_dotenv(os.path.dirname(__file__) + '/.env')
+        load_dotenv(os.path.dirname(__file__) + "/.env")
 
-        HOST = os.getenv('DB_HOST')
-        SMD_USER = os.getenv('SMD_USER')
-        SMD_PWD = os.getenv('SMD_PWD')
+        HOST = os.getenv("DB_HOST")
+        SMD_USER = os.getenv("SMD_USER")
+        SMD_PWD = os.getenv("SMD_PWD")
 
-        MISC_USER = os.getenv('MISC_USER')
-        MISC_PWD = os.getenv('MISC_PWD')
+        MISC_USER = os.getenv("MISC_USER")
+        MISC_PWD = os.getenv("MISC_PWD")
 
-        LRS_HOST = os.getenv('LRS_HOST')
+        LRS_HOST = os.getenv("LRS_HOST")
 
-        SERVICE_ACCOUNT_JSON = os.getenv('GCLOUD_SERVICE_ACCOUNT_JSON')
+        BM_PHOTO_BASE_URL = os.getenv("BM_PHOTO_BASE_URL")
+        BM_PHOTO_API_KEY = os.getenv("BM_PHOTO_API_KEY")
 
-        self.smd_engine = create_engine(f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{HOST}:1521/geodbbm")
-        self.misc_engine = create_engine(f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{HOST}:1521/geodbbm")
+        self.smd_engine = create_engine(
+            f"oracle+oracledb://{SMD_USER}:{SMD_PWD}@{HOST}:1521/geodbbm"
+        )
+        self.misc_engine = create_engine(
+            f"oracle+oracledb://{MISC_USER}:{MISC_PWD}@{HOST}:1521/geodbbm"
+        )
         self.lrs_host = LRS_HOST
-        
-        # Google Storage client
-        # Use service account JSON
-        self.cred = service_account.Credentials.from_service_account_file(os.path.dirname(__file__) + '/' + SERVICE_ACCOUNT_JSON)
-    
-    @app.post('/bridge/master_validation')
+
+        self.bm_photo_base_url = BM_PHOTO_BASE_URL
+        self.bm_photo_api_key = BM_PHOTO_API_KEY
+
+    @app.post("/bridge/master_validation")
     def validate_bridgemaster_data(
-        self, 
-        payload: BridgeValidationPayload,
-        write: bool = False
+        self, payload: BridgeValidationPayload, write: bool = False
     ):
-        val_mode = payload.input_json.model_dump().get('mode')
+        val_mode = payload.input_json.model_dump().get("mode")
 
         if "force" in payload.input_json.model_dump().get("val_history"):
             ignore_force = True
         else:
             ignore_force = False
-        
+
         if "review" in payload.input_json.model_dump().get("val_history"):
             ignore_review = True
         else:
@@ -93,44 +107,41 @@ class DataValidation:
 
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
-        
+
         check = BridgeMasterValidation(
             data=payload.input_json.model_dump(),
             validation_mode=val_mode.upper(),
             lrs_grpc_host=self.lrs_host,
             sql_engine=self.misc_engine,
             ignore_force=ignore_force,
-            ignore_review=ignore_review
+            ignore_review=ignore_review,
         )
 
-        if check.get_status() in ['rejected', 'error']:
+        if check.get_status() in ["rejected", "error"]:
             return check.invij_json_result(as_dict=True)
 
-        if check.validation_mode == 'UPDATE':
+        if check.validation_mode == "UPDATE":
             check.update_check()
-        
-        if check.validation_mode == 'INSERT':
+
+        if check.validation_mode == "INSERT":
             check.insert_check()
 
-        if write and (check.get_status() == 'verified'):
+        if write and (check.get_status() == "verified"):
             check.put_data()
 
         return check.invij_json_result(as_dict=True)
-    
-    @app.post('/bridge/inventory_validation')
+
+    @app.post("/bridge/inventory_validation")
     def validate_inventory_data(
-        self, 
-        payload: BridgeValidationPayload,
-        popup: bool = False,
-        write: bool = False
+        self, payload: BridgeValidationPayload, popup: bool = False, write: bool = False
     ):
-        val_mode = payload.input_json.model_dump().get('mode')
+        val_mode = payload.input_json.model_dump().get("mode")
 
         if "force" in payload.input_json.model_dump().get("val_history"):
             ignore_force = True
         else:
             ignore_force = False
-        
+
         if "review" in payload.input_json.model_dump().get("val_history"):
             ignore_review = True
         else:
@@ -147,7 +158,7 @@ class DataValidation:
 
         if val_mode is None:
             return {"status": "Input JSON tidak memiliki MODE"}
-        
+
         check = BridgeInventoryValidation(
             data=payload.input_json.model_dump(),
             lrs_grpc_host=self.lrs_host,
@@ -156,22 +167,21 @@ class DataValidation:
             dev=False,
             popup=popup,
             ignore_review=ignore_review,
-            ignore_force=ignore_force
+            ignore_force=ignore_force,
         )
 
-        if check.get_status() == 'rejected':
+        if check.get_status() == "rejected":
             return check.invij_json_result(as_dict=True)
 
-        if check.validation_mode == 'UPDATE':
+        if check.validation_mode == "UPDATE":
             check.update_check()
 
-        if check.validation_mode == 'INSERT':
+        if check.validation_mode == "INSERT":
             check.insert_check(
-                validate_length=validate_length,
-                validate_width=validate_width
+                validate_length=validate_length, validate_width=validate_width
             )
-        
-        if write and (check.get_status() == 'verified'):
+
+        if write and (check.get_status() == "verified"):
             check.put_data()
 
             # Merge and update the data
@@ -180,18 +190,15 @@ class DataValidation:
 
         return check.invij_json_result(as_dict=True)
 
-    @app.post('/road/rni/validation')
+    @app.post("/road/rni/validation")
     def validate_rni(
         self,
         payload: RoadSurveyValidationInput,
         write: bool = False,
         ignore_force: bool = False,
-        ignore_review: bool = False
-    ):  
-        lrs = LRSRoute.from_feature_service(
-            self.lrs_host, 
-            payload.input_json.routes[0]
-        )
+        ignore_review: bool = False,
+    ):
+        lrs = LRSRoute.from_feature_service(self.lrs_host, payload.input_json.routes[0])
 
         check = RouteRNIValidation.validate_excel(
             excel_path=payload.input_json.file_name,
@@ -200,39 +207,34 @@ class DataValidation:
             sql_engine=self.smd_engine,
             lrs=lrs,
             ignore_review=ignore_review,
-            force_write=ignore_force
+            force_write=ignore_force,
         )
 
-        if check.get_status() == 'rejected':
+        if check.get_status() == "rejected":
             return check.smd_output_msg(
-                show_all_msg=payload.input_json.show_all_msg,
-                as_dict=True
+                show_all_msg=payload.input_json.show_all_msg, as_dict=True
             )
 
         check.base_validation()
 
-        if write and (check.get_status() == 'verified'):
+        if write and (check.get_status() == "verified"):
             check.put_data(semester=payload.input_json.semester)
 
         return check.smd_output_msg(
-            show_all_msg=payload.input_json.show_all_msg,
-            as_dict=True
+            show_all_msg=payload.input_json.show_all_msg, as_dict=True
         )
-            
+
         return
-    
-    @app.post('/road/roughness/validation')
+
+    @app.post("/road/roughness/validation")
     def validate_iri(
-            self,
-            payload: RoadSurveyValidationInput,
-            write: bool = False,
-            ignore_force: bool = False,
-            ignore_review: bool = False
+        self,
+        payload: RoadSurveyValidationInput,
+        write: bool = False,
+        ignore_force: bool = False,
+        ignore_review: bool = False,
     ):
-        lrs = LRSRoute.from_feature_service(
-            self.lrs_host,
-            payload.input_json.routes[0]
-        )
+        lrs = LRSRoute.from_feature_service(self.lrs_host, payload.input_json.routes[0])
 
         check = RouteRoughnessValidation.validate_excel(
             excel_path=payload.input_json.file_name,
@@ -242,44 +244,41 @@ class DataValidation:
             sql_engine=self.smd_engine,
             lrs=lrs,
             ignore_review=ignore_review,
-            force_write=ignore_force
+            force_write=ignore_force,
         )
 
-        if check.get_status() == 'rejected':
+        if check.get_status() == "rejected":
             return check.smd_output_msg(
-                show_all_msg=payload.input_json.show_all_msg,
-                as_dict=True
+                show_all_msg=payload.input_json.show_all_msg, as_dict=True
             )
-        
+
         check.base_validation()
-        
-        if write and (check.get_status() == 'verified'):
+
+        if write and (check.get_status() == "verified"):
             check.put_data()
-        
+
         return check.smd_output_msg(
-            show_all_msg=payload.input_json.show_all_msg,
-            as_dict=True
+            show_all_msg=payload.input_json.show_all_msg, as_dict=True
         )
 
-    @app.post('/road/defects/validation')
+    @app.post("/road/defects/validation")
     def validate_defects(
         self,
         payload: RoadSurveyValidationInput,
-        write: bool= False,
+        write: bool = False,
         ignore_force: bool = False,
-        ignore_review: bool = False
+        ignore_review: bool = False,
     ):
-        lrs = LRSRoute.from_feature_service(
-            self.lrs_host,
-            payload.input_json.routes[0]
+        lrs = LRSRoute.from_feature_service(self.lrs_host, payload.input_json.routes[0])
+
+        photo_client = BMPhotoClient(
+            base_url=self.bm_photo_base_url, api_key=self.bm_photo_api_key
         )
 
-        gs_client = storage.Client(credentials=self.cred)
-
-        sp = gs.SurveyPhotoStorage(
-            gs_client=gs_client,
-            bucket_name='sidako-bucket',
-            sql_engine=self.smd_engine
+        sp = SurveyPhotoStorage(
+            photo_client=photo_client,
+            route_id=payload.input_json.routes[0],
+            survey_year=payload.input_json.year,
         )
 
         check = RouteDefectsValidation.validate_excel(
@@ -290,44 +289,36 @@ class DataValidation:
             lrs=lrs,
             ignore_review=ignore_review,
             force_write=ignore_force,
-            photo_storage=sp
+            photo_storage=sp,
         )
 
-        if check.get_status() == 'rejected':
+        if check.get_status() == "rejected":
             return check.smd_output_msg(
-                show_all_msg=payload.input_json.show_all_msg,
-                as_dict=True
+                show_all_msg=payload.input_json.show_all_msg, as_dict=True
             )
-        
+
         check.lrs_distance_check()
         check.lrs_sta_check()
         check.route_has_rni_check()
         check.sta_not_in_rni_check()
         check.survey_photo_url_check()
 
-        if write and (check.get_status() == 'verified'):
+        if write and (check.get_status() == "verified"):
             check.put_data()
-            check.put_photos()
-        
-        del(gs_client)
 
         return check.smd_output_msg(
-            show_all_msg=payload.input_json.show_all_msg,
-            as_dict=True
+            show_all_msg=payload.input_json.show_all_msg, as_dict=True
         )
 
-    @app.post('/road/pci/validation')
+    @app.post("/road/pci/validation")
     def validate_pci(
         self,
         payload: RoadSurveyValidationInput,
-        write: bool= False,
+        write: bool = False,
         ignore_force: bool = False,
-        ignore_review: bool = False
+        ignore_review: bool = False,
     ):
-        lrs = LRSRoute.from_feature_service(
-            self.lrs_host,
-            payload.input_json.routes[0]
-        )
+        lrs = LRSRoute.from_feature_service(self.lrs_host, payload.input_json.routes[0])
 
         check = RoutePCIValidation.validate_excel(
             excel_path=payload.input_json.file_name,
@@ -336,24 +327,22 @@ class DataValidation:
             sql_engine=self.smd_engine,
             lrs=lrs,
             ignore_review=ignore_review,
-            force_write=ignore_force
+            force_write=ignore_force,
         )
 
-        if check.get_status() == 'rejected':
+        if check.get_status() == "rejected":
             return check.smd_output_msg(
-                show_all_msg=payload.input_json.show_all_msg,
-                as_dict=True
+                show_all_msg=payload.input_json.show_all_msg, as_dict=True
             )
 
         check.base_validation()
 
-        if write and (check.get_status() == 'verified'):
+        if write and (check.get_status() == "verified"):
             check.put_data(semester=payload.input_json.semester)
-        
+
         return check.smd_output_msg(
-            show_all_msg=payload.input_json.show_all_msg,
-            as_dict=True
+            show_all_msg=payload.input_json.show_all_msg, as_dict=True
         )
 
 
-serve.run(DataValidation.bind(), route_prefix='/bm')
+serve.run(DataValidation.bind(), route_prefix="/bm")
