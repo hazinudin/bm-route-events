@@ -7,21 +7,26 @@ from src.service.points.validation.defects import RouteDefectsValidation
 from src.service.points.validation.rtc import RouteRTCValidation, RouteRTC
 from src.service.points.validation.fwd import RouteFWDValidation
 from src.service.validation_result.result import ValidationResult
-from src.service.photo import gs
-from google.cloud import storage
-from google.oauth2 import service_account
+from src.service.photo.client import SurveyPhotoStorage
+from bm_photo_client import BMPhotoClient
 
 
 load_dotenv("tests/dev.env")
 HOST = os.getenv("GDB_HOST")
 USER = os.getenv("SMD_USER")
 PWD = os.getenv("SMD_PWD")
-SERVICE_ACCOUNT_JSON = os.getenv("SERVICE_ACCOUNT_JSON")
 
 engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
-cred = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_JSON
-)
+
+BM_PHOTO_BASE_URL = os.getenv('BM_PHOTO_HOST') + ":" + os.getenv('BM_PHOTO_PORT')
+BM_PHOTO_API_KEY = os.getenv('BM_PHOTO_API_KEY')
+
+
+def make_photo_storage(route_id, survey_year):
+    client = BMPhotoClient(base_url=BM_PHOTO_BASE_URL, api_key=BM_PHOTO_API_KEY)
+    return SurveyPhotoStorage(
+        photo_client=client, route_id=route_id, survey_year=survey_year
+    )
 
 
 class TestRouteRTCValidation(unittest.TestCase):
@@ -92,10 +97,7 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service("localhost:50052", route_id)
         results = ValidationResult(route_id)
 
-        client = storage.Client(credentials=cred)
-        sp = gs.SurveyPhotoStorage(
-            bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
-        )
+        sp = make_photo_storage(route_id, 2025)
 
         check = RouteDefectsValidation(
             route=route_id,
@@ -120,10 +122,7 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service("localhost:50052", "010362")
         results = ValidationResult("010362")
 
-        client = storage.Client(credentials=cred)
-        sp = gs.SurveyPhotoStorage(
-            bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
-        )
+        sp = make_photo_storage("010362", 2024)
 
         check = RouteDefectsValidation(
             route="010362",
@@ -157,10 +156,7 @@ class TestRouteDefectsValidation(unittest.TestCase):
         lrs = LRSRoute.from_feature_service("localhost:50052", linkid)
         results = ValidationResult(linkid)
 
-        client = storage.Client()
-        sp = gs.SurveyPhotoStorage(
-            bucket_name="sidako-bucket", sql_engine=engine, gs_client=client
-        )
+        sp = make_photo_storage(linkid, 2025)
 
         check = RouteDefectsValidation(
             route=linkid,

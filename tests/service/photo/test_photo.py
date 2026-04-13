@@ -1,61 +1,102 @@
-from src.service.photo import gs
+from src.service.photo.client import SurveyPhotoStorage
 from src.route_events.photo import SurveyPhoto
 import unittest
-from sqlalchemy import create_engine
-import os
-from google.cloud import storage
-from dotenv import load_dotenv
+from unittest.mock import MagicMock
+from bm_photo_client import BMPhotoClient
 
-
-photos = [
-            SurveyPhoto(
-                url= "https://storage.googleapis.com/sidako-bucket/road_defect_photos/2025/dev/01001/STA_430_L1.jpeg",
-                sta_meters= 100,
-                survey_year=2025,
-                linkid='01001',
-                latitude=0,
-                longitude=0
-            ),
-            SurveyPhoto(
-                url= "https://storage.googleapis.com/sidako-bucket/road_defect_photos/2025/dev/01001/STA_440_L1.jpg",
-                sta_meters= 100,
-                survey_year=2025,
-                linkid='01001',
-                latitude=0,
-                longitude=0
-            ),
-            SurveyPhoto(
-                url= "https://storage.googleapis.com/sidako-bucket/road_defect_photos/2025/dev/01001/STA_430_L2.jpeg",
-                sta_meters= 100,
-                survey_year=2025,
-                linkid='01001',
-                latitude=0,
-                longitude=0
-            ),
-]
-        
-
-load_dotenv('tests/dev.env')
-HOST = os.getenv('DB_HOST')
-USER = os.getenv('SMD_USER')
-PWD = os.getenv('SMD_PWD')
-
-engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
 
 class TestSurveyPhotoStorage(unittest.TestCase):
-    def test_list_all_blobs(self):
-        client = storage.Client()
-        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+    def test_validate_photos_url_returns_invalid(self):
+        mock_client = MagicMock(spec=BMPhotoClient)
+        summaries = [
+            MagicMock(photo_id="photo-001"),
+            MagicMock(photo_id="photo-002"),
+        ]
+        mock_client.browse_photos.return_value = MagicMock(photos=summaries)
 
-        self.assertTrue(len(sp.objects_name) != 0)
+        sp = SurveyPhotoStorage(
+            photo_client=mock_client, route_id="010362", survey_year=2025
+        )
 
-    def test_validate_photos_url(self):
-        client = storage.Client()
-        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
+        photos = [
+            SurveyPhoto(
+                photo_id="photo-001",
+                url="",
+                sta_meters=100,
+                survey_year=2025,
+                linkid="010362",
+                latitude=0,
+                longitude=0,
+            ),
+            SurveyPhoto(
+                photo_id="photo-002",
+                url="",
+                sta_meters=200,
+                survey_year=2025,
+                linkid="010362",
+                latitude=0,
+                longitude=0,
+            ),
+            SurveyPhoto(
+                photo_id="photo-999",
+                url="",
+                sta_meters=300,
+                survey_year=2025,
+                linkid="010362",
+                latitude=0,
+                longitude=0,
+            ),
+        ]
 
-        self.assertTrue(len(sp.validate_photos_url(photos)) == 1)
+        invalid = sp.validate_photos_url(photos, return_invalid=True)
 
-    def test_register_photo_url(self):
-        client = storage.Client()
-        sp = gs.SurveyPhotoStorage(bucket_name='sidako-bucket', sql_engine=engine, gs_client=client)
-        sp.register_photos(photos=photos, validate=True)
+        self.assertEqual(len(invalid), 1)
+        self.assertEqual(invalid[0].photo_id, "photo-999")
+
+    def test_validate_photos_url_returns_valid(self):
+        mock_client = MagicMock(spec=BMPhotoClient)
+        summaries = [
+            MagicMock(photo_id="photo-001"),
+            MagicMock(photo_id="photo-002"),
+        ]
+        mock_client.browse_photos.return_value = MagicMock(photos=summaries)
+
+        sp = SurveyPhotoStorage(
+            photo_client=mock_client, route_id="010362", survey_year=2025
+        )
+
+        photos = [
+            SurveyPhoto(
+                photo_id="photo-001",
+                url="",
+                sta_meters=100,
+                survey_year=2025,
+                linkid="010362",
+                latitude=0,
+                longitude=0,
+            ),
+            SurveyPhoto(
+                photo_id="photo-002",
+                url="",
+                sta_meters=200,
+                survey_year=2025,
+                linkid="010362",
+                latitude=0,
+                longitude=0,
+            ),
+            SurveyPhoto(
+                photo_id="photo-999",
+                url="",
+                sta_meters=300,
+                survey_year=2025,
+                linkid="010362",
+                latitude=0,
+                longitude=0,
+            ),
+        ]
+
+        valid = sp.validate_photos_url(photos, return_invalid=False)
+
+        self.assertEqual(len(valid), 2)
+        self.assertEqual(valid[0].photo_id, "photo-001")
+        self.assertEqual(valid[1].photo_id, "photo-002")
