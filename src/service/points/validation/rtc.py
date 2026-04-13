@@ -1,5 +1,4 @@
 from .base import RoutePointEventsValidation
-from ...photo import gs
 from route_events import (
     RouteRTCRepo,
     RouteRTC,
@@ -18,6 +17,7 @@ class RouteRTCValidation(RoutePointEventsValidation):
     """
     Route Defects Events validation class.
     """
+
     @classmethod
     def validate_excel(
         cls,
@@ -26,7 +26,7 @@ class RouteRTCValidation(RoutePointEventsValidation):
         survey_year: int,
         sql_engine: Engine,
         lrs: LRSRoute,
-        linkid_col: str = 'LINKID',
+        linkid_col: str = "LINKID",
         ignore_review: bool = False,
         force_write: bool = False,
     ):
@@ -36,10 +36,10 @@ class RouteRTCValidation(RoutePointEventsValidation):
         ignored_tag = []
 
         if force_write:
-            ignored_tag.append('force')
-        
+            ignored_tag.append("force")
+
         if ignore_review:
-            ignored_tag.append('review')
+            ignored_tag.append("review")
 
         result = ValidationResult(route, ignore_in=ignored_tag)
 
@@ -51,7 +51,7 @@ class RouteRTCValidation(RoutePointEventsValidation):
                 linkid=route,
                 linkid_col=linkid_col,
                 ignore_review=ignore_review,
-                data_year=survey_year
+                data_year=survey_year,
             )
 
             obj = cls(
@@ -64,15 +64,15 @@ class RouteRTCValidation(RoutePointEventsValidation):
             )
 
             return obj
-        
+
         except ValidationError as e:
             for error in e.errors():
-                if 'review' in error['type']:
-                    result.add_message(error['msg'], 'review', 'review')
+                if "review" in error["type"]:
+                    result.add_message(error["msg"], "review", "review")
                 else:
-                    result.add_message(error['msg'], 'rejected')
-        
-            if result.status == 'rejected':
+                    result.add_message(error["msg"], "rejected")
+
+            if result.status == "rejected":
                 obj = cls(
                     route=route,
                     events=pl.DataFrame(),
@@ -83,14 +83,14 @@ class RouteRTCValidation(RoutePointEventsValidation):
                 )
 
                 return obj
-            
+
             else:
                 events = RouteRTC.from_excel(
                     excel_path=excel_path,
                     linkid=route,
                     linkid_col=linkid_col,
                     ignore_review=True,
-                    data_year=survey_year
+                    data_year=survey_year,
                 )
 
                 obj = cls(
@@ -103,9 +103,11 @@ class RouteRTCValidation(RoutePointEventsValidation):
                 )
 
                 return obj
-        
+
         except IndexError:
-            result.add_message(f"File '{excel_path}' tidak dapat ditemukan.", 'rejected')
+            result.add_message(
+                f"File '{excel_path}' tidak dapat ditemukan.", "rejected"
+            )
 
             obj = cls(
                 route=route,
@@ -114,18 +116,18 @@ class RouteRTCValidation(RoutePointEventsValidation):
                 sql_engine=sql_engine,
                 results=result,
                 survey_year=survey_year,
-             )
+            )
 
             return obj
 
     def __init__(
-            self,
-            route: str,
-            events: RouteRTC,
-            lrs: LRSRoute,
-            sql_engine: Engine,
-            results: ValidationResult,
-            survey_year: int = None
+        self,
+        route: str,
+        events: RouteRTC,
+        lrs: LRSRoute,
+        sql_engine: Engine,
+        results: ValidationResult,
+        survey_year: int = None,
     ):
         super().__init__(
             events=events,
@@ -163,14 +165,14 @@ class RouteRTCValidation(RoutePointEventsValidation):
                 "Data survey pada {} arah {} tidak berjarak {} menit dari input sebelumnya.",
                 pl.col(self._events._timestamp_col),
                 pl.col(self._events._surv_dir_col),
-                pl.lit(interval)
+                pl.lit(interval),
             )
         )
 
-        self._result.add_messages(msg, 'error')
+        self._result.add_messages(msg, "error")
 
         return
-    
+
     def invalid_survey_duration(self):
         """
         Check if the RTC survey duration is at least 3 days.
@@ -181,14 +183,12 @@ class RouteRTCValidation(RoutePointEventsValidation):
             self._result.add_message(msg, "error")
 
         return
-    
+
     def lane_width_check(self):
         """
         Make sure if the lane width is less than 2.5m, then there should be no VEH7C.
         """
-        nearest = self.rni.points_lambert.nearest(
-            self._events.points_lambert.first()
-        )
+        nearest = self.rni.points_lambert.nearest(self._events.points_lambert.first())
 
         # Fetch the lane width from the nearest segment.
         lane_width = self.rni.pl_df.join(
@@ -197,19 +197,15 @@ class RouteRTCValidation(RoutePointEventsValidation):
                 self.rni._linkid_col,
                 self.rni._from_sta_col,
                 self.rni._to_sta_col,
-            ]
+            ],
         )[self.rni._lane_width_col].min()
 
         if lane_width <= 2.5 and (not self._events.pl_df[VEH7C_COL].eq(0).all()):
             msg = "Survey dilakukan pada segmen dengan lebar kurang dari 2.5m, namun memiliki nilai tipe kendaraan 7C."
-            self._result.add_message(
-                msg,
-                "error",
-                "force"
-            )
-            
+            self._result.add_message(msg, "error", "force")
+
         return
-    
+
     def put_data(self):
         """
         Put the RouteRTC data to database.
