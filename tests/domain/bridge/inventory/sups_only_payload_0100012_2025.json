@@ -1,0 +1,15 @@
+{
+  "id_jbt": "0100012",
+  "pjg_total": 7.0,
+  "cons_year": 2025,
+  "tipe_ba_utama": "GTP",
+  "bangunan_atas": [
+    {
+      "no_btg": 1,
+      "tipe_btg": "UTAMA",
+      "seq_btg": 1,
+      "struktur_ba": "GTP",
+      "pjg_btg": 7.0
+    }
+  ]
+}

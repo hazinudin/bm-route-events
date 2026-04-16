@@ -1,0 +1,22 @@
+{
+  "id_jbt": "2201152",
+  "pjg_total": 15.55,
+  "cons_year": 2030,
+  "tipe_ba_utama": "GTP",
+  "bangunan_atas": [
+    {
+      "no_btg": 1,
+      "tipe_btg": "UTAMA",
+      "seq_btg": 1,
+      "struktur_ba": "GTP",
+      "pjg_btg": 15.5
+    },
+    {
+      "no_btg": 2,
+      "tipe_btg": "UTAMA",
+      "seq_btg": 1,
+      "struktur_ba": "ABP",
+      "pjg_btg": 15.5
+    }
+  ]
+}

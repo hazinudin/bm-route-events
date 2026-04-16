@@ -1,0 +1,15 @@
+{
+  "id_jbt": "0100006",
+  "pjg_total": 12.3,
+  "cons_year": 1979,
+  "tipe_ba_utama": "MBP",
+  "bangunan_atas": [
+    {
+      "no_btg": 1,
+      "tipe_btg": "UTAMA",
+      "seq_btg": 1,
+      "struktur_ba": "MBP",
+      "pjg_btg": 12.3
+    }
+  ]
+}

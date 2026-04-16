@@ -1,0 +1,22 @@
+{
+  "id_jbt": "0100005",
+  "pjg_total": 82.0,
+  "cons_year": 2025,
+  "tipe_ba_utama": "RBB",
+  "bangunan_atas": [
+    {
+      "no_btg": 1,
+      "tipe_btg": "UTAMA",
+      "seq_btg": 1,
+      "struktur_ba": "RBB",
+      "pjg_btg": 41.0
+    },
+    {
+      "no_btg": 2,
+      "tipe_btg": "UTAMA",
+      "seq_btg": 1,
+      "struktur_ba": "RBB",
+      "pjg_btg": 41.0
+    }
+  ]
+}

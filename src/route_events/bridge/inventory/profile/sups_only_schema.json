@@ -1,0 +1,27 @@
+{
+    "column_details": {
+        "ID_JBT": {
+            "dtype": "string",
+            "db_col": "BRIDGE_ID"
+        },
+        "PJG_TOTAL": {
+            "dtype": "double",
+            "range": {
+                "lower": 0,
+                "upper": 4000,
+                "eq_upper": true,
+                "eq_lower": true,
+                "review": true
+            },
+            "db_col": "BRIDGE_LENGTH"
+        },
+        "TAHUN_BANGUN": {
+            "dtype": "integer",
+            "db_col": "CONS_YEAR"
+        },
+        "TIPE_BA_UTAMA": {
+            "dtype": "string",
+            "db_col": "MAIN_SPAN_TYPE"
+        }
+    }
+}
