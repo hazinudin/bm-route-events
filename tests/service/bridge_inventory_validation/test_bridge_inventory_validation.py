@@ -25,7 +25,7 @@ class TestBridgeInventoryValidation(unittest.TestCase):
             validation_mode='INSERT',
             lrs_grpc_host='localhost:50052',
             sql_engine=engine,
-            dev = True
+            dev = False
         )
 
         check.insert_check()
@@ -41,10 +41,27 @@ class TestBridgeInventoryValidation(unittest.TestCase):
             validation_mode='INSERT',
             lrs_grpc_host='localhost:50052',
             sql_engine=engine,
-            dev=True,
+            dev=False,
             popup=True
         )
 
         check.insert_check()
+
+        self.assertTrue(True)
+
+    def test_sups_update(self):
+        with open('tests/domain/bridge/inventory/full_inventory_0100005_2025.json') as jf:
+            input_dict = json.load(jf)
+
+        check = BridgeInventoryValidation(
+            data=input_dict,
+            validation_mode='UPDATE',
+            lrs_grpc_host='localhost:50052',
+            sql_engine=engine,
+            dev=False,
+            sups_only=True,
+        )
+
+        check.sups_only_update_check()
 
         self.assertTrue(True)
