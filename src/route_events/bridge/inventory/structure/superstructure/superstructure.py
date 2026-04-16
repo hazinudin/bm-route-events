@@ -2,6 +2,7 @@ import pyarrow as pa
 from ..substructure import Substructure, SubstructureSchema
 from ..element import StructureElement, ElementSchema
 from .sups_schema import SuperstructureSchema
+from .sups_only_schema import SuperstructureOnlySchema
 import polars as pl
 from pydantic import AliasChoices, Field, TypeAdapter
 from typing import List, Optional, Literal
@@ -10,13 +11,7 @@ import json
 
 class Superstructure(object):
     @classmethod
-    def from_invij_popup(
-        cls, 
-        bridge_id: str, 
-        inv_year: int, 
-        data: dict, 
-        validate=True
-    ):
+    def from_invij_popup(cls, bridge_id: str, inv_year: int, data: dict, validate=True):
         """
         Create Superstructure object from INVIJ JSON format, with only initializing the superstructure.
         """
@@ -27,10 +22,13 @@ class Superstructure(object):
                 BRIDGE_ID: str = str(bridge_id).upper()
                 INV_YEAR: int = inv_year
 
-            spans_data = [SupsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
+            spans_data = [
+                SupsModel.model_validate(_data).model_dump(by_alias=True)
+                for _data in data
+            ]
         else:
             spans_data = data
-        
+
         # Spans DataFrame
         # Drop the BANGUNAN_BAWAH and ELEMEN from DataFrame
         spans_df = pl.DataFrame(spans_data)
@@ -39,17 +37,63 @@ class Superstructure(object):
         spans = cls(spans_df.to_arrow(), validate=False)
 
         return spans
-        
+
+    @classmethod
+    def from_invij_sups_only(
+        cls, bridge_id: str, inv_year: int, data: list, validate=True
+    ):
+        """
+        Create Superstructure object from partial INVIJ JSON format.
+        """
+        if validate:
+            sups_schema = SuperstructureOnlySchema()
+
+            class SupsModel(sups_schema.model):
+                BRIDGE_ID: str = str(bridge_id).upper()
+                INV_YEAR: int = inv_year
+
+            spans_data = [
+                SupsModel.model_validate(_data).model_dump(by_alias=True)
+                for _data in data
+            ]
+        else:
+            spans_data = data
+
+        spans_df = pl.DataFrame(spans_data)
+        return cls(spans_df.to_arrow(), validate=False)
+
+    def merge_columns(self, other_sups, columns: list[str]) -> "Superstructure":
+        """
+        Merge missing columns from another Superstructure object.
+        """
+        joined = self.pl_df.join(
+            other_sups.pl_df,
+            on=[self._span_type_col, self._span_seq_col, self._span_num_col],
+            how="inner",
+        )
+
+        for col in columns:
+            if col in joined.columns:
+                joined = joined.with_columns(pl.col(col + "_right").alias(col)).drop(
+                    col + "_right"
+                )
+
+        # Drop any remaining _right columns not in the request
+        cols_to_keep = [c for c in joined.columns if not c.endswith("_right")]
+        joined = joined.select(cols_to_keep)
+
+        return Superstructure(joined.to_arrow(), validate=False)
+
     @classmethod
     def from_invij(
-        cls, 
-        bridge_id: str, 
-        inv_year: int, 
-        data: dict, 
-        validate=True, 
-        span_num_col: str='SPAN_NUMBER', 
-        span_type_col: str='SPAN_TYPE', 
-        span_seq_col: str = 'SPAN_SEQ'
+        cls,
+        bridge_id: str,
+        inv_year: int,
+        data: dict,
+        validate=True,
+        span_num_col: str = "SPAN_NUMBER",
+        span_type_col: str = "SPAN_TYPE",
+        span_seq_col: str = "SPAN_SEQ",
     ):
         """
         Create Superstructure object from INVIJ JSON format.
@@ -59,46 +103,51 @@ class Superstructure(object):
             element_schema = ElementSchema()
 
             class ElementModel(element_schema.model):
-                L4: Optional[List] = Field(
-                    validation_alias=AliasChoices('l4','L4')
-                )
+                L4: Optional[List] = Field(validation_alias=AliasChoices("l4", "L4"))
 
             class SupsModel(sups_schema.model):
                 BRIDGE_ID: str = str(bridge_id).upper()
                 INV_YEAR: int = inv_year
                 ELEMEN: List[ElementModel] = Field(
-                    validation_alias=AliasChoices('elemen', 'ELEMEN')
+                    validation_alias=AliasChoices("elemen", "ELEMEN")
                 )
 
-            spans_data = [SupsModel.model_validate(_data).model_dump(by_alias=True) for _data in data]
+            spans_data = [
+                SupsModel.model_validate(_data).model_dump(by_alias=True)
+                for _data in data
+            ]
         else:
             spans_data = data
 
         # Spans DataFrame
         # Drop the BANGUNAN_BAWAH and ELEMEN from DataFrame
-        spans_df = pl.DataFrame(spans_data).drop('ELEMEN')
+        spans_df = pl.DataFrame(spans_data).drop("ELEMEN")
 
         # Superstructure object
         spans = cls(spans_df.to_arrow(), validate=False)
-        
+
         # Element data and object initiation
-        elements = [StructureElement.from_invij(
-            span['ELEMEN'],
-            {   
-                spans._bridge_id_col: str(bridge_id).upper(),
-                spans._inv_year_col: inv_year,
-                span_num_col: span[span_num_col],
-                span_type_col: span[span_type_col],
-                span_seq_col: span[span_seq_col]
-            }
-        ) for span in spans_data if len(span['ELEMEN']) != 0]
+        elements = [
+            StructureElement.from_invij(
+                span["ELEMEN"],
+                {
+                    spans._bridge_id_col: str(bridge_id).upper(),
+                    spans._inv_year_col: inv_year,
+                    span_num_col: span[span_num_col],
+                    span_type_col: span[span_type_col],
+                    span_seq_col: span[span_seq_col],
+                },
+            )
+            for span in spans_data
+            if len(span["ELEMEN"]) != 0
+        ]
 
         # Add Element to Superstructure
         for element in elements:
             spans.add_l3_l4_elements(element)
 
         return spans
-    
+
     def __init__(self, data: pa.Table, validate=True):
         if validate:
             sups_schema = SuperstructureSchema()
@@ -106,23 +155,23 @@ class Superstructure(object):
             class SupsModel(sups_schema.model):
                 BRIDGE_ID: str
                 INV_YEAR: int
-            
+
             ta = TypeAdapter(List[SupsModel])
             ta.validate_python(pl.from_arrow(data).rows(named=True))
 
         # Default columns name
-        self._bridge_id_col = 'BRIDGE_ID'
-        self._inv_year_col = 'INV_YEAR'
-        self._span_num_col = 'SPAN_NUMBER'
-        self._span_type_col = 'SPAN_TYPE'
-        self._span_seq_col = 'SPAN_SEQ'
-        self._span_len_col = 'SPAN_LENGTH'
-        self._span_struct_col = 'SUPERSTRUCTURE'
-        self._floor_width_col = 'FLOOR_WIDTH'
-        self._span_sidew_col = 'SIDEWALK_WIDTH'
-        self._shwidth_col = 'OUT_SHWIDTH'
-        self._medwidth_col = 'LBR_MEDIAN'
-        self._drainage_width = 'DITCH_WIDTH'
+        self._bridge_id_col = "BRIDGE_ID"
+        self._inv_year_col = "INV_YEAR"
+        self._span_num_col = "SPAN_NUMBER"
+        self._span_type_col = "SPAN_TYPE"
+        self._span_seq_col = "SPAN_SEQ"
+        self._span_len_col = "SPAN_LENGTH"
+        self._span_struct_col = "SUPERSTRUCTURE"
+        self._floor_width_col = "FLOOR_WIDTH"
+        self._span_sidew_col = "SIDEWALK_WIDTH"
+        self._shwidth_col = "OUT_SHWIDTH"
+        self._medwidth_col = "LBR_MEDIAN"
+        self._drainage_width = "DITCH_WIDTH"
 
         # Data
         self.artable = data
@@ -138,15 +187,22 @@ class Superstructure(object):
         Add Substructure to the Superstructure object. If replace=False then append.
         """
         if type(obj) != Substructure:
-            raise TypeError(f"Could only set substructure with Substructure object, not with {type(obj)}.")
+            raise TypeError(
+                f"Could only set substructure with Substructure object, not with {type(obj)}."
+            )
 
         # Check if Substructure span parents exists in this class
-        if self.pl_df.join(
-            pl.from_arrow(obj.artable), 
-            on=[self._span_num_col, self._span_type_col, self._span_seq_col], 
-            how='inner'
-        ).shape[0] != obj.artable.shape[0]:
-            raise ValueError(f"Substructure with parent does not exists in this object.")
+        if (
+            self.pl_df.join(
+                pl.from_arrow(obj.artable),
+                on=[self._span_num_col, self._span_type_col, self._span_seq_col],
+                how="inner",
+            ).shape[0]
+            != obj.artable.shape[0]
+        ):
+            raise ValueError(
+                f"Substructure with parent does not exists in this object."
+            )
 
         if (self._subs is None) or replace:
             self._subs = obj
@@ -162,208 +218,209 @@ class Superstructure(object):
             self._subs = subs
 
         return self
-    
+
     def add_l3_l4_elements(self, obj):
         """
         Add Element to Superstructure object.
         """
         if type(obj) != StructureElement:
-            raise TypeError(f"Could not only set element with StructureElement object, not with {type(obj)}.")
+            raise TypeError(
+                f"Could not only set element with StructureElement object, not with {type(obj)}."
+            )
 
         if obj.artable.num_rows == 0:
             return self
 
         # Check if Element span parents exists in this class
-        if not pl.from_arrow(obj.artable).join(
-            self.pl_df,
-            on=[
-                self._bridge_id_col,
-                self._span_num_col,
-                self._span_type_col,
-                self._span_seq_col
-            ],
-            how='anti'
-        ).is_empty():
+        if (
+            not pl.from_arrow(obj.artable)
+            .join(
+                self.pl_df,
+                on=[
+                    self._bridge_id_col,
+                    self._span_num_col,
+                    self._span_type_col,
+                    self._span_seq_col,
+                ],
+                how="anti",
+            )
+            .is_empty()
+        ):
             raise ValueError("Element with parent span does not exists in this object.")
 
         if self._elements is None:
             self._elements = obj
         else:
-            self._elements.artable = pa.concat_tables([self._elements.artable, obj.artable])
+            self._elements.artable = pa.concat_tables(
+                [self._elements.artable, obj.artable]
+            )
 
         return self
-    
+
     @property
     def subs(self):
         return self._subs
-        
+
     @property
     def elements(self):
         return self._elements
-        
+
     @property
     def pl_df(self):
         return pl.from_arrow(self.artable)
-    
+
     @property
     def bridge_id(self):
         """
         Return Bridge ID of the superstructure.
         """
         return self.pl_df[self._bridge_id_col][0]
-    
+
     @property
     def inv_year(self):
         """
         Return inventory year of the data.
         """
         return self.pl_df[self._inv_year_col][0]
-    
+
     @property
     def last_span_number(self):
         """
         Return the last span number from the main span.
         """
-        return self.pl_df.filter(
-            pl.col(self._span_type_col) == 'UTAMA'
-        ).select(pl.col(self._span_num_col)).max()[self._span_num_col][0]
-    
+        return (
+            self.pl_df.filter(pl.col(self._span_type_col) == "UTAMA")
+            .select(pl.col(self._span_num_col))
+            .max()[self._span_num_col][0]
+        )
+
     def has_unique_span_number(self) -> dict:
         """
         Check if the span number from all span/seq is unique.
         """
-        results = self.pl_df.group_by(
-            [self._span_type_col, self._span_seq_col]
-        ).agg(
-            is_unique = pl.col(self._span_num_col).count() ==
-            pl.col(self._span_num_col).n_unique()
-        ).to_dicts()
+        results = (
+            self.pl_df.group_by([self._span_type_col, self._span_seq_col])
+            .agg(
+                is_unique=pl.col(self._span_num_col).count()
+                == pl.col(self._span_num_col).n_unique()
+            )
+            .to_dicts()
+        )
 
         out_dict = {}
 
         for row in results:
-            out_dict[(
-                row[self._span_type_col],
-                row[self._span_seq_col]
-            )] = row['is_unique']
+            out_dict[(row[self._span_type_col], row[self._span_seq_col])] = row[
+                "is_unique"
+            ]
 
         return out_dict
-    
+
     def has_monotonic_span_number(
-            self, 
-            span_type: Literal['utama', 'kanan', 'kiri'],
-            seq: int = 1
-            ) -> bool:
+        self, span_type: Literal["utama", "kanan", "kiri"], seq: int = 1
+    ) -> bool:
         """
         Check if the span number of the specified span has monotonic pattern.
         """
-        return self.pl_df.filter(
-            (pl.col(self._span_type_col) == span_type.upper()) &
-            (pl.col(self._span_seq_col) == seq)
-            ).select(
-                pl.col(self._span_num_col).
-                diff().
-                drop_nulls().
-                eq(1).
-                all()
-            ).to_dicts()[0][self._span_num_col]
-    
+        return (
+            self.pl_df.filter(
+                (pl.col(self._span_type_col) == span_type.upper())
+                & (pl.col(self._span_seq_col) == seq)
+            )
+            .select(pl.col(self._span_num_col).diff().drop_nulls().eq(1).all())
+            .to_dicts()[0][self._span_num_col]
+        )
+
     def has_monotonic_span_seq_number(self) -> dict:
         """
         Check if the span sequence from all span type has monotonic pattern.
         """
-        results = self.pl_df.group_by(
-            self._span_type_col
-        ).agg(
-            pl.col(self._span_seq_col).
-            sort().
-            diff().
-            fill_null(0).
-            le(1).
-            all()
-            ).to_dicts()
-        
+        results = (
+            self.pl_df.group_by(self._span_type_col)
+            .agg(pl.col(self._span_seq_col).sort().diff().fill_null(0).le(1).all())
+            .to_dicts()
+        )
+
         out_dict = {}
 
         for row in results:
             out_dict[row[self._span_type_col]] = row[self._span_seq_col]
 
         return out_dict
-    
+
     def total_length(
-            self, 
-            span_type: Literal['utama', 'kanan', 'kiri'],
-            seq: int = 1            
+        self, span_type: Literal["utama", "kanan", "kiri"], seq: int = 1
     ) -> float:
         """
         Total span length from the specified span type.
         """
         length = self.pl_df.filter(
-            (pl.col(self._span_type_col) == span_type.upper()) &
-            (pl.col(self._span_seq_col) == seq)
-        ).select(
-            LENGTH=pl.col(self._span_len_col).sum()
-        )[0, 0]
+            (pl.col(self._span_type_col) == span_type.upper())
+            & (pl.col(self._span_seq_col) == seq)
+        ).select(LENGTH=pl.col(self._span_len_col).sum())[0, 0]
 
         return float(length)
-    
+
     def get_span_structure_type(
-            self,
-            span_type: Literal['utama', 'kanan', 'kiri'],
-            seq: int = 1,
+        self,
+        span_type: Literal["utama", "kanan", "kiri"],
+        seq: int = 1,
     ) -> List[str]:
         """
         Return all span structure types from a span ('utama', 'kanan' or 'kiri')
         """
-        types = self.pl_df.filter(
-            pl.col(self._span_type_col).eq(span_type.upper()) &
-            pl.col(self._span_seq_col).eq(seq)
-        ).select(
-            SPAN=pl.col(self._span_struct_col)
-        )['SPAN'].unique().to_list()
-        
+        types = (
+            self.pl_df.filter(
+                pl.col(self._span_type_col).eq(span_type.upper())
+                & pl.col(self._span_seq_col).eq(seq)
+            )
+            .select(SPAN=pl.col(self._span_struct_col))["SPAN"]
+            .unique()
+            .to_list()
+        )
+
         return types
-    
+
     def get_span_numbers(
-            self, 
-            span_type: Literal['utama', 'kanan', 'kiri', 'all'] = 'all',
-            seq: int = 1
-            ) -> pl.DataFrame:
+        self, span_type: Literal["utama", "kanan", "kiri", "all"] = "all", seq: int = 1
+    ) -> pl.DataFrame:
         """
         Get all span numbers.
         """
-        if span_type.lower() != 'all':
-            return self.pl_df.filter(
-                (pl.col(self._span_type_col) == span_type.upper()) &
-                (pl.col(self._span_seq_col) == seq)
-                ).group_by(
-                    [self._span_type_col, self._span_seq_col]
-                ).agg(pl.col(self._span_num_col))
+        if span_type.lower() != "all":
+            return (
+                self.pl_df.filter(
+                    (pl.col(self._span_type_col) == span_type.upper())
+                    & (pl.col(self._span_seq_col) == seq)
+                )
+                .group_by([self._span_type_col, self._span_seq_col])
+                .agg(pl.col(self._span_num_col))
+            )
         else:
-            return self.pl_df.group_by(
-                [self._span_type_col, self._span_seq_col]
-                ).agg(pl.col(self._span_num_col))
-        
+            return self.pl_df.group_by([self._span_type_col, self._span_seq_col]).agg(
+                pl.col(self._span_num_col)
+            )
+
     def get_span_count(
-            self,
-            span_type: Literal['utama', 'kanan', 'kiri'],
-            seq: int = 1
+        self, span_type: Literal["utama", "kanan", "kiri"], seq: int = 1
     ) -> int:
         """
         Get span count.
         """
-        result = self.pl_df.filter(
-            (pl.col(self._span_type_col) == span_type.upper()) &
-            (pl.col(self._span_seq_col) == seq)
-        ).group_by(
-            [self._span_type_col, self._span_seq_col]
-        ).agg(pl.col(self._span_num_col).count())
+        result = (
+            self.pl_df.filter(
+                (pl.col(self._span_type_col) == span_type.upper())
+                & (pl.col(self._span_seq_col) == seq)
+            )
+            .group_by([self._span_type_col, self._span_seq_col])
+            .agg(pl.col(self._span_num_col).count())
+        )
 
         if result.is_empty():
             return 0
         else:
             return result[self._span_num_col][0]
-            
+
     def select_structure_type(self, structure: str) -> pl.DataFrame:
         """
         Select span based on its structure type.
@@ -371,23 +428,18 @@ class Superstructure(object):
         return self.pl_df.filter(
             pl.col(self._span_struct_col).str.starts_with(structure)
         )
-    
+
     def join(self, other) -> pl.DataFrame:
         """
         Join other Superstructure object using span type, sequence and number.
         """
         if type(self) != type(other):
             raise TypeError("'other' is not a Superstructure object.")
-        
+
         return self.pl_df.join(
-            other, 
-            on=[
-            self._span_type_col, 
-            self._span_seq_col, 
-            self._span_num_col
-            ]
-            )
-    
+            other, on=[self._span_type_col, self._span_seq_col, self._span_num_col]
+        )
+
     def span_width(self) -> pl.DataFrame:
         """
         Calculate total span width
@@ -396,25 +448,19 @@ class Superstructure(object):
             self._span_type_col,
             self._span_num_col,
             self._span_seq_col,
-            total_width = pl.col(self._floor_width_col).add(
-                pl.col('L_'+self._span_sidew_col).fill_null(0)
-            ).add(
-                pl.col('R_'+self._span_sidew_col).fill_null(0)
-            ).add(
-                pl.col('L_'+self._drainage_width).fill_null(0)
-            ).add(
-                pl.col('R_'+self._drainage_width).fill_null(0)
-            ).add(
-                pl.col('L_'+self._shwidth_col).fill_null(0)
-            ).add(
-                pl.col('R_'+self._shwidth_col).fill_null(0)
-            )
+            total_width=pl.col(self._floor_width_col)
+            .add(pl.col("L_" + self._span_sidew_col).fill_null(0))
+            .add(pl.col("R_" + self._span_sidew_col).fill_null(0))
+            .add(pl.col("L_" + self._drainage_width).fill_null(0))
+            .add(pl.col("R_" + self._drainage_width).fill_null(0))
+            .add(pl.col("L_" + self._shwidth_col).fill_null(0))
+            .add(pl.col("R_" + self._shwidth_col).fill_null(0)),
         )
 
         return total
-    
+
     def min_width(self) -> float:
         """
         Find the minimum value of span width.
         """
-        return self.span_width()['total_width'].min()
+        return self.span_width()["total_width"].min()

@@ -17,17 +17,17 @@ class BridgeInventoryRepo(object):
         # self._engine = create_engine(self._ora_cstr.replace('oracle', 'oracle+oracledb'))
         self._engine = sql_engine
         self._inspect = inspect(sql_engine)
-        self._db_schema = 'MISC'
+        self._db_schema = "MISC"
 
-        self.sups_table_name = 'NAT_BRIDGE_SPAN'
-        self.subs_table_name = 'NAT_BRIDGE_ABT'
-        self.inv_table_name = 'NAT_BRIDGE_PROFILE'
+        self.sups_table_name = "NAT_BRIDGE_SPAN"
+        self.subs_table_name = "NAT_BRIDGE_ABT"
+        self.inv_table_name = "NAT_BRIDGE_PROFILE"
 
-        self.sups_el_table_name = 'NAT_BRIDGE_SPAN_L3L4'
-        self.subs_el_table_name = 'NAT_BRIDGE_ABT_L3L4'
+        self.sups_el_table_name = "NAT_BRIDGE_SPAN_L3L4"
+        self.subs_el_table_name = "NAT_BRIDGE_ABT_L3L4"
 
-        self.bridge_id_col = 'BRIDGE_ID'
-        self.inv_year_col = 'INV_YEAR'
+        self.bridge_id_col = "BRIDGE_ID"
+        self.inv_year_col = "INV_YEAR"
 
     @property
     def _ora_cstr(self):
@@ -35,7 +35,7 @@ class BridgeInventoryRepo(object):
         Oracle connection string.
         """
         return f"oracle://{self.user}:{self.pwd}@{self.host}:{self.port}/{self.service_name}"
-    
+
     @property
     def _tables(self):
         """
@@ -46,10 +46,10 @@ class BridgeInventoryRepo(object):
             self.sups_el_table_name,
             self.subs_table_name,
             self.subs_el_table_name,
-            self.inv_table_name
+            self.inv_table_name,
         ]
-    
-    def get_by_bridge_id(self, bridge_id: str, inv_year: int)-> BridgeInventory | None:
+
+    def get_by_bridge_id(self, bridge_id: str, inv_year: int) -> BridgeInventory | None:
         """
         Load BridgeInventory from database table.
         """
@@ -57,12 +57,23 @@ class BridgeInventoryRepo(object):
         bridge_id_query = "select * from {0} " + _where
 
         # Download data from database
-        df_inv = pl.read_database(bridge_id_query.format(self.inv_table_name), connection=self._engine)
-        df_sups = pl.read_database(bridge_id_query.format(self.sups_table_name), connection=self._engine)
-        df_subs = pl.read_database(bridge_id_query.format(self.subs_table_name), connection=self._engine)
-        df_sups_el = pl.read_database(bridge_id_query.format(self.sups_el_table_name), connection=self._engine)
-        df_subs_el = pl.read_database(bridge_id_query.format(self.subs_el_table_name), connection=self._engine)
-        
+        # Add status filter
+        df_inv = pl.read_database(
+            bridge_id_query.format(self.inv_table_name), connection=self._engine
+        )
+        df_sups = pl.read_database(
+            bridge_id_query.format(self.sups_table_name), connection=self._engine
+        )
+        df_subs = pl.read_database(
+            bridge_id_query.format(self.subs_table_name), connection=self._engine
+        )
+        df_sups_el = pl.read_database(
+            bridge_id_query.format(self.sups_el_table_name), connection=self._engine
+        )
+        df_subs_el = pl.read_database(
+            bridge_id_query.format(self.subs_el_table_name), connection=self._engine
+        )
+
         # Load into object
         inv = BridgeInventory(df_inv.to_arrow())
 
@@ -71,7 +82,7 @@ class BridgeInventoryRepo(object):
             subs = Substructure(df_subs.to_arrow(), validate=True)
             sups_el = StructureElement(df_sups_el.to_arrow())
             subs_el = StructureElement(df_subs_el.to_arrow())
-            
+
             # Populate the BridgeInventory object
             if not df_sups.is_empty():
                 inv.add_superstructure(sups)
@@ -84,8 +95,8 @@ class BridgeInventoryRepo(object):
             return inv
         else:
             return None
-    
-    def get_available_years(self, bridge_id: str)->list:
+
+    def get_available_years(self, bridge_id: str) -> list:
         """
         Get available year of bridge inventory data.
         """
@@ -94,12 +105,12 @@ class BridgeInventoryRepo(object):
         results = pl.read_database(query, connection=self._engine)
 
         return results[self.inv_year_col].to_list()
-    
+
     def _insert(self, obj: BridgeInventory, conn, commit=True):
         """
         Insert BridgeInventory to database table.
         """
-        if obj.inventory_state == 'DETAIL':
+        if obj.inventory_state == "DETAIL":
             inv_df = obj.pl_df
             sups_df = obj.sups.pl_df
             subs_df = obj.subs.pl_df
@@ -108,7 +119,7 @@ class BridgeInventoryRepo(object):
 
             # Convert string INV_DATE from string to datetime
             inv_df = inv_df.with_columns(
-                INV_DATE=pl.col('INV_DATE').dt.strftime("%d/%b/%Y, 12:00:00%p")
+                INV_DATE=pl.col("INV_DATE").dt.strftime("%d/%b/%Y, 12:00:00%p")
             )
 
             table_mapping = {
@@ -116,7 +127,7 @@ class BridgeInventoryRepo(object):
                 self.sups_table_name: sups_df,
                 self.subs_table_name: subs_df,
                 self.sups_el_table_name: sups_el_df,
-                self.subs_el_table_name: subs_el_df 
+                self.subs_el_table_name: subs_el_df,
             }
         else:
             inv_df = obj.pl_df
@@ -124,7 +135,7 @@ class BridgeInventoryRepo(object):
 
             # Convert string INV_DATE from string to datetime
             inv_df = inv_df.with_columns(
-                INV_DATE=pl.col('INV_DATE').dt.strftime("%d/%b/%Y, 12:00:00%p")
+                INV_DATE=pl.col("INV_DATE").dt.strftime("%d/%b/%Y, 12:00:00%p")
             )
 
             table_mapping = {
@@ -134,22 +145,21 @@ class BridgeInventoryRepo(object):
 
         for table, df in zip(table_mapping, table_mapping.values()):
             args = []
-            
+
             if self._table_exists(table):
                 if has_objectid(table, self._engine):
                     oids = generate_objectid(
                         schema=self._db_schema,
                         table=table,
                         sql_engine=self._engine,
-                        oid_count=df.select(pl.len()).rows()[0][0]
+                        oid_count=df.select(pl.len()).rows()[0][0],
                     )
 
-                    args = [pl.Series('OBJECTID', oids)]
+                    args = [pl.Series("OBJECTID", oids)]
 
             # Add update date and ESRI ObjectID (if exists)
             df_ = df.with_columns(
-                pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
-                *args
+                pl.lit(datetime.now()).dt.datetime().alias("UPDATE_DATE"), *args
             )
 
             try:
@@ -157,30 +167,27 @@ class BridgeInventoryRepo(object):
                     df_.write_database(
                         table,
                         connection=conn,
-                        if_table_exists='append'  # Append to existing
+                        if_table_exists="append",  # Append to existing
                     )
                 else:
                     df_.write_database(
                         table,
                         connection=conn,
-                        if_table_exists='replace',  # Create new table
-                        engine_options = {
-                            'dtype': ora_pl_dtype(
-                                df,
-                                date_cols_keywords='DATE'
-                            )
-                        }
+                        if_table_exists="replace",  # Create new table
+                        engine_options={
+                            "dtype": ora_pl_dtype(df, date_cols_keywords="DATE")
+                        },
                     )
 
             except Exception as e:
                 conn.rollback()  # Rollback if there is an error
                 raise e
-        
+
         if commit:
             conn.commit()
 
         return
-    
+
     def _delete(self, obj: BridgeInventory, conn, commit=True):
         """
         Delete BridgeInventory in database table.
@@ -196,13 +203,13 @@ class BridgeInventoryRepo(object):
             # If the table does not exist, then skip
             if not self._table_exists(table):
                 continue
-            
+
             try:
                 conn.execute(text(del_stt.format(table)))
             except Exception as e:
                 conn.rollback()  # Rollback if there is an error
                 raise e
-        
+
         if commit:
             conn.commit()
 
@@ -212,25 +219,138 @@ class BridgeInventoryRepo(object):
         """
         Replace/Insert BridgeInventory data in database table.
         """
-        with self._engine.connect() as conn, conn.execution_options(isolation_level="READ COMMITTED"):
+        with (
+            self._engine.connect() as conn,
+            conn.execution_options(isolation_level="READ COMMITTED"),
+        ):
             try:
                 self._delete(obj, conn=conn, commit=False)
                 self._insert(obj, conn=conn, commit=False)
             except Exception as e:
-                conn.rollback()  # Rollback if there is an error
+                conn.rollback()
                 raise e
 
             conn.commit()
 
-        return        
-        
-    def _table_exists(self, table)->bool:
+        return
+
+    def put_sups(self, obj: BridgeInventory):
+        """
+        Update only superstructure and profile data for an existing bridge inventory.
+        Does not modify substructure or substructure elements.
+        """
+        with (
+            self._engine.connect() as conn,
+            conn.execution_options(isolation_level="READ COMMITTED"),
+        ):
+            try:
+                # Delete superstructure, superstructure elements, and profile
+                _where = f"where {self.bridge_id_col} = '{obj.id}' and {self.inv_year_col} = {obj.inv_year}"
+                for table in [
+                    self.sups_table_name,
+                    self.sups_el_table_name,
+                    self.inv_table_name,
+                ]:
+                    if self._table_exists(table):
+                        conn.execute(text(f"DELETE FROM {table} {_where}"))
+
+                # Re-insert superstructure, superstructure elements (if any), and profile
+                self._insert_sups_only(obj, conn=conn, commit=False)
+                self._insert_profile_only(obj, conn=conn, commit=False)
+            except Exception as e:
+                conn.rollback()
+                raise e
+
+            conn.commit()
+
+        return
+
+    def _insert_sups_only(self, obj: BridgeInventory, conn, commit=True):
+        """Insert only superstructure and superstructure element data."""
+        sups_df = obj.sups.pl_df
+
+        if obj.sups.elements is not None:
+            sups_el_df = obj.sups.elements.pl_df
+        else:
+            sups_el_df = None
+
+        table_mapping = {
+            self.sups_table_name: sups_df,
+        }
+        if sups_el_df is not None:
+            table_mapping[self.sups_el_table_name] = sups_el_df
+
+        for table, df in table_mapping.items():
+            args = []
+            if self._table_exists(table):
+                if has_objectid(table, self._engine):
+                    oids = generate_objectid(
+                        schema=self._db_schema,
+                        table=table,
+                        sql_engine=self._engine,
+                        oid_count=df.select(pl.len()).rows()[0][0],
+                    )
+                    args = [pl.Series("OBJECTID", oids)]
+
+            df_ = df.with_columns(
+                pl.lit(datetime.now()).dt.datetime().alias("UPDATE_DATE"), *args
+            )
+
+            try:
+                df_.write_database(table, connection=conn, if_table_exists="append")
+            except Exception as e:
+                conn.rollback()
+                raise e
+
+        if commit:
+            conn.commit()
+        return
+
+    def _insert_profile_only(self, obj: BridgeInventory, conn, commit=True):
+        """Insert only the profile record for the inventory."""
+        inv_df = obj.pl_df
+
+        # Convert string INV_DATE from string to datetime
+        if "INV_DATE" in inv_df.columns:
+            inv_df = inv_df.with_columns(
+                INV_DATE=pl.col("INV_DATE").dt.strftime("%d/%b/%Y, 12:00:00%p")
+            )
+
+        # Add update date and ESRI ObjectID (if exists)
+        args = []
+        if self._table_exists(self.inv_table_name):
+            if has_objectid(self.inv_table_name, self._engine):
+                oids = generate_objectid(
+                    schema=self._db_schema,
+                    table=self.inv_table_name,
+                    sql_engine=self._engine,
+                    oid_count=inv_df.select(pl.len()).rows()[0][0],
+                )
+                args = [pl.Series("OBJECTID", oids)]
+
+        df_ = inv_df.with_columns(
+            pl.lit(datetime.now()).dt.datetime().alias("UPDATE_DATE"), *args
+        )
+
+        try:
+            df_.write_database(
+                self.inv_table_name, connection=conn, if_table_exists="append"
+            )
+        except Exception as e:
+            conn.rollback()
+            raise e
+
+        if commit:
+            conn.commit()
+        return
+
+    def _table_exists(self, table) -> bool:
         """
         Check if table exist.
         """
         return self._inspect.has_table(table)
-    
-    def _ora_dtype(self, df: pl.DataFrame)->dict:
+
+    def _ora_dtype(self, df: pl.DataFrame) -> dict:
         """
         Return Oracle dtype for table creation.
         """
@@ -239,7 +359,7 @@ class BridgeInventoryRepo(object):
             col_name = col[0]
             dtype = col[1]
 
-            if 'DATE' in col_name:
+            if "DATE" in col_name:
                 dtype = pl.Datetime
 
             if dtype == pl.String:

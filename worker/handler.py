@@ -485,11 +485,57 @@ class BridgeInventoryValidation_(ValidationHandler):
         return check._result.to_job_event(self.job_id)
 
 
-class BridgePopUpInventoryValidation(BridgeInventoryValidation_):
+class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
+    """
+    Handler for superstructure-only update validation.
+    Only supports UPDATE mode.
+    """
+
     def __init__(
         self,
         payload: BridgeValidationPayloadFormat,
         job_id: str,
         validate: bool = True,
     ):
-        BridgeInventoryValidation_.__init__(self, payload, job_id, validate, popup=True)
+        BridgeInventoryValidation_.__init__(
+            self, payload, job_id, validate, popup=False
+        )
+        self._sups_only = True
+
+    def validate(self) -> str:
+        with tracer.start_as_current_span(
+            "bridge.sups-only-validation-process"
+        ) as span:
+            span.set_attribute("validation.mode", "UPDATE")
+            span.set_attribute("validation.type", "sups_only")
+
+            check = BridgeInventoryValidation(
+                data=self.payload.model_dump(),
+                validation_mode="UPDATE",
+                lrs_grpc_host=LRS_HOST,
+                sql_engine=MISC_ENGINE,
+                dev=False,
+                popup=False,
+                ignore_review=self.ignore_review,
+                ignore_force=self.force_write,
+                sups_only=True,
+            )
+
+            if self.validate:
+                if check.get_status() == "rejected":
+                    span.set_attribute("validation.final_status", check.get_status())
+                    return check._result.to_job_event(self.job_id)
+
+                check.sups_only_update_check()
+
+            if (check.get_status() == "verified") and WRITE_VERIFIED_DATA:
+                check.merge_master_data()
+                check.update_master_data()
+
+            if check.get_status() == "verified":
+                check.put_sups_only_data()
+
+            span.set_attribute("validation.result.status", check.get_status())
+            span.set_status(StatusCode.OK)
+
+        return check._result.to_job_event(self.job_id)

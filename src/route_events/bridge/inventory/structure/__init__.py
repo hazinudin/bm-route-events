@@ -1,2 +1,6 @@
 from .substructure import Substructure, SubstructureSchema
-from .superstructure import Superstructure, SuperstructureSchema
+from .superstructure import (
+    Superstructure,
+    SuperstructureSchema,
+    SuperstructureOnlySchema,
+)

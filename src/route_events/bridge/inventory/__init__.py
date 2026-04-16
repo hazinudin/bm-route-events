@@ -2,13 +2,11 @@ from .structure import (
     Superstructure,
     Substructure,
     SubstructureSchema,
-    SuperstructureSchema
+    SuperstructureSchema,
+    SuperstructureOnlySchema,
 )
 
-from .structure.element import(
-    ElementSchema,
-    StructureElement
-)
+from .structure.element import ElementSchema, StructureElement
 
 from .profile.model import BridgeInventory
 from .repo import BridgeInventoryRepo
