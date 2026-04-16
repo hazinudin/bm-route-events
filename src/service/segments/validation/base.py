@@ -155,9 +155,9 @@ class RouteSegmentEventsValidation(object):
             self.from_sta_start_from_zero()    
         
         self.last_segment_single_to_sta_check()
-        # self.survey_date_year_check()
-        # self.data_semester_check()
-        # self.data_year_check()
+        self.survey_date_year_check()
+        self.data_semester_check()
+        self.data_year_check()
 
         # Run all LRS Validation
         self.lrs_validation()
