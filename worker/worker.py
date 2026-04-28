@@ -20,7 +20,6 @@ from handler import (
     DefectValidation,
     FWDValidation,
     BridgeInventoryValidation_,
-    BridgePopUpInventoryValidation,
     BridgeMasterValidation_,
     BridgeValidationPayloadFormat,
 )
@@ -125,7 +124,7 @@ class ValidationWorker:
 
         # Bridge
         self._handler["INVENTORY"] = BridgeInventoryValidation_
-        self._handler["POPUP_INVENTORY"] = BridgePopUpInventoryValidation
+        # self._handler["POPUP_INVENTORY"] = BridgePopUpInventoryValidation
         self._handler["MASTER"] = BridgeMasterValidation_
 
     def connect(self):
