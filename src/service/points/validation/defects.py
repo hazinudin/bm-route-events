@@ -308,6 +308,27 @@ class RouteDefectsValidation(RoutePointEventsValidation):
 
         return
 
+    def photo_id_duplicate_check(self):
+        """
+        Check for duplicate PHOTO_ID values in the defects data.
+        """
+        duplicates = (
+            self._events.pl_df.group_by(self._events._photo_url_cols)
+            .agg(pl.len().alias("count"))
+            .filter(pl.col("count") > 1)
+            .select(
+                msg=pl.format(
+                    "PHOTO_ID {} muncul {} kali (duplikat).",
+                    pl.col(self._events._photo_url_cols),
+                    pl.col("count"),
+                )
+            )
+        )
+
+        self._result.add_messages(duplicates, "error")
+
+        return
+
     def put_data(self):
         """
         Delete and insert events data to geodatabase table.
@@ -330,6 +351,7 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         self.route_has_rni_check()
         self.sta_not_in_rni_check()
         self.survey_photo_url_check()
+        self.photo_id_duplicate_check()
 
         self.surface_type_check()
         self.damage_surface_type_check()
