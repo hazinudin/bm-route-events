@@ -111,7 +111,7 @@
             "allow_null": true
         },
         "SURVEY_DATE": {
-            "dtype": "date"
+            "dtype": "timestamp"
         },
         "SURVEY_YEAR": {
             "dtype": "integer"

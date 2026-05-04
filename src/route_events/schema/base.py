@@ -46,6 +46,20 @@ def truncate_str(v:str):
     except:
         return v
 
+def serialize_timestamp_str(v:any):
+    """
+    Serialize timestamp string to datetime. Before validator.
+    """
+    try:
+        dttime = dt.strptime(v, '%d/%m/%Y %H:%M')
+        return dttime
+    except:
+        raise PydanticCustomError(
+            'datetime_parsing',
+            f'Timestamp {v} tidak sesuai dengan format dd/mm/yyyy HH:MM.',
+            dict(input=v)
+            )
+
 def serialize_date_str(v:any):
     """
     Serialize date string to timestamp float. Before validator.
@@ -191,6 +205,7 @@ class RouteEventsSchema(object):
         self.date_cols = list()  # Columns which are date type
         self.db_date_cols = list()  # Database columns which are date type
         self.strptime_format = "%d/%m/%Y"
+        self.timestamp_strptime_format = "%d/%m/%Y %H:%M"
         self.review_fields = []  # Fields with range review option
         
         # Pydantic BaseModel kwargs
@@ -298,6 +313,17 @@ class RouteEventsSchema(object):
 
                 # Pydantic date field validator kwargs
                 self.validators[serialize_date_str.__name__+'_'+col] = field_validator(col, mode='before')(serialize_date_str)
+            elif dtype == 'timestamp':  # Timestamp is inputted as string with hour:minute
+                pa_type = pa.string()
+                pyd_type = dt  # Type is datetime
+                self.pl_schema[col] = String
+
+                input_metadata['strptime'] = self.timestamp_strptime_format
+                self.date_cols.append(col)
+                self.db_date_cols.append(db_col)
+
+                # Pydantic timestamp field validator kwargs
+                self.validators[serialize_timestamp_str.__name__+'_'+col] = field_validator(col, mode='before')(serialize_timestamp_str)
             else:
                 continue
 
