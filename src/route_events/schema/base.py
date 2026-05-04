@@ -51,12 +51,12 @@ def serialize_timestamp_str(v:any):
     Serialize timestamp string to datetime. Before validator.
     """
     try:
-        dttime = dt.strptime(v, '%d/%m/%Y %H:%M')
+        dttime = dt.strptime(v, '%d/%m/%Y %H:%M:%S')
         return dttime
     except:
         raise PydanticCustomError(
             'datetime_parsing',
-            f'Timestamp {v} tidak sesuai dengan format dd/mm/yyyy HH:MM.',
+            f'Timestamp {v} tidak sesuai dengan format dd/mm/yyyy HH:MM:SS.',
             dict(input=v)
             )
 
@@ -205,7 +205,7 @@ class RouteEventsSchema(object):
         self.date_cols = list()  # Columns which are date type
         self.db_date_cols = list()  # Database columns which are date type
         self.strptime_format = "%d/%m/%Y"
-        self.timestamp_strptime_format = "%d/%m/%Y %H:%M"
+        self.timestamp_strptime_format = "%d/%m/%Y %H:%M:%S"
         self.review_fields = []  # Fields with range review option
         
         # Pydantic BaseModel kwargs
