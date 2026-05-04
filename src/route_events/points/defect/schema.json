@@ -19,6 +19,14 @@
                 "N"
             ]
         },
+        "CUACA": {
+            "dtype": "string",
+            "domain": [
+                "cerah",
+                "mendung",
+                "basah"
+            ]
+        },
         "LANE_CODE": {
             "dtype": "string",
             "domain": [
