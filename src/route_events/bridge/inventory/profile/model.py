@@ -184,7 +184,7 @@ class BridgeInventory(object):
         self._sups = None
         self._subs = None
 
-        if state is None:
+        if state is None and (len(self.artable) != 0):
             self._state = self.artable[self._inv_state_col][0]
         else:
             self._state = state
