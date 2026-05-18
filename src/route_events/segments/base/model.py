@@ -84,7 +84,7 @@ class RouteSegmentEvents(object):
         self._long_col = 'TO_STA_LONG'
         self._year_col = 'SURVEY_YEAR'
         self._survey_date_col = 'SURVEY_DATE'
-        self._semester_col = 'SEMESTER'
+        self._semester_col = 'SURVEY_SMS'
 
         # Units
         self._segment_length_unit = 'km'
