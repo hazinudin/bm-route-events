@@ -14,6 +14,7 @@ from sqlalchemy import Engine
 from numpy import isclose
 import polars as pl
 import json
+from .sups_type_criteria import SUPERSTRUCTURE_TYPE_CRITERIA
 
 
 class BridgeInventoryValidation(object):
@@ -286,6 +287,8 @@ class BridgeInventoryValidation(object):
         self.other_span_num_exist_in_main_span_check()
         self.span_seq_check()
         self.master_data_bridge_number_comparison()
+        self.superstructure_length_check()
+        self.superstructure_year_check()
 
         # Only execute if input data has substructure
         if self._inv.subs is not None:
@@ -555,6 +558,8 @@ class BridgeInventoryValidation(object):
             self.compare_total_span_length_to_inv_length_check()
             self.superstructure_no_changes()
             self.compare_main_span_length()
+            self.superstructure_length_check()
+            self.superstructure_year_check()
 
     def _span_no_changes(self, column: str, column_alias: str):
         """
@@ -645,6 +650,82 @@ class BridgeInventoryValidation(object):
         if not self._inv.span_type in self._inv.get_main_span_structure():
             msg = f"Tipe bentang {self._inv.span_type} tidak cocok dengan tipe bentang utama {self._inv.get_main_span_structure()}"
             self._result.add_message(msg, "error")
+
+        return self
+
+    def superstructure_length_check(self):
+        """
+        Validate that each span's superstructure type is appropriate for the bridge length.
+        Uses SUPERSTRUCTURE_TYPE_CRITERIA to check if bridge length falls within
+        the acceptable range for each span's superstructure type.
+        """
+        bridge_length = self._inv.length
+
+        for row in self._inv.sups.pl_df.iter_rows(named=True):
+            span_type = row[self._inv.sups._span_type_col]
+            span_seq = row[self._inv.sups._span_seq_col]
+            span_num = row[self._inv.sups._span_num_col]
+            structure_code = row[self._inv.sups._span_struct_col]
+
+            if structure_code not in SUPERSTRUCTURE_TYPE_CRITERIA:
+                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak dikenali."
+                self._result.add_message(msg, "review", "review")
+                continue
+
+            criteria = SUPERSTRUCTURE_TYPE_CRITERIA[structure_code]
+            min_len = criteria.get("min_length")
+            max_len = criteria.get("max_length")
+
+            has_error = False
+
+            if min_len is not None and bridge_length < min_len:
+                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk panjang jembatan {bridge_length}m (minimum {min_len}m)."
+                self._result.add_message(msg, "review", "review")
+                has_error = True
+
+            if max_len is not None and bridge_length > max_len:
+                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk panjang jembatan {bridge_length}m (maksimum {max_len}m)."
+                self._result.add_message(msg, "review", "review")
+                has_error = True
+
+        return self
+
+    def superstructure_year_check(self, year_tolerance=2):
+        """
+        Validate that each span's superstructure type is appropriate for the construction year.
+        Uses SUPERSTRUCTURE_TYPE_CRITERIA to check if construction year is within
+        the acceptable range (base_year ± tolerance) for each span's superstructure type.
+
+        Args:
+            year_tolerance: Tolerance in years for construction year comparison (default: 2 years)
+        """
+        cons_year = self._inv.artable["CONS_YEAR"][0].as_py()
+
+        if cons_year is None:
+            msg = "Tahun bangun jembatan tidak tersedia, tidak dapat memvalidasi kewajaran tipe bangunan atas."
+            self._result.add_message(msg, "review", "review")
+            return self
+
+        for row in self._inv.sups.pl_df.iter_rows(named=True):
+            span_type = row[self._inv.sups._span_type_col]
+            span_seq = row[self._inv.sups._span_seq_col]
+            span_num = row[self._inv.sups._span_num_col]
+            structure_code = row[self._inv.sups._span_struct_col]
+
+            if structure_code not in SUPERSTRUCTURE_TYPE_CRITERIA:
+                continue
+
+            criteria = SUPERSTRUCTURE_TYPE_CRITERIA[structure_code]
+            base_year = criteria.get("base_year")
+
+            if base_year is None:
+                continue
+
+            year_diff = abs(cons_year - base_year)
+
+            if year_diff > year_tolerance:
+                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk tahun bangun {cons_year} (tahun referensi {base_year} ± {year_tolerance} tahun)."
+                self._result.add_message(msg, "review", "review")
 
         return self
 
