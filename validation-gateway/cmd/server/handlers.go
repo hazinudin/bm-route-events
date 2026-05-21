@@ -181,7 +181,7 @@ func (s *Server) PublishINVIJValidationHandler(w http.ResponseWriter, r *http.Re
 	data_type := r.PathValue("data_type")
 	span.SetAttributes(attribute.String("data_type", data_type))
 
-	valid_types := []string{"master", "inventory", "popup_inventory"}
+	valid_types := []string{"master", "inventory", "popup_inventory", "sups_update"}
 
 	if !slices.Contains(valid_types, data_type) {
 		http.Error(w, "Invalid data type", http.StatusNotFound)
