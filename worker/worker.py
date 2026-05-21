@@ -21,6 +21,7 @@ from handler import (
     FWDValidation,
     BridgeInventoryValidation_,
     BridgeMasterValidation_,
+    BridgeSupsOnlyValidation,
     BridgeValidationPayloadFormat,
 )
 from typing import Dict
@@ -112,6 +113,7 @@ class ValidationWorker:
             "INVENTORY",
             "POPUP_INVENTORY",
             "MASTER",
+            "SUPS_UPDATE",
         ]  # Please update if more handlers are added.
 
         # Road
@@ -126,6 +128,7 @@ class ValidationWorker:
         self._handler["INVENTORY"] = BridgeInventoryValidation_
         # self._handler["POPUP_INVENTORY"] = BridgePopUpInventoryValidation
         self._handler["MASTER"] = BridgeMasterValidation_
+        self._handler["SUPS_UPDATE"] = BridgeSupsOnlyValidation
 
     def connect(self):
         worker_logger.info(f"connecting to RabbitMQ on {self._rmq_url}")
