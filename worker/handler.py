@@ -122,10 +122,14 @@ class RNIValidation(ValidationHandler):
                 force_write=self.force_write,
             )
 
-            span.set_attribute("partial_update", check._events.is_partial)
-
             if check.get_status() == "rejected":
+                span.set_attribute("partial_update", False)
+                span.set_attribute("file_name", self.payload.file_name)
+                span.set_attribute("route", self.payload.routes[0])
+                span.set_attribute("validation.result.status", check.get_status())
                 return check._result.to_job_event(self.job_id)
+
+            span.set_attribute("partial_update", check._events.is_partial)
 
             if self._validate:
                 check.base_validation()
@@ -133,7 +137,7 @@ class RNIValidation(ValidationHandler):
             if (check.get_status() == "verified") and (WRITE_VERIFIED_DATA):
                 if (
                     check._events.is_partial
-                ):  # If its still partial, then merge with previous data
+                ):
                     check.merge_previous_data()
 
                 check.put_data(semester=self.payload.semester)
