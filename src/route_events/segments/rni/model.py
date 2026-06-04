@@ -90,6 +90,7 @@ class RouteRNI(RouteSegmentEvents):
             route=linkid,
             segment_length=segment_length,
             data_year=data_year,
+            is_semester_data=False,
             is_partial=is_partial
         )
     
