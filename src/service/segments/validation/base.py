@@ -624,7 +624,11 @@ class RouteSegmentEventsValidation(object):
     def data_semester_check(self):
         """
         Check consistency between input data semester and semester in survey data.
+        Skips check if the events model is not semester-based data.
         """
+        if not self._events.is_semester_data:
+            return self
+        
         if not self._events.correct_data_semester():
             msg = f"Data survey memiliki semester yang berbeda dengan {self._survey_sem}"
 
