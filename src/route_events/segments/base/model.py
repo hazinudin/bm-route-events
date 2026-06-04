@@ -71,6 +71,7 @@ class RouteSegmentEvents(object):
             segment_length:float = 0.1,
             data_year: int = None,
             data_semester: Literal[1,2] = None,
+            is_semester_data: bool = None,
             sta_unit: str = 'dm',
             is_partial: bool = False
         ):
@@ -97,6 +98,7 @@ class RouteSegmentEvents(object):
         self._lane_data = True  # Indicator if the events data is lane based
         self._data_year = data_year
         self._data_semester = data_semester
+        self._is_semester_data = is_semester_data if is_semester_data is not None else (data_semester is not None)
         self._segment_length = segment_length
 
         if (self.pl_df.get_column(self._long_col, default=None) is None) or (self.pl_df.get_column(self._lat_col, default=None) is None):
@@ -161,6 +163,10 @@ class RouteSegmentEvents(object):
     @property
     def semester(self) -> int:
         return self._data_semester
+    
+    @property
+    def is_semester_data(self) -> bool:
+        return self._is_semester_data
 
     @property
     def pl_df(self) -> pl.DataFrame:
@@ -284,7 +290,11 @@ class RouteSegmentEvents(object):
     def correct_data_semester(self) -> bool:
         """
         Check if all row contain the same semester with the semester from __init__ argument.
+        Returns True if this is not semester data (skip check).
         """
+        if not self._is_semester_data:
+            return True
+        
         return self.pl_df.filter(
             pl.col(self._semester_col) != self._data_semester
         ).is_empty()
