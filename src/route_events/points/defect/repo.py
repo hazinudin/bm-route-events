@@ -2,6 +2,7 @@ from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.oracle import NUMBER, VARCHAR2, TIMESTAMP
 from sqlalchemy.exc import NoSuchTableError
 from .model import RouteDefects
+from ...utils.oid import has_objectid, generate_objectid
 from ...utils import ora_pl_dtype
 import polars as pl
 from pyarrow import Table
@@ -88,7 +89,30 @@ class RouteDefectsRepo(object):
         Insert Defect data into Defect geodatabase table.
         """
         try:
-            if not self._inspect.has_table(f"{self.table}_{year}"):
+            if self._inspect.has_table(f"{self.table}_{year}"):
+                if has_objectid(f"{self.table}_{year}", self._engine):
+                    oids = generate_objectid(
+                        schema='smd',
+                        table=f"{self.table}_{year}",
+                        sql_engine=self._engine,
+                        oid_count=events.pl_df.select(pl.len()).rows()[0][0]
+                    )
+
+                    args = [pl.Series('OBJECTID', oids)]
+
+                else:
+                    args = []
+
+                events.pl_df.with_columns(
+                    pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
+                    pl.lit(0).alias('COPIED'),
+                    *args
+                ).write_database(
+                    f"{self.table}_{year}",
+                    connection=conn,
+                    if_table_exists='append'
+                )
+            else:
                 events.pl_df.with_columns(
                     pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
                     pl.lit(0).alias('COPIED'),
@@ -101,15 +125,6 @@ class RouteDefectsRepo(object):
                             date_cols_keywords='DATE'
                         )
                     }
-                )
-            else:
-                events.pl_df.with_columns(
-                    pl.lit(datetime.now()).dt.datetime().alias('UPDATE_DATE'),
-                    pl.lit(0).alias('COPIED'),
-                ).write_database(
-                    f"{self.table}_{year}",
-                    connection=conn,
-                    if_table_exists='append'
                 )
         
         except Exception as e:
