@@ -164,6 +164,7 @@ class RouteDefectsValidation(RoutePointEventsValidation):
                         self._events._sta_col,
                         self._events._lane_code_col,
                     ],
+                    how='left',
                 )
                 .select(
                     pl.col(self._events._photo_url_cols).alias("photo_id"),
