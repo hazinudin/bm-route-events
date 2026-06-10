@@ -155,6 +155,28 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [[package]]
+name = "bm-photo-client"
+version = "0.1.0"
+source = { directory = "../bm-photo/clients/python" }
+dependencies = [
+    { name = "fastexcel" },
+    { name = "polars" },
+    { name = "pydantic" },
+    { name = "requests" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastexcel", specifier = ">=0.7.0" },
+    { name = "polars", specifier = ">=0.20.0" },
+    { name = "pydantic", specifier = ">=2.0.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
+    { name = "requests", specifier = ">=2.31.0" },
+    { name = "requests-mock", marker = "extra == 'dev'", specifier = ">=1.12" },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "bm-route-events"
 version = "0.1.0"
 source = { virtual = "." }
@@ -167,6 +189,7 @@ dependencies = [
     { name = "anyio" },
     { name = "attrs" },
     { name = "bm-lrs-client" },
+    { name = "bm-photo-client" },
     { name = "cachetools" },
     { name = "certifi" },
     { name = "cffi" },
@@ -262,6 +285,7 @@ requires-dist = [
     { name = "anyio", specifier = "==4.9.0" },
     { name = "attrs", specifier = "==25.3.0" },
     { name = "bm-lrs-client", directory = "../bm-lrs/lrs-client" },
+    { name = "bm-photo-client", directory = "../bm-photo/clients/python" },
     { name = "cachetools", specifier = "==5.5.2" },
     { name = "certifi", specifier = "==2024.8.30" },
     { name = "cffi", specifier = "==1.17.1" },

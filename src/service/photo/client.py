@@ -1,6 +1,6 @@
 from typing import List
 from route_events.photo import SurveyPhoto
-from bm_photo_client import BMPhotoClient
+from bm_photo_client import BMPhotoClient, BatchUpdateItem
 from bm_photo_client._pagination import auto_paginate
 
 
@@ -61,7 +61,7 @@ class SurveyPhotoStorage(object):
     def update_photos(self, photos: List[SurveyPhoto]) -> None:
         """
         Update photo metadata (latitude, longitude, sta_value) in the bm-photo service
-        for all valid photos in the list.
+        for all valid photos in the list using batch update.
 
         Only updates photos whose photo_id exists in the bm-photo service.
         Photos not found in the service are silently skipped.
@@ -71,13 +71,16 @@ class SurveyPhotoStorage(object):
         """
         valid_ids = self.valid_photo_ids
 
-        for photo in photos:
-            if photo.photo_id not in valid_ids:
-                continue
-
-            self._client.update_photo(
+        updates = [
+            BatchUpdateItem(
                 photo_id=photo.photo_id,
                 latitude=photo.latitude,
                 longitude=photo.longitude,
                 sta_value=photo.sta_meters,
             )
+            for photo in photos
+            if photo.photo_id in valid_ids
+        ]
+
+        if updates:
+            self._client.batch_update_photos(updates)
