@@ -192,7 +192,8 @@ class BridgeInventory(object):
         # DuckDB Session
         self.ddb = duckdb.connect()
 
-        if len(self.artable) != 0 and (self._state == DETAILED_STATE):
+        # Only proceed if the state is VALIDASI VERIFIKASI or DETAILED_STATE
+        if len(self.artable) != 0 and (str(self._state) in ['VALIDASI VERIFIKASI', 'DETAILED_STATE']):
             # Geometry
             self._point_4326 = Point(
                 long=self.artable[self._lon_col][0],
