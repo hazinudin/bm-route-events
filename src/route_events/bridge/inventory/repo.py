@@ -28,6 +28,8 @@ class BridgeInventoryRepo(object):
 
         self.bridge_id_col = "BRIDGE_ID"
         self.inv_year_col = "INV_YEAR"
+        self.latitude_col = "LATITUDE"
+        self.longitude_col = "LONGITUDE"
 
     @property
     def _ora_cstr(self):
@@ -59,7 +61,8 @@ class BridgeInventoryRepo(object):
         # Download data from database
         # Add status filter
         df_inv = pl.read_database(
-            bridge_id_query.format(self.inv_table_name), connection=self._engine
+            bridge_id_query.format(self.inv_table_name) + f" and {self.latitude_col} is not null and {self.longitude_col} is not null", 
+            connection=self._engine
         )
         df_sups = pl.read_database(
             bridge_id_query.format(self.sups_table_name), connection=self._engine
