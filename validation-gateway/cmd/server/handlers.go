@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"slices"
 	"strconv"
+	"strings"
 	"validation-gateway/internal"
 	"validation-gateway/internal/job"
 
@@ -381,7 +382,14 @@ func (s *Server) AcceptDisputedMessages(w http.ResponseWriter, r *http.Request) 
 	err := s.job_service.AcceptDisputedMessages(job_id)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// Default to 500
+		status := http.StatusInternalServerError
+
+		// If the error is about rejected messages that cannot be ignored, return 422 Unprocessable Entity
+		if strings.Contains(err.Error(), "result with rejected status could not have its messages ignored") {
+			status = http.StatusUnprocessableEntity
+		}
+		http.Error(w, err.Error(), status)
 		span.SetStatus(codes.Error, err.Error())
 	}
 }
@@ -400,7 +408,12 @@ func (s *Server) AcceptReviewedMessages(w http.ResponseWriter, r *http.Request) 
 	err := s.job_service.AcceptReviewedMessages(job_id)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		status := http.StatusInternalServerError
+
+		if strings.Contains(err.Error(), "result with rejected status could not have its messages ignored") {
+			status = http.StatusUnprocessableEntity
+		}
+		http.Error(w, err.Error(), status)
 		span.SetStatus(codes.Error, err.Error())
 	}
 }
