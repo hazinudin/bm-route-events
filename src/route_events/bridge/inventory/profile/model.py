@@ -383,6 +383,8 @@ class BridgeInventory(object):
             merged_sups = partial_sups.merge_columns(
                 existing_inv.sups, columns=missing_cols
             )
+        else:
+            merged_sups = partial_sups
 
         # 5. Build profile DataFrame
         # Start from existing inventory's profile and override 3 fields
