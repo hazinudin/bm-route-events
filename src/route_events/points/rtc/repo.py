@@ -128,7 +128,7 @@ class RouteRTCRepo(object):
                     engine_options={
                         'dtype': ora_pl_dtype(
                             events.pl_df,
-                            date_cols_keyword='DATE'
+                            date_cols_keywords='DATE'
                         )
                     }
                 )
