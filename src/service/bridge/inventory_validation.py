@@ -510,6 +510,9 @@ class BridgeInventoryValidation(object):
         Check if the superstructure-only update payload span configuration
         exactly matches the existing inventory span configuration.
         """
+        if self._current_inv is None or self._current_inv.sups is None:
+            return
+
         current_spans = set(
             (
                 row[self._inv.sups._span_type_col],
@@ -548,7 +551,7 @@ class BridgeInventoryValidation(object):
         if self.get_status() != "rejected":
             self.span_config_match_check()
 
-        if self.get_status() != "error":
+        if (self.get_status() != "error") and (self.get_status() != "rejected"):
             self.has_sups_check(check_elements=False)
             self.main_span_structure_type_check()
             self.main_span_num_check()
@@ -565,6 +568,9 @@ class BridgeInventoryValidation(object):
         """
         Check if there is changes in superstructure attributes.
         """
+        if self._current_inv is None or self._current_inv.sups is None:
+            return
+
         joined = self._inv.sups.join(self._current_inv.sups)
 
         diff = (
@@ -622,6 +628,9 @@ class BridgeInventoryValidation(object):
         Compare span length and count, if there is changes in main span count then there is also should be increase in total main span length.
         Decrease in number of span in main span is not allowed.
         """
+        if self._current_inv is None or self._current_inv.sups is None:
+            return
+
         current_count = self._inv.sups.get_span_count("utama", 1)
         current_length = self._inv.sups.total_length("utama", 1)
 
