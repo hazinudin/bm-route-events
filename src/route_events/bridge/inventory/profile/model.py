@@ -374,13 +374,15 @@ class BridgeInventory(object):
 
         # 4. Merge superstructure columns from existing
         # Determine missing columns: anything in existing.sups but not in partial_sups
-        existing_cols = existing_inv.sups.pl_df.columns
-        partial_cols = partial_sups.pl_df.columns
-        missing_cols = [c for c in existing_cols if c not in partial_cols]
+        # Only merge if the existing inventory data has superstructure data
+        if existing_inv.sups is not None:
+            existing_cols = existing_inv.sups.pl_df.columns
+            partial_cols = partial_sups.pl_df.columns
+            missing_cols = [c for c in existing_cols if c not in partial_cols]
 
-        merged_sups = partial_sups.merge_columns(
-            existing_inv.sups, columns=missing_cols
-        )
+            merged_sups = partial_sups.merge_columns(
+                existing_inv.sups, columns=missing_cols
+            )
 
         # 5. Build profile DataFrame
         # Start from existing inventory's profile and override 3 fields
