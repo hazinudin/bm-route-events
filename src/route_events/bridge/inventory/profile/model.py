@@ -383,6 +383,11 @@ class BridgeInventory(object):
             merged_sups = partial_sups.merge_columns(
                 existing_inv.sups, columns=missing_cols
             )
+
+            # Add the existing elements
+            if existing_inv.sups.elements is not None:
+                inv.sups.add_l3_l4_elements(existing_inv.sups.elements)
+
         else:
             merged_sups = partial_sups
 
@@ -406,11 +411,10 @@ class BridgeInventory(object):
         if existing_inv.subs is not None:
             inv.add_substructure(existing_inv.subs)
 
-        # 9. Attach existing elements
-        if existing_inv.sups.elements is not None:
-            inv.sups.add_l3_l4_elements(existing_inv.sups.elements)
-        if existing_inv.subs is not None and existing_inv.subs.elements is not None:
-            inv.subs.add_l3_l4_elements(existing_inv.subs.elements)
+            # Attach the existing substructure element
+            if existing_inv.subs.elements is not None:
+                inv.subs.add_l3_l4_elements(existing_inv.subs.elements)
+
 
         return inv
 
