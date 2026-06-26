@@ -56,12 +56,23 @@ class RoutePOKRepo(object):
         ]  
 
         query = f"""
+        with latest_pok_per_satker AS(
+            SELECT r.*,
+            RANK() OVER (
+            PARTITION BY r.satker_code
+            ORDER BY r.pok_status DESC
+            ) AS rnk
+            FROM {self.table} r
+            WHERE budget_year = 2025
+        )
+
         SELECT {', '.join(self._column_selection)} 
-        FROM {self.table} 
+        FROM latest_pok_per_satker
         WHERE 
         {self._routeid_col} = '{linkid}' AND
         {self._budget_year_col} = {budget_year} AND 
-        ({' OR '.join(comp_name_keywords)})
+        ({' OR '.join(comp_name_keywords)}) AND
+        rnk = 1        
         """
         
         df = pl.read_database(
