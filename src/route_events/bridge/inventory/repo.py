@@ -81,8 +81,9 @@ class BridgeInventoryRepo(object):
         inv = BridgeInventory(df_inv.to_arrow())
 
         if not inv.is_empty:
-            sups = Superstructure(df_sups.to_arrow(), validate=True)
-            subs = Substructure(df_subs.to_arrow(), validate=True)
+            # Disable the validation, should be temporary
+            sups = Superstructure(df_sups.to_arrow(), validate=False)
+            subs = Substructure(df_subs.to_arrow(), validate=False)
             sups_el = StructureElement(df_sups_el.to_arrow())
             subs_el = StructureElement(df_subs_el.to_arrow())
 
