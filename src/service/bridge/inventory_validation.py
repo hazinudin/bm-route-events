@@ -611,7 +611,7 @@ class BridgeInventoryValidation(object):
         """
         Check if there is no changes in span floor width.
         """
-        self._span_no_changes(self._inv.sups._span_width_col, "lantai kendaraan")
+        self._span_no_changes(self._inv.sups._floor_width_col, "lantai kendaraan")
 
         return self
 
