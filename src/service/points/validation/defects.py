@@ -311,15 +311,19 @@ class RouteDefectsValidation(RoutePointEventsValidation):
 
     def photo_id_duplicate_check(self):
         """
-        Check for duplicate PHOTO_ID values in the defects data.
+        Check for duplicate PHOTO_ID values across different STA in the defects data.
+        Same PHOTO_ID at the same STA is allowed.
         """
         duplicates = (
-            self._events.pl_df.group_by(self._events._photo_url_cols)
+            self._events.pl_df
+            .select(self._events._photo_url_cols, self._events._sta_col)
+            .unique()
+            .group_by(self._events._photo_url_cols)
             .agg(pl.len().alias("count"))
             .filter(pl.col("count") > 1)
             .select(
                 msg=pl.format(
-                    "PHOTO_ID {} muncul {} kali (duplikat).",
+                    "PHOTO_ID {} muncul pada {} STA berbeda (duplikat).",
                     pl.col(self._events._photo_url_cols),
                     pl.col("count"),
                 )
