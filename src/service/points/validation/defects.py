@@ -334,6 +334,38 @@ class RouteDefectsValidation(RoutePointEventsValidation):
 
         return
 
+    def photo_id_sta_range_check(self):
+        """
+        Check if a single photo ID covers more than 8m (approx 1 dam) of STA difference.
+        Valid range is min_sta to min_sta + 1 dam.
+        """
+        errors = (
+            self._events.pl_df
+            .select(self._events._photo_url_cols, self._events._sta_col)
+            .unique()
+            .group_by(self._events._photo_url_cols)
+            .agg([
+                pl.col(self._events._sta_col).min().alias("min_sta"),
+                pl.col(self._events._sta_col).max().alias("max_sta"),
+            ])
+            .with_columns(
+                diff=(pl.col("max_sta") - pl.col("min_sta"))
+            )
+            .filter(pl.col("diff") > 1) # Maximum allowed delta is 10m or 1dam
+            .select(
+                msg=pl.format(
+                    "PHOTO_ID {} memiliki rentang STA yang melebihi 8m (min: {}, max: {}).",
+                    pl.col(self._events._photo_url_cols),
+                    pl.col("min_sta"),
+                    pl.col("max_sta"),
+                )
+            )
+        )
+
+        self._result.add_messages(errors, "error")
+
+        return
+
     def put_data(self):
         """
         Delete and insert events data to geodatabase table.
@@ -356,7 +388,8 @@ class RouteDefectsValidation(RoutePointEventsValidation):
         self.route_has_rni_check()
         self.sta_not_in_rni_check()
         self.survey_photo_url_check()
-        self.photo_id_duplicate_check()
+        # self.photo_id_duplicate_check() # Disabled, in favor of photo_id_sta_range_check.
+        self.photo_id_sta_range_check()
 
         self.surface_type_check()
         self.damage_surface_type_check()
