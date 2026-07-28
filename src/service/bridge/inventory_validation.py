@@ -57,6 +57,7 @@ class BridgeInventoryValidation(object):
 
         # Pydantic validation
         try:
+            # For sups only validation
             if sups_only:
                 data = json.loads(
                     json.dumps(data)
@@ -75,43 +76,22 @@ class BridgeInventoryValidation(object):
                 # Fetch existing inventory
                 avail_years = self._repo.get_available_years(id_jbt)
                 if not avail_years:
-                    self._result = ValidationResult(id_jbt)
-                    self._result.add_message(
-                        f"Jembatan {id_jbt} tidak tersedia untuk diupdate.", "rejected"
+                    # No existing inventory available, switch to INSERT mode
+                    # instead of rejecting the update.
+                    self.validation_mode = "INSERT"
+                    self._current_inv = None
+                else:
+                    self._current_inv = self._repo.get_by_bridge_id(
+                        id_jbt, inv_year=max(avail_years)
                     )
-                    return
-
-                self._current_inv = self._repo.get_by_bridge_id(
-                    id_jbt, inv_year=max(avail_years)
-                )
 
                 # Validate partial profile and superstructure
                 try:
-                    # Profile partial validation
-                    profile_schema = SupsOnlyProfileSchema(
-                        ignore_review if ignore_review else False
-                    )
-                    profile_model = profile_schema.model.model_validate(
-                        data
-                    ).model_dump(by_alias=True)
-
-                    # Superstructure partial validation
-                    sups_schema = SuperstructureOnlySchema(
-                        ignore_review if ignore_review else False
-                    )
-
-                    class SupsModel(sups_schema.model):
-                        BRIDGE_ID: str = id_jbt
-                        INV_YEAR: int = self._current_inv.inv_year
-
-                    sups_data = [
-                        SupsModel.model_validate(_data).model_dump(by_alias=True)
-                        for _data in data.get("BANGUNAN_ATAS", [])
-                    ]
-
                     # Merge into full BridgeInventory
                     self._inv = BridgeInventory.from_sups_only_update(
-                        data, self._current_inv, ignore_review_err=ignore_review
+                        data, 
+                        self._current_inv, 
+                        ignore_review_err=ignore_review,
                     )
 
                 except ValidationError as e:
@@ -129,10 +109,15 @@ class BridgeInventoryValidation(object):
                         self._inv = BridgeInventory.from_sups_only_update(
                             data, self._current_inv, ignore_review_err=True
                         )
+
+            # For popup data validation
             elif kwargs.get("popup"):
                 self._inv = BridgeInventory.from_invij_popup(data)
+
+            # For detailed bridge validation
             else:
                 self._inv = BridgeInventory.from_invij(data)
+
         except ValidationError as e:
             self._result = ValidationResult("failed_request")
             for error in e.errors():
@@ -294,6 +279,30 @@ class BridgeInventoryValidation(object):
         if self._inv.subs is not None:
             self.subs_num_unique_check()
             self.span_subs_count_check()
+
+        return
+
+    def base_check_sups_only(self, validate_length: bool = True):
+        """
+        Base validation checks compatible with superstructure-only data.
+
+        Runs only the checks that do not require substructure data or the
+        full bridge number, i.e. it skips ``has_subs_check``,
+        ``master_data_bridge_number_comparison``, ``subs_num_unique_check``,
+        and ``span_subs_count_check`` from the full ``base_check``.
+        """
+        self.has_sups_check()
+
+        if validate_length:
+            self.compare_total_span_length_to_inv_length_check()
+
+        self.main_span_structure_type_check()
+        self.main_span_num_check()
+        self.span_num_unique_check()
+        self.other_span_num_exist_in_main_span_check()
+        self.span_seq_check()
+        self.superstructure_length_check()
+        self.superstructure_year_check()
 
         return
 
@@ -564,6 +573,23 @@ class BridgeInventoryValidation(object):
             self.superstructure_length_check()
             self.superstructure_year_check()
 
+    def sups_only_insert_check(self):
+        """
+        Validation checks for superstructure-only insert (no existing inventory).
+        """
+        self.previous_data_exists_check(should_exists=False)
+
+        if self.get_status() != "error":
+            # base_check_sups_only skips substructure and bridge-number checks
+            # that require a full inventory.
+            self.base_check_sups_only()
+
+        if self.get_status() != "error":
+            # No existing inventory to compare against, so these are no-ops
+            # (guarded on a None _current_inv) but kept for symmetry.
+            self.superstructure_no_changes()
+            self.compare_main_span_length()
+
     def _span_no_changes(self, column: str, column_alias: str):
         """
         Check if there is changes in superstructure attributes.
@@ -793,11 +819,19 @@ class BridgeInventoryValidation(object):
 
         return self
 
-    def put_sups_only_data(self):
+    def put_sups_only_data(self, val_note=None, source: Literal["VV", "SURVEY"] = "VV"):
         """
         Write only superstructure data to database.
+
+        `val_note` is written to NAT_BRIDGE_PROFILE_POPUP.VAL_NOTE. When omitted it
+        defaults to the list of all validation messages (the 'msg' column of the
+        validation result), per the popup requirement.
+        `source` is written to NAT_BRIDGE_PROFILE_POPUP.SOURCE.
         """
-        self._repo.put_sups(self._inv)
+        if val_note is None:
+            val_note = self._result.get_all_messages()["msg"].to_list()
+
+        self._repo.put_sups(self._inv, val_note=val_note, source=source)
         return self
 
     def update_master_data(self):
