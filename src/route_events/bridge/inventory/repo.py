@@ -106,6 +106,7 @@ class BridgeInventoryRepo(object):
         """
         # Add update_date is not null and inventory_state is not null to skip manually inserted data.
         query = f"select {self.inv_year_col} from {self.inv_table_name} where {self.bridge_id_col} = '{bridge_id}' and update_date is not null and inventory_state is not null"
+        query = query + f" and {self.latitude_col} is not null and {self.longitude_col} is not null"
         results = pl.read_database(query, connection=self._engine)
 
         return results[self.inv_year_col].to_list()
