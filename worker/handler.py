@@ -491,8 +491,8 @@ class BridgeInventoryValidation_(ValidationHandler):
 
 class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
     """
-    Handler for superstructure-only update validation.
-    Only supports UPDATE mode.
+    Handler for superstructure-only validation.
+    Supports both UPDATE (existing inventory) and INSERT (no existing inventory) modes.
     """
 
     def __init__(
@@ -510,7 +510,7 @@ class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
         with tracer.start_as_current_span(
             "bridge.sups-only-validation-process"
         ) as span:
-            span.set_attribute("validation.mode", "UPDATE")
+            span.set_attribute("validation.mode", check.validation_mode)
             span.set_attribute("validation.type", "sups_only")
 
             check = BridgeInventoryValidation(
@@ -530,14 +530,17 @@ class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
                     span.set_attribute("validation.final_status", check.get_status())
                     return check._result.to_job_event(self.job_id)
 
-                check.sups_only_update_check()
+                if check.validation_mode == 'UPDATE':
+                    check.sups_only_update_check()
 
-            if (check.get_status() == "verified") and WRITE_VERIFIED_DATA:
-                check.merge_master_data()
-                check.update_master_data()
+                if check.validation_mode == 'INSERT':
+                    check.sups_only_insert_check()
 
-            if check.get_status() == "verified":
-                check.put_sups_only_data()
+            # if (check.get_status() == "verified") and WRITE_VERIFIED_DATA:
+            #     check.merge_master_data()
+            #     check.update_master_data()
+
+            check.put_sups_only_data()
 
             span.set_attribute("validation.result.status", check.get_status())
             span.set_status(StatusCode.OK)
