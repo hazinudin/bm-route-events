@@ -26,6 +26,10 @@ class BridgeInventoryRepo(object):
         self.sups_el_table_name = "NAT_BRIDGE_SPAN_L3L4"
         self.subs_el_table_name = "NAT_BRIDGE_ABT_L3L4"
 
+        # sups_only (popup) tables
+        self.sups_popup_profile_table_name = "NAT_BRIDGE_PROFILE_POPUP"
+        self.sups_popup_span_table_name = "NAT_BRIDGE_SPAN_POPUP"
+
         self.bridge_id_col = "BRIDGE_ID"
         self.inv_year_col = "INV_YEAR"
         self.latitude_col = "LATITUDE"
@@ -239,108 +243,153 @@ class BridgeInventoryRepo(object):
 
         return
 
-    def put_sups(self, obj: BridgeInventory):
+    def put_sups(self, obj: BridgeInventory, val_note: str = None):
         """
-        Update only superstructure and profile data for an existing bridge inventory.
-        Does not modify substructure or substructure elements.
+        Replace superstructure (sups_only) data for an existing bridge inventory.
+
+        Writes only the two popup tables:
+        - NAT_BRIDGE_PROFILE_POPUP: one row per bridge (superstructure summary).
+        - NAT_BRIDGE_SPAN_POPUP: one row per span.
+
+        `val_note` is stored in NAT_BRIDGE_PROFILE_POPUP.VAL_NOTE (validation result).
         """
         with (
             self._engine.connect() as conn,
             conn.execution_options(isolation_level="READ COMMITTED"),
         ):
             try:
-                # Delete superstructure, superstructure elements, and profile
-                _where = f"where {self.bridge_id_col} = '{obj.id}' and {self.inv_year_col} = {obj.inv_year}"
-                for table in [
-                    self.sups_table_name,
-                    self.sups_el_table_name,
-                    self.inv_table_name,
-                ]:
-                    if self._table_exists(table):
-                        conn.execute(text(f"DELETE FROM {table} {_where}"))
+                # Delete existing popup rows
+                # The profile popup table has no INV_YEAR, so key on BRIDGE_ID only.
+                _where_profile = f"where {self.bridge_id_col} = '{obj.id}'"
+                _where_span = f"where {self.bridge_id_col} = '{obj.id}' and {self.inv_year_col} = {obj.inv_year}"
 
-                # Re-insert superstructure, superstructure elements (if any), and profile
-                self._insert_sups_only(obj, conn=conn, commit=False)
-                self._insert_profile_only(obj, conn=conn, commit=False)
-            except Exception as e:
-                conn.rollback()
-                raise e
-
-            conn.commit()
-
-        return
-
-    def _insert_sups_only(self, obj: BridgeInventory, conn, commit=True):
-        """Insert only superstructure and superstructure element data."""
-        sups_df = obj.sups.pl_df
-
-        if obj.sups.elements is not None:
-            sups_el_df = obj.sups.elements.pl_df
-        else:
-            sups_el_df = None
-
-        table_mapping = {
-            self.sups_table_name: sups_df,
-        }
-        if sups_el_df is not None:
-            table_mapping[self.sups_el_table_name] = sups_el_df
-
-        for table, df in table_mapping.items():
-            args = []
-            if self._table_exists(table):
-                if has_objectid(table, self._engine):
-                    oids = generate_objectid(
-                        schema=self._db_schema,
-                        table=table,
-                        sql_engine=self._engine,
-                        oid_count=df.select(pl.len()).rows()[0][0],
+                if self._table_exists(self.sups_popup_profile_table_name):
+                    conn.execute(
+                        text(
+                            f"DELETE FROM {self.sups_popup_profile_table_name} {_where_profile}"
+                        )
                     )
-                    args = [pl.Series("OBJECTID", oids)]
+                if self._table_exists(self.sups_popup_span_table_name):
+                    conn.execute(
+                        text(
+                            f"DELETE FROM {self.sups_popup_span_table_name} {_where_span}"
+                        )
+                    )
 
-            df_ = df.with_columns(
-                pl.lit(datetime.now()).dt.datetime().alias("UPDATE_DATE"), *args
-            )
-
-            try:
-                df_.write_database(table, connection=conn, if_table_exists="append")
+                # Re-insert superstructure summary and span detail
+                self._insert_sups_popup_profile(
+                    obj, conn=conn, commit=False, val_note=val_note
+                )
+                self._insert_sups_popup_span(obj, conn=conn, commit=False)
             except Exception as e:
                 conn.rollback()
                 raise e
 
-        if commit:
             conn.commit()
+
         return
 
-    def _insert_profile_only(self, obj: BridgeInventory, conn, commit=True):
-        """Insert only the profile record for the inventory."""
-        inv_df = obj.pl_df
+    def _resolve_inv_date(self, obj) -> datetime:
+        """
+        Resolve the inventory/survey date. Use the profile INV_DATE if present,
+        otherwise fall back to January 1st of the inventory year.
+        """
+        profile_df = obj.pl_df
+        if "INV_DATE" in profile_df.columns:
+            val = profile_df["INV_DATE"][0]
+            if val is not None:
+                return val
 
-        # Convert string INV_DATE from string to datetime
-        if "INV_DATE" in inv_df.columns:
-            inv_df = inv_df.with_columns(
-                INV_DATE=pl.col("INV_DATE").dt.strftime("%d/%b/%Y, 12:00:00%p")
-            )
+        return datetime(obj.inv_year, 1, 1)
 
-        # Add update date and ESRI ObjectID (if exists)
+    def _insert_sups_popup_profile(
+        self, obj: BridgeInventory, conn, commit=True, val_note=None
+    ):
+        """Insert the one-row-per-bridge superstructure summary into NAT_BRIDGE_PROFILE_POPUP."""
+        inv_date = self._resolve_inv_date(obj)
+
+        df = pl.DataFrame(
+            {
+                "BRIDGE_ID": [obj.id],
+                "BRIDGE_LENGTH": [obj.length],
+                "SUPERSTR_TYPE": [obj.span_type],
+                "SURV_DATE": [inv_date],
+                "UPDATE_DATE": [datetime.now()],
+                "VAL_NOTE": [val_note],
+                "SOURCE": ["VV"],
+            }
+        )
+
+        self._write_popup_table(
+            self.sups_popup_profile_table_name, df, conn, commit
+        )
+        return
+
+    def _insert_sups_popup_span(
+            self, 
+            obj: BridgeInventory, 
+            conn, 
+            commit=True,
+            source: Literal['VV', 'SURVEY'] = 'VV'
+        ):
+        """Insert the per-span detail into NAT_BRIDGE_SPAN_POPUP."""
+        if obj.sups is None:
+            return
+
+        span_df = obj.sups.pl_df.select(
+            [
+                "BRIDGE_ID",
+                "INV_YEAR",
+                "SUPERSTRUCTURE",
+                "SPAN_LENGTH",
+                "SPAN_NUMBER",
+                "SPAN_SEQ",
+                "SPAN_TYPE",
+            ]
+        )
+
+        inv_date = self._resolve_inv_date(obj)
+
+        span_df = span_df.with_columns(
+            INV_DATE=pl.lit(inv_date),
+            UPDATE_DATE=pl.lit(datetime.now()),
+        )
+
+        self._write_popup_table(
+            self.sups_popup_span_table_name, span_df, conn, commit
+        )
+        return
+
+    def _write_popup_table(self, table: str, df: pl.DataFrame, conn, commit=True):
+        """
+        Append a DataFrame to a popup table, assigning an ESRI OBJECTID when the
+        table has one. Creates the table (with Oracle dtypes) if it does not exist.
+        """
         args = []
-        if self._table_exists(self.inv_table_name):
-            if has_objectid(self.inv_table_name, self._engine):
+        if self._table_exists(table):
+            if has_objectid(table, self._engine):
                 oids = generate_objectid(
                     schema=self._db_schema,
-                    table=self.inv_table_name,
+                    table=table,
                     sql_engine=self._engine,
-                    oid_count=inv_df.select(pl.len()).rows()[0][0],
+                    oid_count=df.select(pl.len()).rows()[0][0],
                 )
                 args = [pl.Series("OBJECTID", oids)]
 
-        df_ = inv_df.with_columns(
-            pl.lit(datetime.now()).dt.datetime().alias("UPDATE_DATE"), *args
-        )
+        df_ = df.with_columns(*args) if args else df
 
         try:
-            df_.write_database(
-                self.inv_table_name, connection=conn, if_table_exists="append"
-            )
+            if self._table_exists(table):
+                df_.write_database(table, connection=conn, if_table_exists="append")
+            else:
+                df_.write_database(
+                    table,
+                    connection=conn,
+                    if_table_exists="replace",
+                    engine_options={
+                        "dtype": ora_pl_dtype(df_, date_cols_keywords="DATE")
+                    },
+                )
         except Exception as e:
             conn.rollback()
             raise e
