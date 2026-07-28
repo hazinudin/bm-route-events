@@ -244,7 +244,12 @@ class BridgeInventoryRepo(object):
 
         return
 
-    def put_sups(self, obj: BridgeInventory, val_note: str = None):
+    def put_sups(
+        self,
+        obj: BridgeInventory,
+        val_note: str = None,
+        source: str = "VV",
+    ):
         """
         Replace superstructure (sups_only) data for an existing bridge inventory.
 
@@ -279,7 +284,7 @@ class BridgeInventoryRepo(object):
 
                 # Re-insert superstructure summary and span detail
                 self._insert_sups_popup_profile(
-                    obj, conn=conn, commit=False, val_note=val_note
+                    obj, conn=conn, commit=False, val_note=val_note, source=source
                 )
                 self._insert_sups_popup_span(obj, conn=conn, commit=False)
             except Exception as e:
@@ -304,7 +309,7 @@ class BridgeInventoryRepo(object):
         return datetime(obj.inv_year, 1, 1)
 
     def _insert_sups_popup_profile(
-        self, obj: BridgeInventory, conn, commit=True, val_note=None
+        self, obj: BridgeInventory, conn, commit=True, val_note=None, source="VV"
     ):
         """Insert the one-row-per-bridge superstructure summary into NAT_BRIDGE_PROFILE_POPUP."""
         inv_date = self._resolve_inv_date(obj)
@@ -323,7 +328,7 @@ class BridgeInventoryRepo(object):
                 "SURV_DATE": [inv_date],
                 "UPDATE_DATE": [datetime.now()],
                 "VAL_NOTE": [val_note],
-                "SOURCE": ["VV"],
+                "SOURCE": [source],
             }
         )
 

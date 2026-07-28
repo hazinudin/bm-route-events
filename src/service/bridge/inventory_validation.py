@@ -819,18 +819,19 @@ class BridgeInventoryValidation(object):
 
         return self
 
-    def put_sups_only_data(self, val_note=None):
+    def put_sups_only_data(self, val_note=None, source="VV"):
         """
         Write only superstructure data to database.
 
         `val_note` is written to NAT_BRIDGE_PROFILE_POPUP.VAL_NOTE. When omitted it
         defaults to the list of all validation messages (the 'msg' column of the
         validation result), per the popup requirement.
+        `source` is written to NAT_BRIDGE_PROFILE_POPUP.SOURCE.
         """
         if val_note is None:
             val_note = self._result.get_all_messages()["msg"].to_list()
 
-        self._repo.put_sups(self._inv, val_note=val_note)
+        self._repo.put_sups(self._inv, val_note=val_note, source=source)
         return self
 
     def update_master_data(self):
