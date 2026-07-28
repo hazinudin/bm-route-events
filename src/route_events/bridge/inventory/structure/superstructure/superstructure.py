@@ -73,7 +73,7 @@ class Superstructure(object):
         )
 
         for col in columns:
-            if col in joined.columns:
+            if col + "_right" in joined.columns:
                 joined = joined.with_columns(pl.col(col + "_right").alias(col)).drop(
                     col + "_right"
                 )
