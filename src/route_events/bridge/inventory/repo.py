@@ -265,21 +265,24 @@ class BridgeInventoryRepo(object):
             conn.execution_options(isolation_level="READ COMMITTED"),
         ):
             try:
-                # Delete existing popup rows
-                # The profile popup table has no INV_YEAR, so key on BRIDGE_ID only.
-                _where_profile = f"where {self.bridge_id_col} = '{obj.id}'"
-                _where_span = f"where {self.bridge_id_col} = '{obj.id}' and {self.inv_year_col} = {obj.inv_year}"
+                # Delete existing popup rows using the same key columns that both
+                # popup tables carry (BRIDGE_ID, INV_YEAR, SOURCE).
+                _where = (
+                    f"where {self.bridge_id_col} = '{obj.id}' "
+                    f"and {self.inv_year_col} = {obj.inv_year} "
+                    f"and SOURCE = '{source}'"
+                )
 
                 if self._table_exists(self.sups_popup_profile_table_name):
                     conn.execute(
                         text(
-                            f"DELETE FROM {self.sups_popup_profile_table_name} {_where_profile}"
+                            f"DELETE FROM {self.sups_popup_profile_table_name} {_where}"
                         )
                     )
                 if self._table_exists(self.sups_popup_span_table_name):
                     conn.execute(
                         text(
-                            f"DELETE FROM {self.sups_popup_span_table_name} {_where_span}"
+                            f"DELETE FROM {self.sups_popup_span_table_name} {_where}"
                         )
                     )
 
@@ -329,6 +332,7 @@ class BridgeInventoryRepo(object):
         df = pl.DataFrame(
             {
                 "BRIDGE_ID": [obj.id],
+                "INV_YEAR": [obj.inv_year],
                 "BRIDGE_LENGTH": [obj.length],
                 "SUPERSTR_TYPE": [obj.span_type],
                 "SURV_DATE": [inv_date],
@@ -371,6 +375,7 @@ class BridgeInventoryRepo(object):
         span_df = span_df.with_columns(
             INV_DATE=pl.lit(inv_date),
             UPDATE_DATE=pl.lit(datetime.now()),
+            SOURCE=pl.lit(source),
         )
 
         self._write_popup_table(
