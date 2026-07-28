@@ -1,5 +1,6 @@
 import polars as pl
 import oracledb
+import json
 from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.oracle import NUMBER, NVARCHAR2, TIMESTAMP
 from datetime import datetime
@@ -307,6 +308,12 @@ class BridgeInventoryRepo(object):
     ):
         """Insert the one-row-per-bridge superstructure summary into NAT_BRIDGE_PROFILE_POPUP."""
         inv_date = self._resolve_inv_date(obj)
+
+        # VAL_NOTE may be passed as a list of validation messages; serialize so it
+        # can be written to a single column. Note: NVARCHAR2(2) is too small to hold
+        # a message list -- widen the column (e.g. CLOB / large NVARCHAR2) to persist it.
+        if isinstance(val_note, list):
+            val_note = json.dumps(val_note, ensure_ascii=False)
 
         df = pl.DataFrame(
             {
