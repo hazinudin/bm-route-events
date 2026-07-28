@@ -1,6 +1,7 @@
 import polars as pl
 import oracledb
 import json
+from typing import Literal
 from sqlalchemy import Engine, inspect, text
 from sqlalchemy.dialects.oracle import NUMBER, NVARCHAR2, TIMESTAMP
 from datetime import datetime
@@ -248,7 +249,7 @@ class BridgeInventoryRepo(object):
         self,
         obj: BridgeInventory,
         val_note: str = None,
-        source: str = "VV",
+        source: Literal["VV", "SURVEY"] = "VV",
     ):
         """
         Replace superstructure (sups_only) data for an existing bridge inventory.
@@ -309,7 +310,12 @@ class BridgeInventoryRepo(object):
         return datetime(obj.inv_year, 1, 1)
 
     def _insert_sups_popup_profile(
-        self, obj: BridgeInventory, conn, commit=True, val_note=None, source="VV"
+        self,
+        obj: BridgeInventory,
+        conn,
+        commit=True,
+        val_note=None,
+        source: Literal["VV", "SURVEY"] = "VV",
     ):
         """Insert the one-row-per-bridge superstructure summary into NAT_BRIDGE_PROFILE_POPUP."""
         inv_date = self._resolve_inv_date(obj)

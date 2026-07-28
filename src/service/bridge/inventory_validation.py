@@ -819,7 +819,7 @@ class BridgeInventoryValidation(object):
 
         return self
 
-    def put_sups_only_data(self, val_note=None, source="VV"):
+    def put_sups_only_data(self, val_note=None, source: Literal["VV", "SURVEY"] = "VV"):
         """
         Write only superstructure data to database.
 
