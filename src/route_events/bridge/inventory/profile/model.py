@@ -14,6 +14,7 @@ from typing import List, Literal, Optional
 from pydantic import Field, AliasChoices
 import json
 import duckdb
+import datetime
 
 
 POPUP_STATE = "POPUP"
@@ -341,7 +342,9 @@ class BridgeInventory(object):
     ):
         """
         Load partial superstructure-only update data into a BridgeInventory object.
-        Missing fields are filled from existing_inv.
+        Missing fields are filled from existing_inv. If existing_inv is None
+        (e.g. an INSERT with no prior record), the inventory is built directly
+        from the payload without any merge.
         """
         # 1. Validate partial profile
         profile_schema = SupsOnlyProfileSchema(ignore_review_err)
@@ -350,13 +353,48 @@ class BridgeInventory(object):
         )
 
         bridge_id = profile_model["BRIDGE_ID"]
+
+        # 2. Validate partial superstructure
+        sups_schema = SuperstructureOnlySchema(ignore_review_err)
+
+        if existing_inv is None:
+            # No existing inventory available: build directly from the payload.
+            inv_year = int(profile_model.get("CONS_YEAR") or datetime.now().year)
+
+            class SupsModel(sups_schema.model):
+                BRIDGE_ID: str = str(bridge_id).upper()
+                INV_YEAR: int = inv_year
+
+            sups_data = [
+                SupsModel.model_validate(_data).model_dump(by_alias=True)
+                for _data in data.get("BANGUNAN_ATAS", [])
+            ]
+
+            partial_sups = Superstructure.from_invij_sups_only(
+                bridge_id, inv_year, sups_data, validate=False
+            )
+
+            # Build a minimal profile from the payload alone (no merge).
+            profile_df = pl.DataFrame(
+                {
+                    "BRIDGE_ID": [str(bridge_id).upper()],
+                    "INV_YEAR": [inv_year],
+                    "BRIDGE_LENGTH": [profile_model["BRIDGE_LENGTH"]],
+                    "CONS_YEAR": [profile_model["CONS_YEAR"]],
+                    "MAIN_SPAN_TYPE": [profile_model["MAIN_SPAN_TYPE"]],
+                }
+            )
+
+            inv = cls(profile_df.to_arrow(), state=POPUP_STATE)
+            inv.add_superstructure(partial_sups, replace=True)
+
+            return inv
+
+        # ---- existing_inv is not None: original UPDATE merge logic ----
         if bridge_id != existing_inv.id:
             raise ValueError(
                 f"Bridge ID {bridge_id} does not match existing inventory ID {existing_inv.id}"
             )
-
-        # 2. Validate partial superstructure
-        sups_schema = SuperstructureOnlySchema(ignore_review_err)
 
         class SupsModel(sups_schema.model):
             BRIDGE_ID: str = str(bridge_id).upper()
