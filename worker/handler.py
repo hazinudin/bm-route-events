@@ -540,7 +540,13 @@ class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
             #     check.merge_master_data()
             #     check.update_master_data()
 
-            check.put_sups_only_data()
+            # Map the payload MODE to the DB SOURCE column:
+            #   MODE="VV"       -> SOURCE="VV"
+            #   MODE="VALIDATE" -> SOURCE="SURVEY"
+            _mode = str(getattr(self.payload, "MODE", "VV")).upper()
+            _source = "SURVEY" if _mode == "VALIDATE" else "VV"
+
+            check.put_sups_only_data(source=_source)
 
             span.set_attribute("validation.result.status", check.get_status())
             span.set_status(StatusCode.OK)
