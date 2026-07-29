@@ -576,6 +576,7 @@ class BridgeInventoryValidation(object):
             self.compare_main_span_length()
             self.superstructure_length_check()
             self.superstructure_year_check()
+            self.lrs_distance_check()
 
     def sups_only_insert_check(self):
         """
@@ -593,6 +594,7 @@ class BridgeInventoryValidation(object):
             # (guarded on a None _current_inv) but kept for symmetry.
             self.superstructure_no_changes()
             self.compare_main_span_length()
+            self.lrs_distance_check()
 
     def _span_no_changes(self, column: str, column_alias: str):
         """
@@ -772,6 +774,9 @@ class BridgeInventoryValidation(object):
         """
         Check the bridge location relative to the LRS.
         """
+        if self._lrs is None:
+            return self
+
         distance = self._lrs.distance_to_point(
             self._inv._point_4326.X, self._bm._point_4326.Y
         )
