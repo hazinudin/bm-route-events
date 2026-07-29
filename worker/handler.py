@@ -546,7 +546,11 @@ class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
             _mode = str(getattr(self.payload, "MODE", "VV")).upper()
             _source = "SURVEY" if _mode == "VALIDATE" else "VV"
 
-            check.put_sups_only_data(source=_source)
+            if _mode == "VALIDATE" and check.get_status() == "verified":
+                check.put_sups_only_data(source=_source)
+
+            elif _mode == "VV":
+                check.put_sups_only_data(source=_source)
 
             span.set_attribute("validation.result.status", check.get_status())
             span.set_status(StatusCode.OK)
