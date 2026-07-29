@@ -22,6 +22,10 @@
         "TIPE_BA_UTAMA": {
             "dtype": "string",
             "db_col": "MAIN_SPAN_TYPE"
+        },
+        "INV_YEAR": {
+            "dtype": "integer",
+            "db_col": "INV_YEAR"
         }
     }
 }

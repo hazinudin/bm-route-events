@@ -1,0 +1,22 @@
+{
+  "id_jbt": "2201428",
+  "cons_year": 1997,
+  "pjg_total": 81.5,
+  "bangunan_atas": [
+    {
+      "no_btg": 1,
+      "pjg_btg": 61,
+      "seq_btg": 1,
+      "tipe_btg": "utama",
+      "struktur_ba": "RBP"
+    },
+    {
+      "no_btg": 2,
+      "pjg_btg": 21,
+      "seq_btg": 1,
+      "tipe_btg": "utama",
+      "struktur_ba": "RBP"
+    }
+  ],
+  "tipe_ba_utama": "RBP"
+}

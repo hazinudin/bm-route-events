@@ -348,7 +348,11 @@ class BridgeInventory(object):
         """
         # 1. Validate partial profile
         profile_schema = SupsOnlyProfileSchema(ignore_review_err)
-        profile_model = profile_schema.model.model_validate(data).model_dump(
+
+        class ProfileModel(profile_schema.model):
+            MODE: Literal["VV", "VALIDATE"]  # Additonal payload for determining validation mode
+
+        profile_model = ProfileModel.model_validate(data).model_dump(
             by_alias=True
         )
 
