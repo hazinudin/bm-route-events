@@ -510,9 +510,6 @@ class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
         with tracer.start_as_current_span(
             "bridge.sups-only-validation-process"
         ) as span:
-            span.set_attribute("validation.mode", check.validation_mode)
-            span.set_attribute("validation.type", "sups_only")
-
             check = BridgeInventoryValidation(
                 data=self.payload.model_dump(),
                 validation_mode="UPDATE",
@@ -524,6 +521,9 @@ class BridgeSupsOnlyValidation(BridgeInventoryValidation_):
                 ignore_force=self.force_write,
                 sups_only=True,
             )
+
+            span.set_attribute("validation.mode", check.validation_mode)
+            span.set_attribute("validation.type", "sups_only")
 
             if self.validate:
                 if check.get_status() == "rejected":
