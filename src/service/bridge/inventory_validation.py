@@ -282,7 +282,11 @@ class BridgeInventoryValidation(object):
 
         return
 
-    def base_check_sups_only(self, validate_length: bool = True):
+    def base_check_sups_only(
+            self, 
+            validate_length: bool = True, 
+            check_elements: bool = True
+        ):
         """
         Base validation checks compatible with superstructure-only data.
 
@@ -291,7 +295,7 @@ class BridgeInventoryValidation(object):
         ``master_data_bridge_number_comparison``, ``subs_num_unique_check``,
         and ``span_subs_count_check`` from the full ``base_check``.
         """
-        self.has_sups_check()
+        self.has_sups_check(check_elements=check_elements)
 
         if validate_length:
             self.compare_total_span_length_to_inv_length_check()
