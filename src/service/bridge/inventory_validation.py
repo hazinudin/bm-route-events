@@ -16,6 +16,8 @@ import polars as pl
 import json
 from .sups_type_criteria import SUPERSTRUCTURE_TYPE_CRITERIA
 
+VAL_NOTE_MAX_LEN = 1000
+
 
 class BridgeInventoryValidation(object):
     def __init__(
@@ -835,8 +837,25 @@ class BridgeInventoryValidation(object):
         if val_note is None:
             val_note = self._result.get_all_messages()["msg"].to_list()
 
+        val_note = self._truncate_val_note(val_note)
+
         self._repo.put_sups(self._inv, val_note=val_note, source=source)
         return self
+
+    def _truncate_val_note(self, val_note):
+        """
+        Trim validation messages so the serialized value fits VAL_NOTE (max 1000 chars).
+
+        Messages are dropped from the end (oldest-first ordering is preserved for the
+        remaining messages).
+        """
+        if not isinstance(val_note, list):
+            return val_note
+
+        while len(json.dumps(val_note, ensure_ascii=False)) > VAL_NOTE_MAX_LEN and val_note:
+            val_note.pop()
+
+        return val_note
 
     def update_master_data(self):
         """
