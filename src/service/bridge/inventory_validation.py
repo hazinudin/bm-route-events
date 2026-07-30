@@ -700,12 +700,12 @@ class BridgeInventoryValidation(object):
         Uses SUPERSTRUCTURE_TYPE_CRITERIA to check if bridge length falls within
         the acceptable range for each span's superstructure type.
         """
-        bridge_length = self._inv.length
-
         for row in self._inv.sups.pl_df.iter_rows(named=True):
             span_type = row[self._inv.sups._span_type_col]
             span_seq = row[self._inv.sups._span_seq_col]
             span_num = row[self._inv.sups._span_num_col]
+            span_length = row[self._inv.sups._span_len_col]
+
             structure_code = row[self._inv.sups._span_struct_col]
 
             if structure_code not in SUPERSTRUCTURE_TYPE_CRITERIA:
@@ -719,13 +719,13 @@ class BridgeInventoryValidation(object):
 
             has_error = False
 
-            if min_len is not None and bridge_length < min_len:
-                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk panjang jembatan {bridge_length}m (minimum {min_len}m)."
+            if min_len is not None and span_length < min_len:
+                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk panjang bentang {span_length}m (minimum {min_len}m)."
                 self._result.add_message(msg, "review", "review")
                 has_error = True
 
-            if max_len is not None and bridge_length > max_len:
-                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk panjang jembatan {bridge_length}m (maksimum {max_len}m)."
+            if max_len is not None and span_length > max_len:
+                msg = f"Bentang {span_type}/{span_seq} nomor {span_num} memiliki tipe bangunan atas '{structure_code}' yang tidak wajar untuk panjang bentang {span_length}m (maksimum {max_len}m)."
                 self._result.add_message(msg, "review", "review")
                 has_error = True
 
