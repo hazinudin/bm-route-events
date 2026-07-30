@@ -194,7 +194,7 @@ class BridgeInventory(object):
         self.ddb = duckdb.connect()
 
         # Only proceed if the state is VALIDASI VERIFIKASI or DETAILED_STATE
-        if len(self.artable) != 0 and (str(self._state) in ['VALIDASI VERIFIKASI', 'DETAILED_STATE']):
+        if len(self.artable) != 0 and (str(self._state) in ['VALIDASI VERIFIKASI', DETAILED_STATE]):
             # Geometry
             self._point_4326 = Point(
                 long=self.artable[self._lon_col][0],
@@ -428,7 +428,7 @@ class BridgeInventory(object):
 
             # Add the existing elements
             if existing_inv.sups.elements is not None:
-                inv.sups.add_l3_l4_elements(existing_inv.sups.elements)
+                merged_sups.add_l3_l4_elements(existing_inv.sups.elements)
 
         else:
             merged_sups = partial_sups

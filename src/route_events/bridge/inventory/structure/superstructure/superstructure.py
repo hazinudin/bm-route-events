@@ -436,8 +436,10 @@ class Superstructure(object):
         if type(self) != type(other):
             raise TypeError("'other' is not a Superstructure object.")
 
+        other_df = other.pl_df if hasattr(other, "pl_df") else other
+
         return self.pl_df.join(
-            other, on=[self._span_type_col, self._span_seq_col, self._span_num_col]
+            other_df, on=[self._span_type_col, self._span_seq_col, self._span_num_col]
         )
 
     def span_width(self) -> pl.DataFrame:
