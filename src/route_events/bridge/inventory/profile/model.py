@@ -363,7 +363,7 @@ class BridgeInventory(object):
 
         if existing_inv is None:
             # No existing inventory available: build directly from the payload.
-            inv_year = int(profile_model.get("CONS_YEAR") or datetime.now().year)
+            inv_year = int(profile_model.get("CONS_YEAR") or datetime.datetime.now().year)
 
             class SupsModel(sups_schema.model):
                 BRIDGE_ID: str = str(bridge_id).upper()
