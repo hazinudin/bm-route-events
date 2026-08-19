@@ -81,7 +81,7 @@
         },
         "TIPE_STRUKTUR": {
             "dtype": "string",
-            "db_col": "STRUCTURE_TYPE"
+            "db_col": "BRIDGE_STRUCTURE"
         },
         "TIPE_BA_UTAMA": {
             "dtype": "string",
