@@ -80,6 +80,16 @@ def generate_generic_event(
     return json.dumps(envelope)
 
 
+class TriggerMessage(BaseModel):
+    job_id: str
+    routing_key: str
+    year: int
+    semester: Literal[1, 2]
+    routes: list[str] | None = None
+    full_refresh: bool = False
+    emitted_at: datetime
+
+
 worker_logger = setup_logger("system")
 
 if WRITE_VERIFIED_DATA:
@@ -151,6 +161,13 @@ class ValidationWorker:
         self._rmq_channel.queue_declare(queue=self.job_queue, durable=True)
         self._rmq_channel.queue_declare(queue=self.job_event_queue, durable=True)
 
+        # Declare topic exchange for verified trigger events
+        self._rmq_channel.exchange_declare(
+            exchange="validation.events",
+            exchange_type="topic",
+            durable=True,
+        )
+
         self._rmq_channel.basic_qos(prefetch_count=1)
 
     def start_listening(self):
@@ -193,6 +210,40 @@ class ValidationWorker:
         )
 
         return
+
+    def publish_verified_trigger(
+        self, job_id: str, data_type: str, payload: PayloadSMD, validate: bool
+    ):
+        """
+        Publish a verified trigger message to the validation.events topic exchange.
+        Failures are logged but do not raise, so the main job flow is never blocked.
+        """
+        try:
+            trigger = TriggerMessage(
+                job_id=job_id,
+                routing_key=f"verified.{data_type.lower()}",
+                year=payload.year,
+                semester=payload.semester if payload.semester is not None else 1,
+                routes=payload.routes,
+                full_refresh=not validate,
+                emitted_at=datetime.now(),
+            )
+            self._rmq_channel.basic_publish(
+                exchange="validation.events",
+                routing_key=f"verified.{data_type.lower()}",
+                body=trigger.model_dump_json(),
+                properties=pika.BasicProperties(
+                    delivery_mode=2,
+                    content_type="application/json",
+                ),
+            )
+            worker_logger.info(
+                f"published verified trigger for {job_id} ({data_type}) to validation.events"
+            )
+        except Exception as e:
+            worker_logger.error(
+                f"failed to publish verified trigger for {job_id} ({data_type}): {e}"
+            )
 
     def smd_validate(
         self, data_type: str, payload: PayloadSMD, job_id: str, validate: bool = True
@@ -286,6 +337,20 @@ class ValidationWorker:
                         delivery_mode=2, headers=properties.headers
                     ),
                 )
+
+                # Publish verified trigger for supported road data types
+                if data_type in ("RNI", "ROUGHNESS", "PCI"):
+                    try:
+                        event_data = json.loads(event)
+                        status = event_data.get("payload", {}).get("result", {}).get("status")
+                        if status == "verified" and WRITE_VERIFIED_DATA:
+                            self.publish_verified_trigger(
+                                job_id, data_type, payload, validate
+                            )
+                    except Exception as e:
+                        worker_logger.error(
+                            f"failed to process verified trigger for {job_id}: {e}"
+                        )
 
                 span.set_status(Status(StatusCode.OK))
                 job_logger.info("job succeeded event published.")
