@@ -230,15 +230,27 @@ class CompareRNISegments:
         self.rni = rni
         self.other = other
 
+    def _no_match(
+            self,
+            left: Type[RouteSegmentEvents],
+            right: Type[RouteSegmentEvents]
+    ) -> pl.DataFrame:
+        """
+        Anti-join left against right, choosing the join strategy
+        based on segment-length type. Fixed-length events (matching
+        STA boundaries) use segments_join, while dynamic-length
+        events use the coverage (STA-overlap) join.
+        """
+        if left.uses_fixed_segment_length and right.uses_fixed_segment_length:
+            return segments_join(left, right, how='anti')
+        
+        return segments_coverage_join(left, right, how='anti')
+
     def rni_with_no_match(self) -> pl.DataFrame:
         """
         Segments from RNI with no match with other event.
         """
-        rni_anti = segments_join(
-            self.rni,
-            self.other,
-            how='anti'
-        )
+        rni_anti = self._no_match(self.rni, self.other)
 
         return rni_anti
     
@@ -246,10 +258,6 @@ class CompareRNISegments:
         """
         Segment from other event with no match with RNI segment
         """
-        other_anti = segments_join(
-            self.other,
-            self.rni,
-            how='anti'
-        )
+        other_anti = self._no_match(self.other, self.rni)
 
         return other_anti
