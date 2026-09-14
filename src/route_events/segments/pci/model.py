@@ -56,6 +56,7 @@ class RoutePCI(RouteSegmentEvents):
         super().__init__(*args, **kwargs)
 
         # Default columns
+        self._uses_fixed_segment_length = False
         self._pci_col = "PCI"
 
         # Damage column prefix

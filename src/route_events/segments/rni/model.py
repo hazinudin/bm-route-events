@@ -99,6 +99,7 @@ class RouteRNI(RouteSegmentEvents):
             *args, **kwargs
         )
         #Default columns
+        self._uses_fixed_segment_length = True
         self._road_type_col = 'ROAD_TYPE'
         self._surf_type_col = 'SURF_TYPE'
         self._med_width_col = 'MED_WIDTH'

@@ -100,6 +100,7 @@ class RouteSegmentEvents(object):
         self._data_semester = data_semester
         self._is_semester_data = is_semester_data if is_semester_data is not None else (data_semester is not None)
         self._segment_length = segment_length
+        self._uses_fixed_segment_length = True
 
         if (self.pl_df.get_column(self._long_col, default=None) is None) or (self.pl_df.get_column(self._lat_col, default=None) is None):
             self._points_4326 = None
@@ -215,6 +216,24 @@ class RouteSegmentEvents(object):
             raise e
         
         self._segment_length = seg_len
+    
+    @property
+    def uses_fixed_segment_length(self) -> bool:
+        """
+        Whether this event type uses a fixed, uniform segment length
+        (e.g. RNI/Roughness) or a dynamic one varying by surface type (PCI/POK).
+        """
+        return self._uses_fixed_segment_length
+    
+    @uses_fixed_segment_length.setter
+    def uses_fixed_segment_length(self, value: bool):
+        """
+        Set fixed segment length indicator.
+        """
+        if not isinstance(value, bool):
+            raise TypeError("'uses_fixed_segment_length' must be a boolean.")
+        
+        self._uses_fixed_segment_length = value
     
     @property
     def last_segment(self) -> Segment:

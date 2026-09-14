@@ -68,4 +68,5 @@ class RouteRoughness(RouteSegmentEvents):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._uses_fixed_segment_length = True
         self._iri_col = 'IRI' 

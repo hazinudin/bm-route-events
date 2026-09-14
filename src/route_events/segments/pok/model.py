@@ -9,6 +9,7 @@ class RoutePOK(RouteSegmentEvents):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self._uses_fixed_segment_length = False
         self._comp_col = 'COMP_NAME'
         self._budget_year_col = 'BUDGET_YEAR'
         self._from_sta_col = 'START_IND'
