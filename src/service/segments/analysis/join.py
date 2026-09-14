@@ -11,12 +11,24 @@ def segments_coverage_join(
         target_select: list = [],
         covering_agg: List[pl.Expr] = None,
         target_agg: List[pl.Expr] = None,
-        suffix: str = '_r'
+        suffix: str = '_r',
+        how: str = 'left'
 ) -> pl.DataFrame:
     """
     Perform DataFrame join between RouteSegmentEvents type, using STA from 'covering' events.
     Covering becomes the 'left' and the target become the 'right'.
+    'how' accepts duckdb join types: inner, left, right, full/outer, semi, anti.
+    For 'semi' and 'anti', only the covering (left) columns are returned.
     """        
+    _join_type = how.strip().upper()
+    if _join_type == 'OUTER':
+        _join_type = 'FULL'
+
+    if _join_type not in ('INNER', 'LEFT', 'RIGHT', 'FULL', 'SEMI', 'ANTI'):
+        raise ValueError(
+            f"Invalid join type '{how}'. "
+            "Accepted: 'inner', 'left', 'right', 'outer', 'semi', 'anti'."
+        )
     ddb = duckdb.connect()
 
     def _segment_id_col(obj: Type[RouteSegmentEvents], convert_to_m=False):
@@ -86,48 +98,32 @@ def segments_coverage_join(
     )
     """
 
-    # Group by function
     if (
         covering._lane_code_col not in ldf.columns
     ) or (
         target._lane_code_col not in rdf.columns
     ):
-        right_columns = []
-
-        for col in rdf.columns:
-            if col in ldf.columns:
-                right_columns.append(f"r.{col} as {col}{suffix}")
-            else:
-                right_columns.append(col)
-
-        join_query = f"""
-        select {', '.join(['l.'+_ for _ in ldf.columns])}, {', '.join(right_columns)}
-        from ldf as l
-        left join rdf as r
-        on 
-        l.{covering._linkid_col} = r.{target._linkid_col} and
-        ({sta_query})
-        """
-    
-    # Not a group by function
+        _lane_condition = ''
     else:
+        _lane_condition = f"r.{target._lane_code_col} = l.{covering._lane_code_col} and "
+
+    if _join_type in ('SEMI', 'ANTI'):
         right_columns = []
+    else:
+        right_columns = [
+            f"r.{col} as {col}{suffix}" if col in ldf.columns else col
+            for col in rdf.columns
+        ]
 
-        for col in rdf.columns:
-            if col in ldf.columns:
-                right_columns.append(f"r.{col} as {col}{suffix}")
-            else:
-                right_columns.append(col)
+    select_columns = ['l.' + _ for _ in ldf.columns] + right_columns
 
-        join_query = f"""
-        select {', '.join(['l.'+_ for _ in ldf.columns])}, {', '.join(right_columns)}
-        from ldf as l
-        left join rdf as r
-        on 
-        l.{covering._linkid_col} = r.{target._linkid_col} and
-        r.{target._lane_code_col} = l.{covering._lane_code_col} and
-        ({sta_query})
-        """
+    join_query = f"""
+    select {', '.join(select_columns)}
+    from ldf as l
+    {_join_type} join rdf as r
+    on
+    l.{covering._linkid_col} = r.{target._linkid_col} and {_lane_condition}({sta_query})
+    """
 
     joined = ddb.sql(join_query)
 
