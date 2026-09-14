@@ -1,15 +1,18 @@
 import unittest
 from src.service.segments.analysis.join import segments_join, CompareRNISegments, segments_coverage_join
-from route_events import RouteSegmentEvents, RouteRNI, RouteRoughness
+from route_events import RouteSegmentEvents, RouteRNI, RouteRoughness, RoutePCI
 from src.route_events.segments.pok import RoutePOKRepo, RoutePOK
 import polars as pl
 from sqlalchemy import create_engine
+import json
 import os
+import shutil
+import tempfile
 from dotenv import load_dotenv
 
 
 load_dotenv('tests/dev.env')
-HOST = os.getenv('DB_HOST')
+HOST = os.getenv('GDB_HOST')
 USER = os.getenv('SMD_USER')
 PWD = os.getenv('SMD_PWD')
 
@@ -17,25 +20,64 @@ engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
 
 
 class TestSegmentsCoverageJoin(unittest.TestCase):
-    def test_join_target_agg(self):
-        pok_repo = RoutePOKRepo(engine)
+    """
+    PCI covering against RNI target on the same linkid (44058).
+    The original PCI excel misses newer schema damage columns, so it is
+    patched with null columns before loading.
+    """
+    PCI_EXCEL = 'tests/domain/route_segments/input_excels/pci_10_01-08-2025_022606_9382.xlsx'
+    RNI_EXCEL = 'tests/domain/route_segments/input_excels/rni_10_21-08-2024_040521_7471.xlsx'
+    LINKID = '44058'
 
-        pok = pok_repo.get_by_comp_name(
-            linkid = '15010',
-            budget_year = 2024,
-            comp_name_keywords = ['Pemeliharaan']
+    @classmethod
+    def setUpClass(cls):
+        cls._tmpdir = tempfile.mkdtemp()
+        cls.pci_excel = os.path.join(cls._tmpdir, 'pci_10_44058_patched.xlsx')
+
+        with open('src/route_events/segments/pci/schema.json') as jf:
+            schema = json.load(jf)['column_details']
+
+        df = pl.read_excel(
+            cls.PCI_EXCEL,
+            engine='calamine',
+            read_options={'dtypes': 'string'}
+        ).rename(str.upper)
+
+        missing = [
+            col for col in schema
+            if not schema[col].get('skip') and col not in df.columns
+        ]
+
+        patched = df.with_columns(
+            [pl.lit(None).alias(col) for col in missing]
         )
+        patched.write_excel(cls.pci_excel)
 
-        rni = RouteRNI.from_excel(
-            'tests/domain/route_segments/input_excels/balai_5_15010.xlsx',
-            linkid='15010',
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls._tmpdir)
+
+    def _load(self):
+        pci = RoutePCI.from_excel(
+            self.pci_excel,
+            linkid=self.LINKID,
             ignore_review=True
         )
 
+        rni = RouteRNI.from_excel(
+            self.RNI_EXCEL,
+            linkid=self.LINKID,
+            ignore_review=True
+        )
+
+        return pci, rni
+
+    def test_join_target_agg(self):
+        pci, rni = self._load()
+
         joined = segments_coverage_join(
-            covering=pok,
+            covering=pci,
             target=rni,
-            covering_select=['COMP_NAME'],
             target_select=['SURF_TYPE'],
             target_agg = [pl.col('SURF_TYPE').max()]
         )
@@ -43,25 +85,12 @@ class TestSegmentsCoverageJoin(unittest.TestCase):
         self.assertFalse(joined.is_empty())
 
     def test_join_target_no_agg(self):
-        pok_repo = RoutePOKRepo(engine)
-
-        pok = pok_repo.get_by_comp_name(
-            linkid = '010362',
-            budget_year = 2024,
-            comp_name_keywords = ['Pemeliharaan']
-        )
-
-        iri = RouteRoughness.from_excel(
-            'tests/domain/route_segments/input_excels/iri_1_010362.xlsx',
-            linkid='010362',
-            ignore_review=True
-        )
+        pci, rni = self._load()
 
         joined = segments_coverage_join(
-            covering=pok,
-            target=iri,
-            covering_select=['COMP_NAME'],
-            target_select=['IRI']
+            covering=pci,
+            target=rni,
+            target_select=['SURF_TYPE']
         )
 
         self.assertFalse(joined.is_empty())
