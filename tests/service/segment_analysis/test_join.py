@@ -150,3 +150,40 @@ class TestSegmentsJoin(unittest.TestCase):
 
         self.assertFalse(comp.rni_with_no_match().is_empty())
         self.assertFalse(comp.other_with_no_match().is_empty())
+
+
+class TestPCIRNISegmentsComparison(unittest.TestCase):
+    """
+    PCI vs RNI on the same linkid (06036), balai 3.
+    PCI is a dynamic-length (coverage) event, RNI is fixed-length,
+    so the coverage (STA-overlap) join is used.
+    """
+    PCI_EXCEL = 'tests/domain/route_segments/input_excels/pci_3_14-08-2026_063529_3497.xlsx'
+    RNI_EXCEL = 'tests/domain/route_segments/input_excels/rni_3_30-07-2025_150436_5405.xlsx'
+    LINKID = '06036'
+
+    @classmethod
+    def setUpClass(cls):
+        cls.pci = RoutePCI.from_excel(
+            cls.PCI_EXCEL,
+            linkid=cls.LINKID,
+            ignore_review=True
+        )
+
+        cls.rni = RouteRNI.from_excel(
+            cls.RNI_EXCEL,
+            linkid=cls.LINKID,
+            ignore_review=True
+        )
+
+    def test_pci_rni_segments_comparison(self):
+        comp = CompareRNISegments(
+            rni=self.rni,
+            other=self.pci
+        )
+
+        rni_no_match = comp.rni_with_no_match()
+        other_no_match = comp.other_with_no_match()
+
+        self.assertTrue(rni_no_match.is_empty())
+        self.assertFalse(other_no_match.is_empty())
