@@ -1,5 +1,5 @@
 from .base import RouteSegmentEventsValidation
-from ..analysis import segments_join, segments_coverage_join
+from ..analysis import CompareRNISegments, segments_coverage_join
 from ...points.analysis import segments_points_join
 from route_events import (
     RouteRNI,
@@ -481,6 +481,45 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
 
         self._result.add_messages(
             msg,
+            'error'
+        )
+
+        return
+
+    def rni_segments_comparison(self):
+        """
+        Check if all RNI segments match with the PCI segments.
+        """
+        comp = CompareRNISegments(
+            rni=self.rni,
+            other=self._events
+        )
+
+        errors = comp.rni_with_no_match().select(
+            msg = pl.format(
+                "Segmen {}-{} {} ada pada data RNI, namun tidak ada pada data ini.",
+                pl.col(self.rni._from_sta_col).truediv(self.rni.sta_conversion),
+                pl.col(self.rni._to_sta_col).truediv(self.rni.sta_conversion),
+                pl.col(self.rni._lane_code_col)
+            )
+        )
+
+        self._result.add_messages(
+            errors,
+            'error'
+        )
+
+        pci_errors = comp.other_with_no_match().select(
+            msg = pl.format(
+                "Segmen {}-{} {} tidak ada pada data RNI.",
+                pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
+                pl.col(self._events._lane_code_col)
+            )
+        )
+
+        self._result.add_messages(
+            pci_errors,
             'error'
         )
 
