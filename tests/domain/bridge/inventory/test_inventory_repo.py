@@ -3,6 +3,7 @@ from src.route_events.bridge.inventory import (
     BridgeInventoryRepo,
     Superstructure,
 )
+from src.route_events.bridge.inventory.profile.schema import InventoryProfileSchema
 import unittest
 import pyarrow as pa
 import polars as pl
@@ -19,6 +20,13 @@ USER = os.getenv('MISC_USER')
 PWD = os.getenv('MISC_PWD')
 
 class TestInventoryRepo(unittest.TestCase):
+    def test_profile_structure_column_matches_database(self):
+        schema = InventoryProfileSchema()
+
+        self.assertEqual(
+            schema.translate_mapping["TIPE_STRUKTUR"], "BRIDGE_STRUCTURE"
+        )
+
     def test_get_by_bridge_id(self):
 
         engine = create_engine(f"oracle+oracledb://{USER}:{PWD}@{HOST}:1521/geodbbm")
