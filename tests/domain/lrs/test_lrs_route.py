@@ -11,7 +11,7 @@ class TestLRSFactory(unittest.TestCase):
         """
         Generate LRSRoute object from GRPC feature service.
         """
-        lrs = LRSRoute.from_feature_service('localhost:50052', '2813415')  # This one is 8MB in size
+        lrs = LRSRoute.from_feature_service('localhost:50052', '3602611')  # This one is 8MB in size
 
         self.assertTrue(type(lrs.gjson) == dict)
         self.assertTrue(type(lrs.artable) == pa.Table)
