@@ -262,6 +262,8 @@ class RTCValidation(ValidationHandler):
             span.set_attribute("route", self.payload.routes[0])
             span.set_attribute("validation.result.status", check.get_status())
 
+            span.set_status(StatusCode.OK)
+
             return check._result.to_job_event(self.job_id)
 
 
