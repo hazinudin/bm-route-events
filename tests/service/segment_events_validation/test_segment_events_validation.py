@@ -152,11 +152,11 @@ class TestRouteRNIEventsValidation(unittest.TestCase):
         self.assertFalse(check._events.pl_df.is_empty())
 
     def test_updated_rows(self):
-        routeid = '44079'
+        routeid = '44069'
         lrs = LRSRoute.from_feature_service('localhost:50052', routeid)
 
         check = RouteRNIValidation.validate_excel(
-            excel_path="/users/hannanazinuddin/Downloads/rni_10_21-08-2024_014838_3203.xlsx",
+            excel_path="/users/hannanazinuddin/Downloads/rni_10_15-07-2026_152014_1515.xlsx",
             route=routeid,
             survey_year=2025,
             sql_engine=engine,
