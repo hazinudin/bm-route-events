@@ -339,7 +339,7 @@ class ValidationWorker:
                 )
 
                 # Publish verified trigger for supported road data types
-                if data_type in ("RNI", "ROUGHNESS", "PCI"):
+                if data_type in ("RNI", "ROUGHNESS", "PCI", "RTC", "FWD"):
                     try:
                         event_data = json.loads(event)
                         status = event_data.get("payload", {}).get("result", {}).get("status")
