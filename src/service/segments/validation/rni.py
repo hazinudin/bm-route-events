@@ -444,30 +444,49 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
     def decreasing_surf_width_check(self, tolerance=0.01):
         """
         Check segment with decreasing surface width if compared to previous year data.
+
+        On segments with a median, SURF_WIDTH is recorded per side (the same value is
+        repeated on every lane row of that side). Each side is therefore aggregated with
+        max() and the two sides are summed to obtain the total carriageway width, which is
+        how `surface_width_check` reads SURF_WIDTH as well.
         """
         surf_w_col = self._events._surf_width_col
         med_w_col = self._events._med_width_col
+        lane_code_col = self._events._lane_code_col
 
         rni_agg = [
             pl.col(surf_w_col).max().alias('surf_w_max'),
-            pl.col(surf_w_col).sum().alias('surf_w_sum'),
+            pl.when(
+                pl.col(lane_code_col).str.starts_with('L')
+            ).then(
+                pl.col(surf_w_col)
+            ).max().alias('l_surf_w_max'),
+            pl.when(
+                pl.col(lane_code_col).str.starts_with('R')
+            ).then(
+                pl.col(surf_w_col)
+            ).max().alias('r_surf_w_max'),
             pl.col(med_w_col).max().gt(0).alias('has_median')
         ]
 
         joined = segments_join(
             left = self._events,
-            right = self._prev_data,
+            right = self.prev_data,
             l_select = [surf_w_col, med_w_col],
             r_select = [surf_w_col, med_w_col],
             l_agg = rni_agg,
             r_agg = rni_agg
+        ).with_columns(
+            # Total carriageway width of both sides, only comparable when a median exists.
+            surf_w_total = pl.col('l_surf_w_max').add(pl.col('r_surf_w_max')),
+            surf_w_total_r = pl.col('l_surf_w_max_r').add(pl.col('r_surf_w_max_r'))
         )
 
         errors = joined.filter(
             pl.when(
                 pl.col('has_median')
             ).then(
-                pl.col('surf_w_sum').lt(pl.col('surf_w_sum' + '_r').sub(tolerance))
+                pl.col('surf_w_total').lt(pl.col('surf_w_total_r').sub(tolerance))
             ).otherwise(
                 pl.col('surf_w_max').lt(pl.col('surf_w_max'+'_r').sub(tolerance))
             )
@@ -479,8 +498,8 @@ class RouteRNIValidation(RouteSegmentEventsValidation):
                     "Segmen {}-{} memiliki median dan mengalami penurunan lebar perkerasan dari {} ke {} dibandingkan data tahun lalu.",
                     pl.col(self._events._from_sta_col).truediv(self._events.sta_conversion),
                     pl.col(self._events._to_sta_col).truediv(self._events.sta_conversion),
-                    pl.col('surf_w_sum'+'_r'),
-                    pl.col('surf_w_sum')
+                    pl.col('surf_w_total_r'),
+                    pl.col('surf_w_total')
                 )
             ).otherwise(
                 pl.format(
