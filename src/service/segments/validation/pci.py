@@ -644,6 +644,7 @@ class RoutePCIValidation(RouteSegmentEventsValidation):
         self.invalid_pci_check()
         self.rni_surf_type_comparison()
         self.rni_surf_type_segment_length_check()
+        self.rni_segments_comparison()
         self.damage_severity_check()
         self.has_defect_data_check()
         
