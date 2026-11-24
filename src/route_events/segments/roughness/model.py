@@ -1,4 +1,4 @@
-from ..base import RouteSegmentEvents
+from ..base import RouteSegmentEvents, raise_linkid_not_found
 from ..base.schema import RouteSegmentEventSchema
 from pydantic import TypeAdapter, BaseModel
 from typing import Literal, List
@@ -46,9 +46,12 @@ class RouteRoughness(RouteSegmentEvents):
         elif (type(linkid) == str) and (linkid != 'ALL'):
             df_str = df_str.filter(pl.col(linkid_col) == linkid)
         elif type(linkid) == list:
-            df_str = df_str.filter(pl.col(linkid_col).str.is_in(linkid))
+            df_str = df_str.filter(pl.col(linkid_col).is_in(linkid))
         else:
             raise TypeError(f"LINKID argument with type {type(linkid)} is invalid type.")
+
+        if df_str.is_empty():
+            raise_linkid_not_found(linkid, excel_path, linkid_col)
 
         # Validate using Pydantic
         ta = TypeAdapter(List[schema.model])

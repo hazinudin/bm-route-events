@@ -1,4 +1,4 @@
-from ..base import RouteSegmentEvents
+from ..base import RouteSegmentEvents, raise_linkid_not_found
 from ..base.schema import RouteSegmentEventSchema
 from .dto import TypeSidedColumnError, ValueSidedColumnError, CenterlineSegment
 from .road_type import _road_types as road_types
@@ -81,9 +81,12 @@ class RouteRNI(RouteSegmentEvents):
         elif (type(linkid) == str) and (linkid != 'ALL'):
             df = df.filter(pl.col(linkid_col) == linkid)
         elif type(linkid) == list:
-            df = df.filter(pl.col(linkid_col).str.is_in(linkid))
+            df = df.filter(pl.col(linkid_col).is_in(linkid))
         else:
             raise TypeError(f"LINKID argument with type {type(linkid)} is invalid type.")
+
+        if df.is_empty():
+            raise_linkid_not_found(linkid, excel_path, linkid_col)
         
         return cls(
             artable=df.to_arrow(),

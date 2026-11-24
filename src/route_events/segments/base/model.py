@@ -1,13 +1,49 @@
+import os
 import pyarrow as pa
 import polars as pl
 from .schema import RouteSegmentEventSchema
 from pydantic import TypeAdapter
+from pydantic import ValidationError
+from pydantic_core import PydanticCustomError, InitErrorDetails
 from typing import List, Literal, Union, Type, Tuple
 from ...geometry import Points
 from ...geometry import LAMBERT_WKT
 from .dto import Segment, CenterlineSegment, OverlappingSegment
 from .utils import to_meter
 from functools import cached_property
+
+
+def raise_linkid_not_found(linkid: str | list, excel_path: str, linkid_col: str = 'LINKID'):
+    """
+    Raise a ValidationError when the linkid filter produced no rows from the
+    input file, so it is converted into a 'rejected' result message by
+    validate_excel() instead of propagating an empty zero-column object.
+    """
+    if isinstance(linkid, list):
+        route_desc = '/'.join(str(_id) for _id in linkid)
+    else:
+        route_desc = str(linkid)
+
+    if route_desc == 'ALL':
+        message = f"File {os.path.basename(excel_path)} tidak memiliki data."
+    else:
+        message = (
+            f"Ruas {route_desc} tidak ada pada file {os.path.basename(excel_path)}."
+        )
+
+    raise ValidationError.from_exception_data(
+        title='RouteSegmentEvents',
+        line_errors=[
+            InitErrorDetails(
+                type=PydanticCustomError(
+                    'linkid_not_found',
+                    message
+                ),
+                loc=(linkid_col,),
+                input=linkid
+            )
+        ]
+    )
 
 
 class RouteSegmentEvents(object):
@@ -52,9 +88,12 @@ class RouteSegmentEvents(object):
         elif (type(linkid) == str) and (linkid != 'ALL'):
             df = df.filter(pl.col(linkid_col) == linkid)
         elif type(linkid) == list:
-            df = df.filter(pl.col(linkid_col).str.is_in(linkid))
+            df = df.filter(pl.col(linkid_col).is_in(linkid))
         else:
             raise TypeError(f"LINKID argument with type {type(linkid)} is invalid type.")
+
+        if df.is_empty():
+            raise_linkid_not_found(linkid, excel_path, linkid_col)
         
         return cls(
             artable=df.to_arrow(),

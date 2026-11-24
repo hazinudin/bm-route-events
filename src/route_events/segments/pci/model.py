@@ -1,4 +1,4 @@
-from ..base import RouteSegmentEvents
+from ..base import RouteSegmentEvents, raise_linkid_not_found
 from ..base.schema import RouteSegmentEventSchema
 from pydantic import TypeAdapter
 from typing import List
@@ -43,6 +43,9 @@ class RoutePCI(RouteSegmentEvents):
         df = pl.DataFrame(
             ta.validate_python(df_str.to_dicts()), infer_schema_length=None
         ).filter(pl.col(linkid_col) == linkid)
+
+        if df.is_empty():
+            raise_linkid_not_found(linkid, excel_path, linkid_col)
 
         return cls(
             artable=df.to_arrow(),
